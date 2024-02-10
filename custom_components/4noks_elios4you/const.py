@@ -4,9 +4,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
-from homeassistant.const import (
-    UnitOfPower,
-)
+from homeassistant.const import UnitOfEnergy, UnitOfPower
 
 # Base component constants
 NAME = "4-noks Elios4you integration"
@@ -105,7 +103,7 @@ SENSOR_TYPES = {
     "Produced_Energy": [
         "Produced Energy",
         "produced_energy",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -113,7 +111,7 @@ SENSOR_TYPES = {
     "Produced_Energy_F1": [
         "Produced Energy F1",
         "produced_energy_f1",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -121,7 +119,7 @@ SENSOR_TYPES = {
     "Produced_Energy_F2": [
         "Produced Energy F2",
         "produced_energy_f2",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -129,7 +127,7 @@ SENSOR_TYPES = {
     "Produced_Energy_F3": [
         "Produced Energy F3",
         "produced_energy_f3",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -137,7 +135,7 @@ SENSOR_TYPES = {
     "Consumed_Energy": [
         "Consumed Energy",
         "consumed_energy",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -145,7 +143,7 @@ SENSOR_TYPES = {
     "Consumed_Energy_F1": [
         "Consumed Energy F1",
         "consumed_energy_f1",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -153,7 +151,7 @@ SENSOR_TYPES = {
     "Consumed_Energy_F2": [
         "Consumed Energy F2",
         "consumed_energy_f2",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -161,7 +159,7 @@ SENSOR_TYPES = {
     "Consumed_Energy_F3": [
         "Consumed Energy F3",
         "consumed_energy_f3",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -169,7 +167,7 @@ SENSOR_TYPES = {
     "Bought_Energy": [
         "Bought Energy",
         "bought_energy",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -177,7 +175,7 @@ SENSOR_TYPES = {
     "Bought_Energy_F1": [
         "Bought Energy F1",
         "bought_energy_f1",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -185,7 +183,7 @@ SENSOR_TYPES = {
     "Bought_Energy_F2": [
         "Bought Energy F2",
         "bought_energy_f2",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -193,7 +191,7 @@ SENSOR_TYPES = {
     "Bought_Energy_F3": [
         "Bought Energy F3",
         "bought_energy_f3",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -201,7 +199,7 @@ SENSOR_TYPES = {
     "Sold_Energy": [
         "Sold Energy",
         "sold_energy",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -209,7 +207,7 @@ SENSOR_TYPES = {
     "Sold_Energy_F1": [
         "Sold Energy F1",
         "sold_energy_f1",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -217,7 +215,7 @@ SENSOR_TYPES = {
     "Sold_Energy_F2": [
         "Sold Energy F2",
         "sold_energy_f2",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,
@@ -225,7 +223,7 @@ SENSOR_TYPES = {
     "Sold_Energy_F3": [
         "Sold Energy F3",
         "sold_energy_f3",
-        UnitOfPower.WATT_HOUR,
+        UnitOfEnergy.WATT_HOUR,
         "mdi:solar-power",
         SensorDeviceClass.ENERGY,
         SensorStateClass.TOTAL_INCREASING,

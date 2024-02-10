@@ -13,7 +13,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.selector import selector
-from pymodbus.exceptions import ConnectionException
 
 from .api import Elios4YouAPI
 from .const import (
@@ -28,6 +27,10 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class ConnectionError(Exception):
+    """Empty Error Class."""
 
 
 def host_valid(host):
@@ -78,7 +81,7 @@ class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.debug("API Client: get data")
             _LOGGER.debug(f"API Client Data: {self.api_data}")
             return self.api.data["sn"]
-        except ConnectionException as connerr:
+        except ConnectionError as connerr:
             _LOGGER.error(
                 f"Failed to connect to host: {host}:{port} - Exception: {connerr}"
             )

@@ -102,7 +102,8 @@ class Elios4YouAPI:
         socket.setdefaulttimeout(sock_timeout)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock_res = sock.connect_ex((self._host, self._port))
-        is_open = sock_res == 0  # True if open, False if not
+        # True if open, False if not
+        is_open = sock_res == 0
         if is_open:
             sock.shutdown(socket.SHUT_RDWR)
             _LOGGER.debug(
@@ -118,31 +119,43 @@ class Elios4YouAPI:
     async def async_get_data(self):
         """Read Data Function."""
 
-        try:
-            reader, writer = await telnetlib3.open_connection(self._host, self._port)
+        if self.check_port():
+            try:
+                reader, writer = await telnetlib3.open_connection(
+                    self._host, self._port
+                )
 
-            dat_parsed = await self.telnet_send_cmd_parse_data("@dat", reader, writer)
-            for key, value in dat_parsed.items():
-                self.data[key] = value
+                dat_parsed = await self.telnet_send_cmd_parse_data(
+                    "@dat", reader, writer
+                )
+                for key, value in dat_parsed.items():
+                    self.data[key] = value
 
-            inf_parsed = await self.telnet_send_cmd_parse_data("@inf", reader, writer)
-            for key, value in inf_parsed.items():
-                self.data[key] = value
+                inf_parsed = await self.telnet_send_cmd_parse_data(
+                    "@inf", reader, writer
+                )
+                for key, value in inf_parsed.items():
+                    self.data[key] = value
 
-            sta_parsed = await self.telnet_send_cmd_parse_data("@sta", reader, writer)
-            for key, value in sta_parsed.items():
-                self.data[key] = value
+                sta_parsed = await self.telnet_send_cmd_parse_data(
+                    "@sta", reader, writer
+                )
+                for key, value in sta_parsed.items():
+                    self.data[key] = value
 
-        except TimeoutError:
-            _LOGGER.debug("Connection or operation timed out")
+            except TimeoutError:
+                _LOGGER.debug("Connection or operation timed out")
 
-        except Exception as e:
-            _LOGGER.debug(f"An error occurred: {str(e)}")
+            except Exception as e:
+                _LOGGER.debug(f"An error occurred: {str(e)}")
 
-        finally:
-            if not writer.transport.is_closing():
-                writer.close()
-                # await writer.wait_closed()
+            finally:
+                if not writer.transport.is_closing():
+                    writer.close()
+                    # await writer.wait_closed()
+        else:
+            _LOGGER.debug("Elios4you not ready for telnet connection")
+            raise ConnectionError(f"Elios4you not active on {self._host}:{self._port}")
 
     async def telnet_send_cmd_parse_data(cmd, reader, writer):
         """Send Telnet Commands and process output."""
