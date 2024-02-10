@@ -1,6 +1,6 @@
-"""Constants for ABB Power-One PVI SunSpec.
+"""Constants for 4-noks Elios4You.
 
-https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec
+https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
@@ -252,6 +252,14 @@ SENSOR_TYPES = {
         None,
         None,
     ],
+    "Relay_State": [
+        "Relay State",
+        "relay_state",
+        None,
+        "mdi:information-outline",
+        None,
+        None,
+    ],
     "PWM_Mode": [
         "PWM Mode",
         "pwm_mode",
@@ -260,7 +268,7 @@ SENSOR_TYPES = {
         None,
         None,
     ],
-    "PR_Ssv": [
+    "Power_Reducer_Ssv": [
         "Power Reducer Ssv",
         "pr_ssv",
         None,
@@ -268,7 +276,7 @@ SENSOR_TYPES = {
         None,
         None,
     ],
-    "REL_Ssv": [
+    "Relay_Ssv": [
         "Relay Ssv",
         "rel_ssv",
         None,
@@ -276,7 +284,7 @@ SENSOR_TYPES = {
         None,
         None,
     ],
-    "REL_Mode": [
+    "Relay_Mode": [
         "Relay Mode",
         "rel_mode",
         None,
@@ -284,7 +292,7 @@ SENSOR_TYPES = {
         None,
         None,
     ],
-    "REL_Warning": [
+    "Relay_Warning": [
         "Relay Warning",
         "rel_warning",
         None,
@@ -292,15 +300,15 @@ SENSOR_TYPES = {
         None,
         None,
     ],
-    "RCAP": [
-        "RCAP",
+    "RedCap": [
+        "RedCap",
         "rcap",
         None,
         "mdi:information-outline",
         None,
         None,
     ],
-    "FWTOP": [
+    "Firmware_Top_Version": [
         "Firmware TOP Version",
         "fwtop",
         None,
@@ -308,7 +316,7 @@ SENSOR_TYPES = {
         None,
         None,
     ],
-    "FWBTM": [
+    "Firmware_Bottom_Version": [
         "Firmware BOTTOM Version",
         "fwbtm",
         None,
@@ -332,41 +340,41 @@ SENSOR_TYPES = {
         None,
         None,
     ],
-    "RCAP": [
-        "RCAP",
-        "rcap",
+    "BT_Version": [
+        "BT Version",
+        "btver",
         None,
         "mdi:information-outline",
         None,
         None,
     ],
-    "RCAP": [
-        "RCAP",
-        "rcap",
+    "Wifi_HW_Version": [
+        "Wifi HW Version",
+        "hw_wifi",
         None,
         "mdi:information-outline",
         None,
         None,
     ],
-    "RCAP": [
-        "RCAP",
-        "rcap",
+    "Wifi_App_Version": [
+        "Wifi App Version",
+        "s2w_app_version",
         None,
         "mdi:information-outline",
         None,
         None,
     ],
-    "RCAP": [
-        "RCAP",
-        "rcap",
+    "Wifi_Geps_Version": [
+        "Wifi Geps Version",
+        "s2w_geps_version",
         None,
         "mdi:information-outline",
         None,
         None,
     ],
-    "RCAP": [
-        "RCAP",
-        "rcap",
+    "Wifi_Wlan_Version": [
+        "Wifi Wlan Version",
+        "s2w_wlan_version",
         None,
         "mdi:information-outline",
         None,

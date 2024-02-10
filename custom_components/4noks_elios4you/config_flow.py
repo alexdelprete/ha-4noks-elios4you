@@ -1,6 +1,6 @@
-"""Config Flow for ABB Power-One PVI SunSpec.
+"""Config Flow for 4-noks Elios4You.
 
-https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec
+https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
 import ipaddress
@@ -15,19 +15,15 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.selector import selector
 from pymodbus.exceptions import ConnectionException
 
-from .api import ABBPowerOneFimerAPI
+from .api import Elios4YouAPI
 from .const import (
-    CONF_BASE_ADDR,
     CONF_HOST,
     CONF_NAME,
     CONF_PORT,
     CONF_SCAN_INTERVAL,
-    CONF_SLAVE_ID,
-    DEFAULT_BASE_ADDR,
     DEFAULT_NAME,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
-    DEFAULT_SLAVE_ID,
     DOMAIN,
 )
 
@@ -53,8 +49,8 @@ def get_host_from_config(hass: HomeAssistant):
     }
 
 
-class ABBPowerOneFimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """ABB Power-One PVI SunSpec config flow."""
+class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """4-noks Elios4You config flow."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
@@ -63,7 +59,7 @@ class ABBPowerOneFimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry: ConfigEntry):
         """Initiate Options Flow Instance."""
-        return ABBPowerOneFimerOptionsFlow(config_entry)
+        return Elios4YouOptionsFlow(config_entry)
 
     def _host_in_configuration_exists(self, host) -> bool:
         """Return True if host exists in configuration."""
@@ -71,24 +67,20 @@ class ABBPowerOneFimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return True
         return False
 
-    async def test_connection(
-        self, name, host, port, slave_id, base_addr, scan_interval
-    ):
+    async def test_connection(self, name, host, port, scan_interval):
         """Return true if credentials is valid."""
-        _LOGGER.debug(f"Test connection to {host}:{port} slave id {slave_id}")
+        _LOGGER.debug(f"Test connection to {host}:{port}")
         try:
             _LOGGER.debug("Creating API Client")
-            self.api = ABBPowerOneFimerAPI(
-                self.hass, name, host, port, slave_id, base_addr, scan_interval
-            )
+            self.api = Elios4YouAPI(self.hass, name, host, port, scan_interval)
             _LOGGER.debug("API Client created: calling get data")
             self.api_data = await self.api.async_get_data()
             _LOGGER.debug("API Client: get data")
             _LOGGER.debug(f"API Client Data: {self.api_data}")
-            return self.api.data["comm_sernum"]
+            return self.api.data["sn"]
         except ConnectionException as connerr:
             _LOGGER.error(
-                f"Failed to connect to host: {host}:{port} - slave id: {slave_id} - Exception: {connerr}"
+                f"Failed to connect to host: {host}:{port} - Exception: {connerr}"
             )
             return False
 
@@ -100,8 +92,6 @@ class ABBPowerOneFimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             name = user_input[CONF_NAME]
             host = user_input[CONF_HOST]
             port = user_input[CONF_PORT]
-            slave_id = user_input[CONF_SLAVE_ID]
-            base_addr = user_input[CONF_BASE_ADDR]
             scan_interval = user_input[CONF_SCAN_INTERVAL]
 
             if self._host_in_configuration_exists(host):
@@ -109,9 +99,7 @@ class ABBPowerOneFimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             elif not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid Host IP"
             else:
-                uid = await self.test_connection(
-                    name, host, port, slave_id, base_addr, scan_interval
-                )
+                uid = await self.test_connection(name, host, port, scan_interval)
                 if uid is not False:
                     _LOGGER.debug(f"Device unique id: {uid}")
                     await self.async_set_unique_id(uid)
@@ -140,14 +128,6 @@ class ABBPowerOneFimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         default=DEFAULT_PORT,
                     ): vol.Coerce(int),
                     vol.Required(
-                        CONF_SLAVE_ID,
-                        default=DEFAULT_SLAVE_ID,
-                    ): vol.Coerce(int),
-                    vol.Required(
-                        CONF_BASE_ADDR,
-                        default=DEFAULT_BASE_ADDR,
-                    ): vol.Coerce(int),
-                    vol.Required(
                         CONF_SCAN_INTERVAL,
                         default=DEFAULT_SCAN_INTERVAL,
                     ): selector(
@@ -167,7 +147,7 @@ class ABBPowerOneFimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
-class ABBPowerOneFimerOptionsFlow(config_entries.OptionsFlow):
+class Elios4YouOptionsFlow(config_entries.OptionsFlow):
     """Config flow options handler."""
 
     VERSION = 1
@@ -180,14 +160,6 @@ class ABBPowerOneFimerOptionsFlow(config_entries.OptionsFlow):
                 vol.Required(
                     CONF_PORT,
                     default=self.config_entry.data.get(CONF_PORT),
-                ): vol.Coerce(int),
-                vol.Required(
-                    CONF_SLAVE_ID,
-                    default=self.config_entry.data.get(CONF_SLAVE_ID),
-                ): vol.Coerce(int),
-                vol.Required(
-                    CONF_BASE_ADDR,
-                    default=self.config_entry.data.get(CONF_BASE_ADDR),
                 ): vol.Coerce(int),
                 vol.Required(
                     CONF_SCAN_INTERVAL,

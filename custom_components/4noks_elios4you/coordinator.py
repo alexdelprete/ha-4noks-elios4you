@@ -1,6 +1,6 @@
-"""Data Update Coordinator for ABB Power-One PVI SunSpec.
+"""Data Update Coordinator for 4-noks Elios4You.
 
-https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec
+https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
 import logging
@@ -10,14 +10,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import ABBPowerOneFimerAPI
+from .api import Elios4YouAPI
 from .const import (
-    CONF_BASE_ADDR,
     CONF_HOST,
     CONF_NAME,
     CONF_PORT,
     CONF_SCAN_INTERVAL,
-    CONF_SLAVE_ID,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MIN_SCAN_INTERVAL,
@@ -26,7 +24,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class ABBPowerOneFimerCoordinator(DataUpdateCoordinator):
+class Elios4YouCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the API."""
 
     config_entry: ConfigEntry
@@ -59,13 +57,11 @@ class ABBPowerOneFimerCoordinator(DataUpdateCoordinator):
         self.last_update_time = datetime.now()
         self.last_update_success = True
 
-        self.api = ABBPowerOneFimerAPI(
+        self.api = Elios4YouAPI(
             hass,
             config_entry.data.get(CONF_NAME),
             config_entry.data.get(CONF_HOST),
             config_entry.data.get(CONF_PORT),
-            config_entry.data.get(CONF_SLAVE_ID),
-            config_entry.data.get(CONF_BASE_ADDR),
             self.scan_interval,
         )
 
@@ -74,7 +70,6 @@ class ABBPowerOneFimerCoordinator(DataUpdateCoordinator):
             "Coordinator API init: Host: %s Port: %s ID: %s ScanInterval: %s",
             config_entry.data.get(CONF_HOST),
             config_entry.data.get(CONF_PORT),
-            config_entry.data.get(CONF_SLAVE_ID),
             self.scan_interval,
         )
 

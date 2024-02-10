@@ -1,6 +1,6 @@
-"""API Platform for ABB Power-One PVI SunSpec.
+"""API Platform for 4-noks Elios4You.
 
-https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec
+https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
 import logging
@@ -14,11 +14,9 @@ _LOGGER = logging.getLogger(__name__)
 class ConnectionError(Exception):
     """Empty Error Class."""
 
-    pass
 
-
-class ABBPowerOneFimerAPI:
-    """Thread safe wrapper class for pymodbus."""
+class Elios4YouAPI:
+    """Wrapper class."""
 
     def __init__(
         self,
@@ -28,7 +26,7 @@ class ABBPowerOneFimerAPI:
         port,
         scan_interval,
     ):
-        """Initialize the Modbus API Client."""
+        """Initialize the Elios4You API Client."""
         self._hass = hass
         self._name = name
         self._host = host
@@ -36,40 +34,52 @@ class ABBPowerOneFimerAPI:
         self._timeout = scan_interval - 1
         self._sensors = []
         self.data = {}
-        # Initialize ModBus data structure before first read
-        self.data["accurrent"] = 1
-        self.data["accurrenta"] = 1
-        self.data["accurrentb"] = 1
-        self.data["accurrentc"] = 1
-        self.data["acvoltageab"] = 1
-        self.data["acvoltagebc"] = 1
-        self.data["acvoltageca"] = 1
-        self.data["acvoltagean"] = 1
-        self.data["acvoltagebn"] = 1
-        self.data["acvoltagecn"] = 1
-        self.data["acpower"] = 1
-        self.data["acfreq"] = 1
-        self.data["comm_options"] = 1
-        self.data["comm_manufact"] = ""
-        self.data["comm_model"] = ""
-        self.data["comm_version"] = ""
-        self.data["comm_sernum"] = ""
-        self.data["mppt_nr"] = 1
-        self.data["dccurr"] = 1
-        self.data["dcvolt"] = 1
-        self.data["dcpower"] = 1
-        self.data["dc1curr"] = 1
-        self.data["dc1volt"] = 1
-        self.data["dc1power"] = 1
-        self.data["dc2curr"] = 1
-        self.data["dc2volt"] = 1
-        self.data["dc2power"] = 1
-        self.data["invtype"] = ""
-        self.data["status"] = ""
-        self.data["statusvendor"] = ""
-        self.data["totalenergy"] = 1
-        self.data["tempcab"] = 1
-        self.data["tempoth"] = 1
+        # Initialize Elios4You data structure before first read
+        self.data["produced_power"] = 1
+        self.data["consumed_power"] = 1
+        self.data["bought_power"] = 1
+        self.data["sold_power"] = 1
+        self.data["daily_peak"] = 1
+        self.data["monthly_peak"] = 1
+        self.data["produced_energy"] = 1
+        self.data["produced_energy_f1"] = 1
+        self.data["produced_energy_f2"] = 1
+        self.data["produced_energy_f3"] = 1
+        self.data["consumed_energy"] = 1
+        self.data["consumed_energy_f1"] = 1
+        self.data["consumed_energy_f2"] = 1
+        self.data["consumed_energy_f3"] = 1
+        self.data["bought_energy"] = 1
+        self.data["bought_energy_f1"] = 1
+        self.data["bought_energy_f2"] = 1
+        self.data["bought_energy_f3"] = 1
+        self.data["sold_energy"] = 1
+        self.data["sold_energy_f1"] = 1
+        self.data["sold_energy_f2"] = 1
+        self.data["sold_energy_f3"] = 1
+        self.data["alarm_1"] = 1
+        self.data["alarm_2"] = 1
+        self.data["power_alarm"] = 1
+        self.data["relay_state"] = 1
+        self.data["pwm_mode"] = 1
+        self.data["pr_ssv"] = 1
+        self.data["rel_ssv"] = 1
+        self.data["rel_mode"] = 1
+        self.data["rel_warning"] = 1
+        self.data["rcap"] = 1
+        self.data["fwtop"] = ""
+        self.data["fwbtm"] = ""
+        self.data["sn"] = ""
+        self.data["hwver"] = ""
+        self.data["btver"] = ""
+        self.data["hw_wifi"] = ""
+        self.data["s2w_app_version"] = ""
+        self.data["s2w_geps_version"] = ""
+        self.data["s2w_wlan_version"] = ""
+        # custom fields to reuse code structure
+        self.data["swver"] = f'{self.data["fwtop"]} / {self.data["fwbtm"]}'
+        self.data["manufact"] = "4-noks"
+        self.data["model"] = "Elios4You"
 
     @property
     def name(self):
@@ -109,15 +119,15 @@ class ABBPowerOneFimerAPI:
         try:
             reader, writer = await telnetlib3.open_connection(self._host, self._port)
 
-            dat_parsed = await self.read_from_telnet("@dat", reader, writer)
+            dat_parsed = await self.telnet_send_cmd_parse_data("@dat", reader, writer)
             for key, value in dat_parsed.items():
                 self.data[key] = value
 
-            inf_parsed = await self.read_from_telnet("@inf", reader, writer)
+            inf_parsed = await self.telnet_send_cmd_parse_data("@inf", reader, writer)
             for key, value in inf_parsed.items():
                 self.data[key] = value
 
-            sta_parsed = await self.read_from_telnet("@sta", reader, writer)
+            sta_parsed = await self.telnet_send_cmd_parse_data("@sta", reader, writer)
             for key, value in sta_parsed.items():
                 self.data[key] = value
 
@@ -132,7 +142,7 @@ class ABBPowerOneFimerAPI:
                 writer.close()
                 # await writer.wait_closed()
 
-    async def read_from_telnet(cmd, reader, writer):
+    async def telnet_send_cmd_parse_data(cmd, reader, writer):
         """Send Telnet Commands and process output."""
         try:
             output = {}
@@ -142,19 +152,21 @@ class ABBPowerOneFimerAPI:
             response = await reader.readuntil(b"ready...")
             # decode bytes to string using utf-8 and split each line as a list member
             lines = response.decode("utf-8").splitlines()
-            for line in lines[2:-2]:  # Exclude first and last two lines
+            # exclude first and last two lines
+            for line in lines[2:-2]:
                 try:
+                    # @inf output uses a different separator
                     if cmd == "@inf":
-                        # @inf output uses a different separator
                         key, value = line.split("=")
+                    # @dat and @sta share the same output format
                     else:
-                        # @dat and @sta share the same output format
                         key, value = line.split(";")[1:3]
+                    # replace space with underscore
                     output[key.lower().replace(" ", "_")] = value.strip()
 
                 except ValueError:
                     _LOGGER.debug(f"Error parsing line: {line}")
-            _LOGGER.debug(f"read_from_telnet: success {output}")
+            _LOGGER.debug(f"telnet_send_cmd_parse_data: success {output}")
         except Exception as ex:
-            _LOGGER.debug(f"read_from_telnet: failed with error: {ex}")
+            _LOGGER.debug(f"telnet_send_cmd_parse_data: failed with error: {ex}")
         return output

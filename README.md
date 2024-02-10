@@ -12,7 +12,7 @@ HA Custom Component to integrate data from ABB/Power-One/FIMER PV mono-phase and
 
 The component has been originally developed by @binsentsu for SolarEdge inverters, I adapted it, adding some features, rewriting all the registers' mapping, for my Power-One Aurora PVI-10.0-OUTD 3-phase inverter to which I added a VSN300 card. It has also been tested with an ABB TRIO-8.5-TL-OUTD-S through a VSN300 and REACT2-3.6-TL through a VSN700 datalogger.
 
-Register address map has been implemented following the vendor's specification documentation, available in the [doc](https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec/tree/master/doc) folder.
+Register address map has been implemented following the vendor's specification documentation, available in the [doc](https://github.com/alexdelprete/ha-4noks-elios4you/tree/master/doc) folder.
 
 
 ### Features
@@ -33,11 +33,11 @@ This integration is available in [HACS][hacs] official repository. Click this bu
 
 1. Either click the button above, or navigate to HACS in Home Assistant and:
    - 'Explore & Download Repositories'
-   - Search for 'ABB Power-One PVI SunSpec'
+   - Search for '4-noks Elios4You'
    - Download
 2. Restart Home Assistant
 3. Go to Settings > Devices and Services > Add Integration
-4. Search for and select 'ABB Power-One PVI SunSpec' (if the integration is not found, do a hard-refresh (ctrl+F5) in the browser)
+4. Search for and select '4-noks Elios4You' (if the integration is not found, do a hard-refresh (ctrl+F5) in the browser)
 5. Proceed with the configuration
 
 # Manual Installation
@@ -61,10 +61,10 @@ Configuration is done via config flow right after adding the integration. After 
 - **register map base address**: the base address from where the register map starts, usually it's 40000, but for ABB VSN300/VSN700 dataloggers it's 0
 - **polling period**: frequency, in seconds, to read the registers and update the sensors
 
-<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec/blob/master/gfxfiles/config.png?raw=true" alt="Config">
+<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/blob/master/gfxfiles/config.png?raw=true" alt="Config">
 
 # Sensor screenshot
-<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec/blob/master/gfxfiles/demo.png?raw=true" alt="Config">
+<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/blob/master/gfxfiles/demo.png?raw=true" alt="Config">
 
 # Coffee
 
@@ -81,4 +81,4 @@ _If you like this integration, I'll gladly accept some quality coffee, but pleas
 [forum-shield]: https://img.shields.io/badge/community-forum-darkred?style=for-the-badge
 [forum]: https://community.home-assistant.io/t/custom-component-abb-power-one-fimer-pv-inverters-sunspec-modbus-tcp/316363?u=alexdelprete
 [releases-shield]: https://img.shields.io/github/v/release/alexdelprete/ha-abb-powerone-pvi-sunspec?style=for-the-badge&color=darkgreen
-[releases]: https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec/releases
+[releases]: https://github.com/alexdelprete/ha-4noks-elios4you/releases

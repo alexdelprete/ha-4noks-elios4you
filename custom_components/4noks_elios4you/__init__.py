@@ -1,6 +1,6 @@
-"""ABB Power-One PVI SunSpec Integration.
+"""4-noks Elios4You integration.
 
-https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec
+https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
 import asyncio
@@ -12,7 +12,6 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 
 from .const import (
-    CONF_HOST,
     CONF_NAME,
     DATA,
     DOMAIN,
@@ -20,7 +19,7 @@ from .const import (
     STARTUP_MESSAGE,
     UPDATE_LISTENER,
 )
-from .coordinator import ABBPowerOneFimerCoordinator
+from .coordinator import Elios4YouCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,12 +41,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         _LOGGER.info(STARTUP_MESSAGE)
 
     _LOGGER.debug(f"Setup config_entry for {DOMAIN}")
-    coordinator = ABBPowerOneFimerCoordinator(hass, config_entry)
+    coordinator = Elios4YouCoordinator(hass, config_entry)
     # If the refresh fails, async_config_entry_first_refresh() will
     # raise ConfigEntryNotReady and setup will try again later
     # ref.: https://developers.home-assistant.io/docs/integration_setup_failures
     await coordinator.async_config_entry_first_refresh()
-    if not coordinator.api.data["comm_sernum"]:
+    if not coordinator.api.data["sn"]:
         raise ConfigEntryNotReady(
             f"Timeout connecting to {config_entry.data.get(CONF_NAME)}"
         )
@@ -79,14 +78,13 @@ async def async_update_device_registry(hass: HomeAssistant, config_entry):
     device_registry = dr.async_get(hass)
     device_registry.async_get_or_create(
         config_entry_id=config_entry.entry_id,
-        hw_version=None,
-        configuration_url=f"http://{config_entry.data.get(CONF_HOST)}",
-        identifiers={(DOMAIN, coordinator.api.data["comm_sernum"])},
-        manufacturer=coordinator.api.data["comm_manufact"],
-        model=coordinator.api.data["comm_model"],
+        hw_version=coordinator.api.data["hwver"],
+        identifiers={(DOMAIN, coordinator.api.data["sn"])},
+        manufacturer=coordinator.api.data["manufact"],
+        model=coordinator.api.data["model"],
         name=config_entry.data.get(CONF_NAME),
-        serial_number=coordinator.api.data["comm_sernum"],
-        sw_version=coordinator.api.data["comm_version"],
+        serial_number=coordinator.api.data["sn"],
+        sw_version=coordinator.api.data["swver"],
         via_device=None,
     )
 
@@ -149,7 +147,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 #         coordinator = hass.data[DOMAIN][config_entry.entry_id][DATA]
 #         _LOGGER.debug("Migrating from version %s", version)
 #         old_uid = config_entry.unique_id
-#         new_uid = coordinator.api.data["comm_sernum"]
+#         new_uid = coordinator.api.data["sn"]
 #         if old_uid != new_uid:
 #             hass.config_entries.async_update_entry(
 #                 config_entry, unique_id=new_uid
