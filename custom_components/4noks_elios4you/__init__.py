@@ -85,6 +85,7 @@ async def async_update_device_registry(hass: HomeAssistant, config_entry):
         name=config_entry.data.get(CONF_NAME),
         serial_number=coordinator.api.data["sn"],
         sw_version=coordinator.api.data["swver"],
+        configuration_url=None,
         via_device=None,
     )
 

@@ -152,7 +152,7 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
     def device_info(self):
         """Return device specific attributes."""
         return {
-            "configuration_url": f"http://{self._device_host}",
+            "configuration_url": None,
             "hw_version": self._device_hwver,
             "identifiers": {(DOMAIN, self._device_sn)},
             "manufacturer": self._device_manufact,

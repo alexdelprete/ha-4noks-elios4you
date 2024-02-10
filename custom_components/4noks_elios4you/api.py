@@ -125,21 +125,15 @@ class Elios4YouAPI:
                     self._host, self._port
                 )
 
-                dat_parsed = await self.telnet_send_cmd_parse_data(
-                    "@dat", reader, writer
-                )
+                dat_parsed = await self.telnet_cmd_parse_data("@dat", reader, writer)
                 for key, value in dat_parsed.items():
                     self.data[key] = value
 
-                inf_parsed = await self.telnet_send_cmd_parse_data(
-                    "@inf", reader, writer
-                )
+                inf_parsed = await self.telnet_cmd_parse_data("@inf", reader, writer)
                 for key, value in inf_parsed.items():
                     self.data[key] = value
 
-                sta_parsed = await self.telnet_send_cmd_parse_data(
-                    "@sta", reader, writer
-                )
+                sta_parsed = await self.telnet_cmd_parse_data("@sta", reader, writer)
                 for key, value in sta_parsed.items():
                     self.data[key] = value
 
@@ -157,7 +151,7 @@ class Elios4YouAPI:
             _LOGGER.debug("Elios4you not ready for telnet connection")
             raise ConnectionError(f"Elios4you not active on {self._host}:{self._port}")
 
-    async def telnet_send_cmd_parse_data(cmd, reader, writer):
+    async def telnet_cmd_parse_data(cmd, reader, writer):
         """Send Telnet Commands and process output."""
         try:
             output = {}
@@ -181,7 +175,7 @@ class Elios4YouAPI:
 
                 except ValueError:
                     _LOGGER.debug(f"Error parsing line: {line}")
-            _LOGGER.debug(f"telnet_send_cmd_parse_data: success {output}")
+            _LOGGER.debug(f"telnet_cmd_parse_data: success {output}")
         except Exception as ex:
-            _LOGGER.debug(f"telnet_send_cmd_parse_data: failed with error: {ex}")
+            _LOGGER.debug(f"telnet_cmd_parse_data: failed with error: {ex}")
         return output
