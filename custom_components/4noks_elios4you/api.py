@@ -8,6 +8,8 @@ import socket
 
 import telnetlib3
 
+from .const import MANUFACTURER, MODEL
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -78,8 +80,8 @@ class Elios4YouAPI:
         self.data["s2w_wlan_version"] = ""
         # custom fields to reuse code structure
         self.data["swver"] = f'{self.data["fwtop"]} / {self.data["fwbtm"]}'
-        self.data["manufact"] = "4-noks"
-        self.data["model"] = "Elios4You"
+        self.data["manufact"] = MANUFACTURER
+        self.data["model"] = MODEL
 
     @property
     def name(self):

@@ -39,6 +39,8 @@ DEFAULT_NAME = "Elios4you"
 DEFAULT_PORT = 5001
 DEFAULT_SCAN_INTERVAL = 60
 MIN_SCAN_INTERVAL = 30
+MANUFACTURER = "4-noks"
+MODEL = "Elios4you"
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
 {NAME}

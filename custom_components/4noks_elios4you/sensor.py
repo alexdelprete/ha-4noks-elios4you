@@ -84,7 +84,7 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
         self._state = self.coordinator.api.data[self._key]
         self.async_write_ha_state()
         # write debug log only on first sensor to avoid spamming the log
-        if self.name == "Manufacturer":
+        if self.name == "RedCap":
             _LOGGER.debug(
                 "_handle_coordinator_update: sensors state written to state machine"
             )
@@ -146,14 +146,14 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID to use for this entity."""
-        return f"{self._device_sn}_{self._key}"
+        return f"{DOMAIN}_{self._device_sn}_{self._key}"
 
     @property
     def device_info(self):
         """Return device specific attributes."""
         return {
             "configuration_url": f"http://{self._device_host}",
-            "hw_version": None,
+            "hw_version": self._device_hwver,
             "identifiers": {(DOMAIN, self._device_sn)},
             "manufacturer": self._device_manufact,
             "model": self._device_model,
