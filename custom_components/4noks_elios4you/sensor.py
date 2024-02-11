@@ -56,7 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entitie
 class Elios4YouSensor(CoordinatorEntity, SensorEntity):
     """Representation of an Elios4You sensor."""
 
-    def __init__(self, coordinator, name, key, unit, icon, device_class, state_class):
+    def __init__(self, coordinator, name, key, icon, device_class, state_class, unit):
         """Class Initializitation."""
         super().__init__(coordinator)
         self._coordinator = coordinator
