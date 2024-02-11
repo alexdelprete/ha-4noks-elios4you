@@ -151,7 +151,7 @@ class Elios4YouAPI:
             _LOGGER.debug("Elios4you not ready for telnet connection")
             raise ConnectionError(f"Elios4you not active on {self._host}:{self._port}")
 
-    async def telnet_get_data(cmd, reader, writer):
+    async def telnet_get_data(self, cmd, reader, writer):
         """Send Telnet Commands and process output."""
         try:
             cmd = cmd.lower()
