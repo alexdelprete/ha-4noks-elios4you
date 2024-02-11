@@ -2,7 +2,6 @@
 
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
-
 import logging
 from typing import Any
 
@@ -15,25 +14,10 @@ from .const import (
     CONF_NAME,
     DATA,
     DOMAIN,
-    SENSOR_TYPES,
+    SENSOR_ENTITIES,
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def add_sensor_defs(coordinator, config_entry, sensor_list, sensor_definitions):
-    """Class Initializitation."""
-
-    for sensor_info in sensor_definitions.values():
-        sensor_data = {
-            "name": sensor_info[0],
-            "key": sensor_info[1],
-            "unit": sensor_info[2],
-            "icon": sensor_info[3],
-            "device_class": sensor_info[4],
-            "state_class": sensor_info[5],
-        }
-        sensor_list.append(Elios4YouSensor(coordinator, sensor_data))
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entities):
@@ -49,10 +33,22 @@ async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entitie
     _LOGGER.debug("(sensor) SW Version: %s", coordinator.api.data["swver"])
     _LOGGER.debug("(sensor) Serial#: %s", coordinator.api.data["sn"])
 
-    sensor_list = []
-    add_sensor_defs(coordinator, config_entry, sensor_list, SENSOR_TYPES)
+    sensors = []
+    for sensor in SENSOR_ENTITIES:
+        if coordinator.api.data[sensor["key"]] is not None:
+            sensors.append(
+                Elios4YouSensor(
+                    coordinator,
+                    sensor["name"],
+                    sensor["key"],
+                    sensor["icon"],
+                    sensor["device_class"],
+                    sensor["state_class"],
+                    sensor["unit"],
+                )
+            )
 
-    async_add_entities(sensor_list)
+    async_add_entities(sensors)
 
     return True
 
@@ -60,28 +56,28 @@ async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entitie
 class Elios4YouSensor(CoordinatorEntity, SensorEntity):
     """Representation of an Elios4You sensor."""
 
-    def __init__(self, coordinator, sensor_data):
+    def __init__(self, coordinator, name, key, unit, icon, device_class, state_class):
         """Class Initializitation."""
         super().__init__(coordinator)
-        self.coordinator = coordinator
-        self._name = sensor_data["name"]
-        self._key = sensor_data["key"]
-        self._unit_of_measurement = sensor_data["unit"]
-        self._icon = sensor_data["icon"]
-        self._device_class = sensor_data["device_class"]
-        self._state_class = sensor_data["state_class"]
-        self._device_name = self.coordinator.api.name
-        self._device_host = self.coordinator.api.host
-        self._device_model = self.coordinator.api.data["model"]
-        self._device_manufact = self.coordinator.api.data["manufact"]
-        self._device_sn = self.coordinator.api.data["sn"]
-        self._device_swver = self.coordinator.api.data["swver"]
-        self._device_hwver = self.coordinator.api.data["hwver"]
+        self._coordinator = coordinator
+        self._name = name
+        self._key = key
+        self._icon = icon
+        self._device_class = device_class
+        self._state_class = state_class
+        self._unit_of_measurement = unit
+        self._device_name = self._coordinator.api.name
+        self._device_host = self._coordinator.api.host
+        self._device_model = self._coordinator.api.data["model"]
+        self._device_manufact = self._coordinator.api.data["manufact"]
+        self._device_sn = self._coordinator.api.data["sn"]
+        self._device_swver = self._coordinator.api.data["swver"]
+        self._device_hwver = self._coordinator.api.data["hwver"]
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Fetch new state data for the sensor."""
-        self._state = self.coordinator.api.data[self._key]
+        self._state = self._coordinator.api.data[self._key]
         self.async_write_ha_state()
         # write debug log only on first sensor to avoid spamming the log
         if self.name == "RedCap":
@@ -130,8 +126,8 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the state of the sensor."""
-        if self._key in self.coordinator.api.data:
-            return self.coordinator.api.data[self._key]
+        if self._key in self._coordinator.api.data:
+            return self._coordinator.api.data[self._key]
 
     @property
     def state_attributes(self) -> dict[str, Any] | None:
