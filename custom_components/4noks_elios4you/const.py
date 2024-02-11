@@ -55,7 +55,7 @@ If you have any issues with this you need to open an issue here:
 
 SWITCH_ENTITIES = [
     {
-        "name": "Relay State",
+        "name": "Relay",
         "key": "relay_state",
         "icon": "mdi:light-switch",
         "device_class": SwitchDeviceClass.SWITCH,

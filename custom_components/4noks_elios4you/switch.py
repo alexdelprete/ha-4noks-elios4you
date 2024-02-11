@@ -105,22 +105,28 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
 
     @property
     def is_on(self):
-        """Return true if device is on."""
+        """Return true if switch is on."""
         return self._is_on
 
     async def async_turn_on(self, **kwargs):
-        """Turn the device on."""
-        fn = getattr(self._coordinator.api.data, "set_" + self._key)
-        await fn(True)
+        """Turn the switch on."""
+        set_response = await self._coordinator.api.telnet_set_relay("on")
+        if set_response:
+            _LOGGER.debug("switch async_turn_on: turned on")
+        else:
+            _LOGGER.debug("switch async_turn_on: error turning on")
         await self.async_force_update()
-        return True
+        return set_response
 
     async def async_turn_off(self, **kwargs):
-        """Turn the device off."""
-        fn = getattr(self._coordinator.api.data, "set_" + self._key)
-        await fn(False)
+        """Turn the switch off."""
+        set_response = await self._coordinator.api.telnet_set_relay("off")
+        if set_response:
+            _LOGGER.debug("switch async_turn_on: turned off")
+        else:
+            _LOGGER.debug("switch async_turn_on: error turning off")
         await self.async_force_update()
-        return True
+        return set_response
 
     @property
     def device_info(self):

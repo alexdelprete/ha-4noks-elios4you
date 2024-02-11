@@ -125,15 +125,15 @@ class Elios4YouAPI:
                     self._host, self._port
                 )
 
-                dat_parsed = await self.telnet_cmd_parse_data("@dat", reader, writer)
+                dat_parsed = await self.telnet_get_data("@dat", reader, writer)
                 for key, value in dat_parsed.items():
                     self.data[key] = value
 
-                inf_parsed = await self.telnet_cmd_parse_data("@inf", reader, writer)
+                inf_parsed = await self.telnet_get_data("@inf", reader, writer)
                 for key, value in inf_parsed.items():
                     self.data[key] = value
 
-                sta_parsed = await self.telnet_cmd_parse_data("@sta", reader, writer)
+                sta_parsed = await self.telnet_get_data("@sta", reader, writer)
                 for key, value in sta_parsed.items():
                     self.data[key] = value
 
@@ -151,9 +151,12 @@ class Elios4YouAPI:
             _LOGGER.debug("Elios4you not ready for telnet connection")
             raise ConnectionError(f"Elios4you not active on {self._host}:{self._port}")
 
-    async def telnet_cmd_parse_data(cmd, reader, writer):
+    async def telnet_get_data(cmd, reader, writer):
         """Send Telnet Commands and process output."""
         try:
+            cmd = cmd.lower()
+            cmd_main = cmd[0:4]
+            _LOGGER.debug(f"telnet_get_data: cmd {cmd} cmd_main: {cmd_main}")
             output = {}
             # send the command
             writer.write(cmd + "\n")
@@ -164,18 +167,62 @@ class Elios4YouAPI:
             # exclude first and last two lines
             for line in lines[2:-2]:
                 try:
-                    # @inf output uses a different separator
-                    if cmd == "@inf":
+                    # @inf @rel @hwr output use "=" separator
+                    if cmd_main == "@inf" or cmd_main == "@rel" or cmd_main == "@hwr":
                         key, value = line.split("=")
-                    # @dat and @sta share the same output format
+                    # @dat and @sta output use ";" separator
                     else:
                         key, value = line.split(";")[1:3]
-                    # replace space with underscore
+                    # lower case and replace space with underscore
                     output[key.lower().replace(" ", "_")] = value.strip()
 
                 except ValueError:
                     _LOGGER.debug(f"Error parsing line: {line}")
-            _LOGGER.debug(f"telnet_cmd_parse_data: success {output}")
+            _LOGGER.debug(f"telnet_get_data: success {output}")
         except Exception as ex:
-            _LOGGER.debug(f"telnet_cmd_parse_data: failed with error: {ex}")
+            _LOGGER.debug(f"telnet_get_data: failed with error: {ex}")
         return output
+
+    async def telnet_set_relay(self, state) -> bool:
+        """Send Telnet Commands and process output."""
+        set_relay = False
+        if self.check_port():
+            if state.lower() == "on":
+                to_state = 1
+            elif state.lower() == "off":
+                to_state = 0
+            else:
+                return set_relay
+            try:
+                rel_output = {}
+                reader, writer = await telnetlib3.open_connection(
+                    self._host, self._port
+                )
+                rel_parsed = await self.telnet_get_data(
+                    f"@rel 0 {to_state}", reader, writer
+                )
+                for key, value in rel_parsed.items():
+                    rel_output[key] = value
+                _LOGGER.debug(f"telnet_set_relay: sent telnet cmd: @rel 0 {to_state}")
+                if rel_output["mode"] == to_state:
+                    _LOGGER.debug(
+                        f"telnet_set_relay: relay set success - to_state: {to_state} output: {rel_output["mode"]}"
+                    )
+                    set_relay = True
+                else:
+                    _LOGGER.debug(
+                        f"telnet_set_relay: relay set failure - to_state: {to_state} output: {rel_output["mode"]}"
+                    )
+                    set_relay = False
+            except Exception as ex:
+                _LOGGER.debug(f"telnet_set_relay: failed with error: {ex}")
+                set_relay = False
+            finally:
+                if not writer.transport.is_closing():
+                    _LOGGER.debug("telnet_set_relay: closing telnet session")
+                    writer.close()
+                    # await writer.wait_closed()
+            return set_relay
+        else:
+            _LOGGER.debug(f"Elios4you not active on {self._host}:{self._port}")
+            return set_relay
