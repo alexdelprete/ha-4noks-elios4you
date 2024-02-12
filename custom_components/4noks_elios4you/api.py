@@ -156,32 +156,32 @@ class Elios4YouAPI:
                 _LOGGER.debug(
                     f"Self Sensors - Power {type(self.data["self_consumed_power"])}: {self.data["self_consumed_power"]} Produced: {self.data["produced_power"]} - Sold: {self.data["sold_power"]}"
                 )
-                self.data["self_consumed_power"] = (
-                    self.data["produced_power"] - self.data["sold_power"]
+                self.data["self_consumed_power"] = round(
+                    (self.data["produced_power"] - self.data["sold_power"]), 1
                 )
                 _LOGGER.debug(
                     f"Self Sensors - Power {type(self.data["self_consumed_power"])}: {self.data["self_consumed_energy"]} Produced: {self.data["produced_energy"]} - Sold: {self.data["sold_energy"]}"
                 )
-                self.data["self_consumed_energy"] = (
-                    self.data["produced_energy"] - self.data["sold_energy"]
+                self.data["self_consumed_energy"] = round(
+                    (self.data["produced_energy"] - self.data["sold_energy"]), 1
                 )
                 _LOGGER.debug(
                     f"Self Sensors - Power {type(self.data["self_consumed_power"])}: {self.data["self_consumed_energy_f1"]} Produced: {self.data["produced_energy_f1"]} - Sold: {self.data["sold_energy_f1"]}"
                 )
-                self.data["self_consumed_energy_f1"] = (
-                    self.data["produced_energy_f1"] - self.data["sold_energy_f1"]
+                self.data["self_consumed_energy_f1"] = round(
+                    (self.data["produced_energy_f1"] - self.data["sold_energy_f1"]), 1
                 )
                 _LOGGER.debug(
                     f"Self Sensors - Power {type(self.data["self_consumed_power"])}: {self.data["self_consumed_energy_f2"]} Produced: {self.data["produced_energy_f2"]} - Sold: {self.data["sold_energy_f2"]}"
                 )
-                self.data["self_consumed_energy_f2"] = (
-                    self.data["produced_energy_f2"] - self.data["sold_energy_f2"]
+                self.data["self_consumed_energy_f2"] = round(
+                    (self.data["produced_energy_f2"] - self.data["sold_energy_f2"]), 1
                 )
                 _LOGGER.debug(
                     f"Self Sensors - Power {type(self.data["self_consumed_power"])}: {self.data["self_consumed_energy_f3"]} Produced: {self.data["produced_energy_f3"]} - Sold: {self.data["sold_energy_f3"]}"
                 )
-                self.data["self_consumed_energy_f3"] = (
-                    self.data["produced_energy_f3"] - self.data["sold_energy_f3"]
+                self.data["self_consumed_energy_f3"] = round(
+                    (self.data["produced_energy_f3"] - self.data["sold_energy_f3"]), 1
                 )
 
             except TimeoutError:
