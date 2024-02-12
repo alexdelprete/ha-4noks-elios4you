@@ -162,6 +162,7 @@ class Elios4YouOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Required(
                     CONF_HOST,
+                    default=self.config_entry.data.get(CONF_HOST),
                 ): cv.string,
                 vol.Required(
                     CONF_PORT,

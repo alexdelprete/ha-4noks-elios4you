@@ -40,6 +40,7 @@ class Elios4YouAPI:
         # Initialize Elios4You data structure before first read
         self.data["produced_power"] = 1
         self.data["consumed_power"] = 1
+        self.data["self_consumed_power"] = 1
         self.data["bought_power"] = 1
         self.data["sold_power"] = 1
         self.data["daily_peak"] = 1
@@ -52,6 +53,10 @@ class Elios4YouAPI:
         self.data["consumed_energy_f1"] = 1
         self.data["consumed_energy_f2"] = 1
         self.data["consumed_energy_f3"] = 1
+        self.data["self_consumed_energy"] = 1
+        self.data["self_consumed_energy_f1"] = 1
+        self.data["self_consumed_energy_f2"] = 1
+        self.data["self_consumed_energy_f3"] = 1
         self.data["bought_energy"] = 1
         self.data["bought_energy_f1"] = 1
         self.data["bought_energy_f2"] = 1
@@ -125,23 +130,41 @@ class Elios4YouAPI:
                     self._host, self._port
                 )
 
+                # delay 100ms
+                await asyncio.sleep(0.1)
                 dat_parsed = await self.telnet_get_data("@dat", reader, writer)
                 for key, value in dat_parsed.items():
                     self.data[key] = value
 
-                # delay 200ms
-                await asyncio.sleep(0.2)
+                # delay 100ms
+                await asyncio.sleep(0.1)
                 inf_parsed = await self.telnet_get_data("@inf", reader, writer)
                 for key, value in inf_parsed.items():
                     self.data[key] = value
 
-                # delay 200ms
-                await asyncio.sleep(0.2)
+                # delay 100ms
+                await asyncio.sleep(0.1)
                 sta_parsed = await self.telnet_get_data("@sta", reader, writer)
                 for key, value in sta_parsed.items():
                     self.data[key] = value
 
+                # Calculated sensors for self-consumption sensors and combined fw version
                 self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
+                self.data["self_consumed_power"] = (
+                    self.data["produced_power"] - self.data["sold_power"]
+                )
+                self.data["self_consumed_energy"] = (
+                    self.data["produced_energy"] - self.data["sold_energy"]
+                )
+                self.data["self_consumed_energy_f1"] = (
+                    self.data["produced_energy_f1"] - self.data["sold_energy_f1"]
+                )
+                self.data["self_consumed_energy_f2"] = (
+                    self.data["produced_energy_f2"] - self.data["sold_energy_f2"]
+                )
+                self.data["self_consumed_energy_f3"] = (
+                    self.data["produced_energy_f3"] - self.data["sold_energy_f3"]
+                )
 
             except TimeoutError:
                 _LOGGER.debug("Connection or operation timed out")
