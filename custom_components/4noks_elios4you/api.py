@@ -134,21 +134,21 @@ class Elios4YouAPI:
                 await asyncio.sleep(0.1)
                 dat_parsed = await self.telnet_get_data("@dat", reader, writer)
                 for key, value in dat_parsed.items():
-                    # @dat returns only int types
-                    self.data[key] = int(value)
+                    # @dat returns only numbers as strings
+                    self.data[key] = float(value)
 
                 # delay 100ms
                 await asyncio.sleep(0.1)
                 sta_parsed = await self.telnet_get_data("@sta", reader, writer)
                 for key, value in sta_parsed.items():
-                    # @sta returns only int types
-                    self.data[key] = int(value)
+                    # @sta returns only numbers as strings
+                    self.data[key] = float(value)
 
                 # delay 100ms
                 await asyncio.sleep(0.1)
                 inf_parsed = await self.telnet_get_data("@inf", reader, writer)
                 for key, value in inf_parsed.items():
-                    # @inf returns only string types
+                    # @inf returns only strings
                     self.data[key] = str(value)
 
                 # Calculated sensors for self-consumption sensors and combined fw version
