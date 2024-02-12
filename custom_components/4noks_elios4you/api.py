@@ -150,17 +150,32 @@ class Elios4YouAPI:
 
                 # Calculated sensors for self-consumption sensors and combined fw version
                 self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
+                _LOGGER.debug(
+                    f"Self Sensors - Power: {self.data["self_consumed_power"]} Produced: {self.data["produced_power"]} - Produced: {self.data["sold_power"]}"
+                )
                 self.data["self_consumed_power"] = (
                     self.data["produced_power"] - self.data["sold_power"]
+                )
+                _LOGGER.debug(
+                    f"Self Sensors - Power: {self.data["self_consumed_energy"]} Produced: {self.data["produced_energy"]} - Produced: {self.data["sold_energy"]}"
                 )
                 self.data["self_consumed_energy"] = (
                     self.data["produced_energy"] - self.data["sold_energy"]
                 )
+                _LOGGER.debug(
+                    f"Self Sensors - Power: {self.data["self_consumed_energy_f1"]} Produced: {self.data["produced_energy_f1"]} - Produced: {self.data["sold_energy_f1"]}"
+                )
                 self.data["self_consumed_energy_f1"] = (
                     self.data["produced_energy_f1"] - self.data["sold_energy_f1"]
                 )
+                _LOGGER.debug(
+                    f"Self Sensors - Power: {self.data["self_consumed_energy_f2"]} Produced: {self.data["produced_energy_f2"]} - Produced: {self.data["sold_energy_f2"]}"
+                )
                 self.data["self_consumed_energy_f2"] = (
                     self.data["produced_energy_f2"] - self.data["sold_energy_f2"]
+                )
+                _LOGGER.debug(
+                    f"Self Sensors - Power: {self.data["self_consumed_energy_f3"]} Produced: {self.data["produced_energy_f3"]} - Produced: {self.data["sold_energy_f3"]}"
                 )
                 self.data["self_consumed_energy_f3"] = (
                     self.data["produced_energy_f3"] - self.data["sold_energy_f3"]
