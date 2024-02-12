@@ -135,14 +135,14 @@ class Elios4YouAPI:
                 dat_parsed = await self.telnet_get_data("@dat", reader, writer)
                 for key, value in dat_parsed.items():
                     # @dat returns only numbers as strings
-                    self.data[key] = float(value)
+                    self.data[key] = round(float(value), 1)
 
                 # delay 100ms
                 await asyncio.sleep(0.1)
                 sta_parsed = await self.telnet_get_data("@sta", reader, writer)
                 for key, value in sta_parsed.items():
                     # @sta returns only numbers as strings
-                    self.data[key] = float(value)
+                    self.data[key] = round(float(value), 1)
 
                 # delay 100ms
                 await asyncio.sleep(0.1)
@@ -154,31 +154,31 @@ class Elios4YouAPI:
                 # Calculated sensors for self-consumption sensors and combined fw version
                 self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
                 _LOGGER.debug(
-                    f"Self Sensors - Power: {self.data["self_consumed_power"]} Produced: {self.data["produced_power"]} - Produced: {self.data["sold_power"]}"
+                    f"Self Sensors - Power {type(self.data["self_consumed_power"])}: {self.data["self_consumed_power"]} Produced: {self.data["produced_power"]} - Sold: {self.data["sold_power"]}"
                 )
                 self.data["self_consumed_power"] = (
                     self.data["produced_power"] - self.data["sold_power"]
                 )
                 _LOGGER.debug(
-                    f"Self Sensors - Power: {self.data["self_consumed_energy"]} Produced: {self.data["produced_energy"]} - Produced: {self.data["sold_energy"]}"
+                    f"Self Sensors - Power {type(self.data["self_consumed_power"])}: {self.data["self_consumed_energy"]} Produced: {self.data["produced_energy"]} - Sold: {self.data["sold_energy"]}"
                 )
                 self.data["self_consumed_energy"] = (
                     self.data["produced_energy"] - self.data["sold_energy"]
                 )
                 _LOGGER.debug(
-                    f"Self Sensors - Power: {self.data["self_consumed_energy_f1"]} Produced: {self.data["produced_energy_f1"]} - Produced: {self.data["sold_energy_f1"]}"
+                    f"Self Sensors - Power {type(self.data["self_consumed_power"])}: {self.data["self_consumed_energy_f1"]} Produced: {self.data["produced_energy_f1"]} - Sold: {self.data["sold_energy_f1"]}"
                 )
                 self.data["self_consumed_energy_f1"] = (
                     self.data["produced_energy_f1"] - self.data["sold_energy_f1"]
                 )
                 _LOGGER.debug(
-                    f"Self Sensors - Power: {self.data["self_consumed_energy_f2"]} Produced: {self.data["produced_energy_f2"]} - Produced: {self.data["sold_energy_f2"]}"
+                    f"Self Sensors - Power {type(self.data["self_consumed_power"])}: {self.data["self_consumed_energy_f2"]} Produced: {self.data["produced_energy_f2"]} - Sold: {self.data["sold_energy_f2"]}"
                 )
                 self.data["self_consumed_energy_f2"] = (
                     self.data["produced_energy_f2"] - self.data["sold_energy_f2"]
                 )
                 _LOGGER.debug(
-                    f"Self Sensors - Power: {self.data["self_consumed_energy_f3"]} Produced: {self.data["produced_energy_f3"]} - Produced: {self.data["sold_energy_f3"]}"
+                    f"Self Sensors - Power {type(self.data["self_consumed_power"])}: {self.data["self_consumed_energy_f3"]} Produced: {self.data["produced_energy_f3"]} - Sold: {self.data["sold_energy_f3"]}"
                 )
                 self.data["self_consumed_energy_f3"] = (
                     self.data["produced_energy_f3"] - self.data["sold_energy_f3"]
