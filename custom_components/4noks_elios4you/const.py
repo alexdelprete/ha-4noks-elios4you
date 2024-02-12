@@ -22,9 +22,9 @@ ICON = "mdi:format-quote-close"
 BINARY_SENSOR_DEVICE_CLASS = "connectivity"
 
 # Platforms
-SENSOR = "sensor"
 PLATFORMS = [
     "sensor",
+    "switch",
 ]
 UPDATE_LISTENER = "update_listener"
 DATA = "data"

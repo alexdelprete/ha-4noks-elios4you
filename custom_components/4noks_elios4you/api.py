@@ -79,7 +79,7 @@ class Elios4YouAPI:
         self.data["s2w_geps_version"] = ""
         self.data["s2w_wlan_version"] = ""
         # custom fields to reuse code structure
-        self.data["swver"] = f'{self.data["fwtop"]} / {self.data["fwbtm"]}'
+        self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
         self.data["manufact"] = MANUFACTURER
         self.data["model"] = MODEL
 
