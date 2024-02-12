@@ -3,6 +3,7 @@
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
+import asyncio
 import logging
 import socket
 
@@ -79,7 +80,6 @@ class Elios4YouAPI:
         self.data["s2w_geps_version"] = ""
         self.data["s2w_wlan_version"] = ""
         # custom fields to reuse code structure
-        self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
         self.data["manufact"] = MANUFACTURER
         self.data["model"] = MODEL
 
@@ -129,13 +129,19 @@ class Elios4YouAPI:
                 for key, value in dat_parsed.items():
                     self.data[key] = value
 
+                # delay 200ms
+                await asyncio.sleep(0.2)
                 inf_parsed = await self.telnet_get_data("@inf", reader, writer)
                 for key, value in inf_parsed.items():
                     self.data[key] = value
 
+                # delay 200ms
+                await asyncio.sleep(0.2)
                 sta_parsed = await self.telnet_get_data("@sta", reader, writer)
                 for key, value in sta_parsed.items():
                     self.data[key] = value
+
+                self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
 
             except TimeoutError:
                 _LOGGER.debug("Connection or operation timed out")
@@ -164,6 +170,8 @@ class Elios4YouAPI:
             response = await reader.readuntil(b"ready...")
             # decode bytes to string using utf-8 and split each line as a list member
             lines = response.decode("utf-8").splitlines()
+            # _LOGGER.debug(f"telnet_get_data: lines {lines}")
+            # _LOGGER.debug(f"telnet_get_data: lines-2 {lines[2:-2]}")
             # exclude first and last two lines
             for line in lines[2:-2]:
                 try:
@@ -188,9 +196,9 @@ class Elios4YouAPI:
         set_relay = False
         if self.check_port():
             if state.lower() == "on":
-                to_state = 1
+                to_state: int = 1
             elif state.lower() == "off":
-                to_state = 0
+                to_state: int = 0
             else:
                 return set_relay
             try:
@@ -201,17 +209,23 @@ class Elios4YouAPI:
                 rel_parsed = await self.telnet_get_data(
                     f"@rel 0 {to_state}", reader, writer
                 )
+                await asyncio.sleep(0.2)
+                rel_parsed = await self.telnet_get_data("@rel", reader, writer)
                 for key, value in rel_parsed.items():
                     rel_output[key] = value
-                _LOGGER.debug(f"telnet_set_relay: sent telnet cmd: @rel 0 {to_state}")
-                if rel_output["mode"] == to_state:
+                _LOGGER.debug(f"telnet_set_relay: rel_output {rel_output}")
+                out_mode = int(rel_output["rel"])
+                _LOGGER.debug(
+                    f"telnet_set_relay: sent telnet cmd: @rel 0 {to_state} output [{type(out_mode)}]: {out_mode}"
+                )
+                if out_mode == to_state:
                     _LOGGER.debug(
-                        f"telnet_set_relay: relay set success - to_state: {to_state} output: {rel_output["mode"]}"
+                        f"telnet_set_relay: relay set success - to_state [{type(to_state)}]: {to_state} output [{type(out_mode)}]: {out_mode}"
                     )
                     set_relay = True
                 else:
                     _LOGGER.debug(
-                        f"telnet_set_relay: relay set failure - to_state: {to_state} output: {rel_output["mode"]}"
+                        f"telnet_set_relay: relay set failure - to_state [{type(to_state)}]: {to_state} output [{type(out_mode)}]: {out_mode}"
                     )
                     set_relay = False
             except Exception as ex:
@@ -224,5 +238,7 @@ class Elios4YouAPI:
                     # await writer.wait_closed()
             return set_relay
         else:
-            _LOGGER.debug(f"Elios4you not active on {self._host}:{self._port}")
+            _LOGGER.debug(
+                f"telnet_set_relay: Elios4you not active on {self._host}:{self._port}"
+            )
             return set_relay

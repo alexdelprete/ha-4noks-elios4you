@@ -161,6 +161,9 @@ class Elios4YouOptionsFlow(config_entries.OptionsFlow):
         self.data_schema = vol.Schema(
             {
                 vol.Required(
+                    CONF_HOST,
+                ): cv.string,
+                vol.Required(
                     CONF_PORT,
                     default=self.config_entry.data.get(CONF_PORT),
                 ): vol.Coerce(int),
@@ -188,8 +191,6 @@ class Elios4YouOptionsFlow(config_entries.OptionsFlow):
             # complete non-edited entries before update (ht @PeteRage)
             if CONF_NAME in self.config_entry.data:
                 user_input[CONF_NAME] = self.config_entry.data.get(CONF_NAME)
-            if CONF_HOST in self.config_entry.data:
-                user_input[CONF_HOST] = self.config_entry.data.get(CONF_HOST)
 
             # write updated config entries (ht @PeteRage / @fuatakgun)
             self.hass.config_entries.async_update_entry(

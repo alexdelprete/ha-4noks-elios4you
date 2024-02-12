@@ -57,7 +57,7 @@ SWITCH_ENTITIES = [
     {
         "name": "Relay",
         "key": "relay_state",
-        "icon": "mdi:light-switch",
+        "icon": "mdi:toggle-switch-outline",
         "device_class": SwitchDeviceClass.SWITCH,
     },
 ]
@@ -67,7 +67,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Produced Power",
         "key": "produced_power",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.WATT,
@@ -75,7 +75,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Consumed Power",
         "key": "consumed_power",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.WATT,
@@ -83,7 +83,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Bought Power",
         "key": "bought_power",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.WATT,
@@ -91,7 +91,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Sold Power",
         "key": "sold_power",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.WATT,
@@ -99,7 +99,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Daily Peak",
         "key": "daily_peak",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.WATT,
@@ -107,7 +107,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Monthly Peak",
         "key": "monthly_peak",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.WATT,
@@ -115,7 +115,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Produced Energy",
         "key": "produced_energy",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -123,7 +123,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Produced Energy F1",
         "key": "produced_energy_f1",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -131,7 +131,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Produced Energy F2",
         "key": "produced_energy_f2",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -139,7 +139,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Produced Energy F3",
         "key": "produced_energy_f3",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -147,7 +147,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Consumed Energy",
         "key": "consumed_energy",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -155,7 +155,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Consumed Energy F1",
         "key": "consumed_energy_f1",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -163,7 +163,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Consumed Energy F2",
         "key": "consumed_energy_f2",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -171,7 +171,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Consumed Energy F3",
         "key": "consumed_energy_f3",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -179,7 +179,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Bought Energy",
         "key": "bought_energy",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -187,7 +187,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Bought Energy F1",
         "key": "bought_energy_f1",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -195,7 +195,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Bought Energy F2",
         "key": "bought_energy_f2",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -203,7 +203,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Bought Energy F3",
         "key": "bought_energy_f3",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -211,7 +211,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Sold Energy",
         "key": "sold_energy",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:transmission-tower-import",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -219,7 +219,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Sold Energy F1",
         "key": "sold_energy_f1",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:transmission-tower-import",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -227,7 +227,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Sold Energy F2",
         "key": "sold_energy_f2",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:transmission-tower-import",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -235,7 +235,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Sold Energy F3",
         "key": "sold_energy_f3",
-        "icon": "mdi:solar-power",
+        "icon": "mdi:transmission-tower-import",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.WATT_HOUR,
@@ -243,7 +243,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Alarm 1",
         "key": "alarm_1",
-        "icon": "mdi:information-outline",
+        "icon": "mdi:alarm-light-outline",
         "device_class": None,
         "state_class": None,
         "unit": None,
@@ -251,7 +251,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Alarm 2",
         "key": "alarm_2",
-        "icon": "mdi:information-outline",
+        "icon": "mdi:alarm-light-outline",
         "device_class": None,
         "state_class": None,
         "unit": None,
@@ -259,7 +259,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Power Alarm",
         "key": "power_alarm",
-        "icon": "mdi:information-outline",
+        "icon": "mdi:alarm-light-outline",
         "device_class": None,
         "state_class": None,
         "unit": None,
@@ -283,7 +283,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Relay Ssv",
         "key": "rel_ssv",
-        "icon": "mdi:information-outline",
+        "icon": "mdi:toggle-switch-outline",
         "device_class": None,
         "state_class": None,
         "unit": None,
@@ -291,7 +291,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Relay Mode",
         "key": "rel_mode",
-        "icon": "mdi:information-outline",
+        "icon": "mdi:toggle-switch-outline",
         "device_class": None,
         "state_class": None,
         "unit": None,
@@ -299,7 +299,7 @@ SENSOR_ENTITIES = [
     {
         "name": "Relay Warning",
         "key": "rel_warning",
-        "icon": "mdi:information-outline",
+        "icon": "mdi:alarm-light-outline",
         "device_class": None,
         "state_class": None,
         "unit": None,

@@ -59,14 +59,14 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         self._device_sn = self._coordinator.api.data["sn"]
         self._device_swver = self._coordinator.api.data["swver"]
         self._device_hwver = self._coordinator.api.data["hwver"]
-        _LOGGER.debug(f"{self._coordinator.api.data.name} {self.name} init")
+        _LOGGER.debug(f"{self._coordinator.api.name} {self.name} init")
 
     async def async_force_update(self, delay: int = 0):
         """Force Switch State Update."""
-        _LOGGER.debug(f"Coordinator update initiated by {self.name}")
+        _LOGGER.debug(f"Coordinator forced update initiated by {self.name}")
         if delay:
             await asyncio.sleep(delay)
-        await self._coordinator.async_refresh()
+        await self._coordinator.async_update_data()
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -93,7 +93,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def entity_category(self):
         """Return the switch entity_category."""
-        if self._state_class is SwitchDeviceClass.SWITCH:
+        if self._device_class is SwitchDeviceClass.SWITCH:
             return EntityCategory.CONFIG
         else:
             return None
@@ -106,7 +106,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def is_on(self):
         """Return true if switch is on."""
-        return self._is_on
+        return True if int(self._is_on) == 1 else False
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
