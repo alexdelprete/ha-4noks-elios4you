@@ -10,16 +10,8 @@ from homeassistant.const import UnitOfEnergy, UnitOfPower
 # Base component constants
 NAME = "4-noks Elios4you integration"
 DOMAIN = "4noks_elios4you"
-DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "1.0.0"
 ATTRIBUTION = "by @alexdelprete"
 ISSUE_URL = "https://github.com/alexdelprete/ha-4noks-elios4you/issues"
-
-# Icons
-ICON = "mdi:format-quote-close"
-
-# Device classes
-BINARY_SENSOR_DEVICE_CLASS = "connectivity"
 
 # Platforms
 PLATFORMS = [
@@ -43,7 +35,6 @@ MODEL = "Elios4you"
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
 {NAME}
-Version: {VERSION}
 {ATTRIBUTION}
 This is a custom integration!
 If you have any issues with this you need to open an issue here:
