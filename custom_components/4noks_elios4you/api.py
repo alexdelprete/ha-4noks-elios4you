@@ -135,14 +135,14 @@ class Elios4YouAPI:
                 dat_parsed = await self.telnet_get_data("@dat", reader, writer)
                 for key, value in dat_parsed.items():
                     # @dat returns only numbers as strings
-                    self.data[key] = round(float(value), 1)
+                    self.data[key] = round(float(value), 2)
 
                 # delay 100ms
                 await asyncio.sleep(0.1)
                 sta_parsed = await self.telnet_get_data("@sta", reader, writer)
                 for key, value in sta_parsed.items():
                     # @sta returns only numbers as strings
-                    self.data[key] = round(float(value), 1)
+                    self.data[key] = round(float(value), 2)
 
                 # delay 100ms
                 await asyncio.sleep(0.1)
@@ -155,19 +155,19 @@ class Elios4YouAPI:
                 self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
                 # Calculated sensors for self-consumption sensors
                 self.data["self_consumed_power"] = round(
-                    (self.data["produced_power"] - self.data["sold_power"]), 1
+                    (self.data["produced_power"] - self.data["sold_power"]), 2
                 )
                 self.data["self_consumed_energy"] = round(
-                    (self.data["produced_energy"] - self.data["sold_energy"]), 1
+                    (self.data["produced_energy"] - self.data["sold_energy"]), 2
                 )
                 self.data["self_consumed_energy_f1"] = round(
-                    (self.data["produced_energy_f1"] - self.data["sold_energy_f1"]), 1
+                    (self.data["produced_energy_f1"] - self.data["sold_energy_f1"]), 2
                 )
                 self.data["self_consumed_energy_f2"] = round(
-                    (self.data["produced_energy_f2"] - self.data["sold_energy_f2"]), 1
+                    (self.data["produced_energy_f2"] - self.data["sold_energy_f2"]), 2
                 )
                 self.data["self_consumed_energy_f3"] = round(
-                    (self.data["produced_energy_f3"] - self.data["sold_energy_f3"]), 1
+                    (self.data["produced_energy_f3"] - self.data["sold_energy_f3"]), 2
                 )
 
             except TimeoutError:
