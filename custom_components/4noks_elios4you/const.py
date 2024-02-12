@@ -70,7 +70,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
-        "unit": UnitOfPower.WATT,
+        "unit": UnitOfPower.KILO_WATT,
     },
     {
         "name": "Consumed Power",
@@ -78,7 +78,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
-        "unit": UnitOfPower.WATT,
+        "unit": UnitOfPower.KILO_WATT,
     },
     {
         "name": "Self Consumed Power",
@@ -86,7 +86,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
-        "unit": UnitOfPower.WATT,
+        "unit": UnitOfPower.KILO_WATT,
     },
     {
         "name": "Bought Power",
@@ -94,7 +94,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
-        "unit": UnitOfPower.WATT,
+        "unit": UnitOfPower.KILO_WATT,
     },
     {
         "name": "Sold Power",
@@ -102,7 +102,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:transmission-tower-import",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
-        "unit": UnitOfPower.WATT,
+        "unit": UnitOfPower.KILO_WATT,
     },
     {
         "name": "Daily Peak",
@@ -110,7 +110,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
-        "unit": UnitOfPower.WATT,
+        "unit": UnitOfPower.KILO_WATT,
     },
     {
         "name": "Monthly Peak",
@@ -118,7 +118,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
-        "unit": UnitOfPower.WATT,
+        "unit": UnitOfPower.KILO_WATT,
     },
     {
         "name": "Produced Energy",
@@ -126,7 +126,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Produced Energy F1",
@@ -134,7 +134,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Produced Energy F2",
@@ -142,7 +142,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Produced Energy F3",
@@ -150,7 +150,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:solar-power-variant-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Consumed Energy",
@@ -158,7 +158,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Consumed Energy F1",
@@ -166,7 +166,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Consumed Energy F2",
@@ -174,7 +174,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Consumed Energy F3",
@@ -182,7 +182,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Self Consumed Energy",
@@ -190,7 +190,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Self Consumed Energy F1",
@@ -198,7 +198,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Self Consumed Energy F2",
@@ -206,7 +206,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Self Consumed Energy F3",
@@ -214,7 +214,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:home-lightning-bolt-outline",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Bought Energy",
@@ -222,7 +222,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Bought Energy F1",
@@ -230,7 +230,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Bought Energy F2",
@@ -238,7 +238,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Bought Energy F3",
@@ -246,7 +246,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:transmission-tower-export",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Sold Energy",
@@ -254,7 +254,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:transmission-tower-import",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Sold Energy F1",
@@ -262,7 +262,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:transmission-tower-import",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Sold Energy F2",
@@ -270,7 +270,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:transmission-tower-import",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Sold Energy F3",
@@ -278,7 +278,7 @@ SENSOR_ENTITIES = [
         "icon": "mdi:transmission-tower-import",
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
+        "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
         "name": "Alarm 1",
