@@ -2,6 +2,7 @@
   "name": "4-noks Elios4you",
   "homeassistant": "2023.11.0",
   "content_in_root": false,
+  "hide_default_branch": false,
   "render_readme": true,
   "zip_release": true,
   "filename": "4noks_elios4you.zip"
