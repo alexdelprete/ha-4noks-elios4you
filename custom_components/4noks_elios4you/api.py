@@ -134,23 +134,35 @@ class Elios4YouAPI:
                 # delay 100ms
                 await asyncio.sleep(0.1)
                 dat_parsed = await self.telnet_get_data("@dat", reader, writer)
-                for key, value in dat_parsed.items():
-                    # @dat returns only numbers as strings
-                    self.data[key] = round(float(value), 2)
+                if dat_parsed is not None:
+                    _LOGGER.debug("async_get_data: parsing @dat data")
+                    for key, value in dat_parsed.items():
+                        # @dat returns only numbers as strings
+                        self.data[key] = round(float(value), 2)
+                else:
+                    _LOGGER.debug("async_get_data: @dat data is None")
 
                 # delay 100ms
                 await asyncio.sleep(0.1)
                 sta_parsed = await self.telnet_get_data("@sta", reader, writer)
-                for key, value in sta_parsed.items():
-                    # @sta returns only numbers as strings
-                    self.data[key] = round(float(value), 2)
+                if dat_parsed is not None:
+                    _LOGGER.debug("async_get_data: parsing @sta data")
+                    for key, value in sta_parsed.items():
+                        # @sta returns only numbers as strings
+                        self.data[key] = round(float(value), 2)
+                else:
+                    _LOGGER.debug("async_get_data: @sta data is None")
 
                 # delay 100ms
                 await asyncio.sleep(0.1)
                 inf_parsed = await self.telnet_get_data("@inf", reader, writer)
-                for key, value in inf_parsed.items():
-                    # @inf returns only strings
-                    self.data[key] = str(value)
+                if dat_parsed is not None:
+                    _LOGGER.debug("async_get_data: parsing @dat data")
+                    for key, value in inf_parsed.items():
+                        # @inf returns only strings
+                        self.data[key] = str(value)
+                else:
+                    _LOGGER.debug("async_get_data: @inf data is None")
 
                 # Calculated sensor to combine TOP/BOTTOM fw versions
                 self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
@@ -203,9 +215,8 @@ class Elios4YouAPI:
                     response = await reader.readuntil(b"ready...")
             except TimeoutError:
                 _LOGGER.debug(
-                    f"telnet_get_data: readuntil timed out at {datetime.now()}"
+                    f"telnet_get_data (exception async): readuntil timed out at {datetime.now()}"
                 )
-                reader.feed_eof()
             finally:
                 _LOGGER.debug(f"telnet_get_data: readuntil ended at {datetime.now()}")
 
@@ -236,9 +247,14 @@ class Elios4YouAPI:
                 _LOGGER.debug(f"telnet_get_data: success {output}")
             else:
                 _LOGGER.debug("telnet_get_data: response is None")
+        except TimeoutError:
+            _LOGGER.debug(
+                f"telnet_get_data (exception): readuntil timed out at {datetime.now()}"
+            )
         except Exception as ex:
-            _LOGGER.debug(f"telnet_get_data: failed with error: {ex}")
-        return output
+            _LOGGER.debug(f"telnet_get_data (exception): failed with error: {ex}")
+        finally:
+            return output if response is not None else None
 
     async def telnet_set_relay(self, state) -> bool:
         """Send Telnet Commands and process output."""
