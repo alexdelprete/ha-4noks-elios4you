@@ -112,9 +112,9 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         """Turn the switch on."""
         set_response = await self._coordinator.api.telnet_set_relay("on")
         if set_response:
-            _LOGGER.debug("switch async_turn_on: turned on")
+            _LOGGER.debug("switch async_turn_on (warning): turned on")
         else:
-            _LOGGER.debug("switch async_turn_on: error turning on")
+            _LOGGER.debug("switch async_turn_on (error): error turning on")
         await self.async_force_update()
         return set_response
 
@@ -122,9 +122,9 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         """Turn the switch off."""
         set_response = await self._coordinator.api.telnet_set_relay("off")
         if set_response:
-            _LOGGER.debug("switch async_turn_on: turned off")
+            _LOGGER.debug("switch async_turn_off (warning): turned off")
         else:
-            _LOGGER.debug("switch async_turn_on: error turning off")
+            _LOGGER.debug("switch async_turn_off (error): error turning off")
         await self.async_force_update()
         return set_response
 
