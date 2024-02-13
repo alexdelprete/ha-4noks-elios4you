@@ -103,7 +103,7 @@ class Elios4YouAPI:
         """Check if port is available."""
         sock_timeout = float(3)
         _LOGGER.debug(
-            f"Check_Port: opening socket on {self._host}:{self._port} with a {sock_timeout}s timeout."
+            f"Check_Port: opening socket on {self._host}:{self._port} with a {sock_timeout}s timeout {datetime.now()}"
         )
         socket.setdefaulttimeout(sock_timeout)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -113,11 +113,11 @@ class Elios4YouAPI:
         if is_open:
             sock.shutdown(socket.SHUT_RDWR)
             _LOGGER.debug(
-                f"Check_Port (SUCCESS): port open on {self._host}:{self._port}"
+                f"Check_Port (SUCCESS): port open on {self._host}:{self._port} {datetime.now()}"
             )
         else:
             _LOGGER.debug(
-                f"Check_Port (ERROR): port not available on {self._host}:{self._port} - error: {sock_res}"
+                f"Check_Port (ERROR): port not available on {self._host}:{self._port} - error: {sock_res} {datetime.now()}"
             )
         sock.close()
         return is_open
@@ -125,14 +125,13 @@ class Elios4YouAPI:
     async def async_get_data(self):
         """Read Data Function."""
 
+        _LOGGER.debug(f"async_get_data: start async_get_data {datetime.now()}")
         if self.check_port():
             try:
                 reader, writer = await telnetlib3.open_connection(
                     self._host, self._port
                 )
-
-                # delay 100ms
-                await asyncio.sleep(0.1)
+                _LOGGER.debug(f"async_get_data: start telnet_get_data {datetime.now()}")
                 dat_parsed = await self.telnet_get_data("@dat", reader, writer)
                 if dat_parsed is not None:
                     _LOGGER.debug("async_get_data: parsing @dat data")
@@ -142,8 +141,6 @@ class Elios4YouAPI:
                 else:
                     _LOGGER.debug("async_get_data: @dat data is None")
 
-                # delay 100ms
-                await asyncio.sleep(0.1)
                 sta_parsed = await self.telnet_get_data("@sta", reader, writer)
                 if dat_parsed is not None:
                     _LOGGER.debug("async_get_data: parsing @sta data")
@@ -153,16 +150,15 @@ class Elios4YouAPI:
                 else:
                     _LOGGER.debug("async_get_data: @sta data is None")
 
-                # delay 100ms
-                await asyncio.sleep(0.1)
                 inf_parsed = await self.telnet_get_data("@inf", reader, writer)
                 if dat_parsed is not None:
-                    _LOGGER.debug("async_get_data: parsing @dat data")
+                    _LOGGER.debug("async_get_data: parsing @inf data")
                     for key, value in inf_parsed.items():
                         # @inf returns only strings
                         self.data[key] = str(value)
                 else:
                     _LOGGER.debug("async_get_data: @inf data is None")
+                _LOGGER.debug(f"async_get_data: end telnet_get_data {datetime.now()}")
 
                 # Calculated sensor to combine TOP/BOTTOM fw versions
                 self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
@@ -185,15 +181,15 @@ class Elios4YouAPI:
 
             except TimeoutError:
                 _LOGGER.debug("async_get_data: Connection or operation timed out")
-
             except Exception as e:
                 _LOGGER.debug(f"async_get_data: An error occurred: {str(e)}")
             finally:
                 _LOGGER.debug("async_get_data: closing telnet connection")
-                await reader.feed_eof()
+                reader.feed_eof()
         else:
             _LOGGER.debug("async_get_data: Elios4you not ready for telnet connection")
             raise ConnectionError(f"Elios4you not active on {self._host}:{self._port}")
+        _LOGGER.debug(f"async_get_data: end async_get_data {datetime.now()}")
 
     async def telnet_get_data(self, cmd, reader, writer):
         """Send Telnet Commands and process output."""
@@ -206,9 +202,9 @@ class Elios4YouAPI:
 
             # send the command
             writer.write(cmd + "\n")
+
             # read stream up to the "ready..." string
             _LOGGER.debug(f"telnet_get_data: readuntil started at {datetime.now()}")
-
             # sometimes telnetlib3 hangs on readuntil so we manage a timeout
             try:
                 async with asyncio.timeout(3):
@@ -259,6 +255,7 @@ class Elios4YouAPI:
     async def telnet_set_relay(self, state) -> bool:
         """Send Telnet Commands and process output."""
         set_relay = False
+        rel_parsed = None
         if self.check_port():
             if state.lower() == "on":
                 to_state: int = 1
@@ -274,36 +271,37 @@ class Elios4YouAPI:
                 rel_parsed = await self.telnet_get_data(
                     f"@rel 0 {to_state}", reader, writer
                 )
-                await asyncio.sleep(0.2)
                 rel_parsed = await self.telnet_get_data("@rel", reader, writer)
-                for key, value in rel_parsed.items():
-                    rel_output[key] = value
-                _LOGGER.debug(f"telnet_set_relay: rel_output {rel_output}")
-                out_mode = int(rel_output["rel"])
-                _LOGGER.debug(
-                    f"telnet_set_relay: sent telnet cmd: @rel 0 {to_state} output [{type(out_mode)}]: {out_mode}"
-                )
-                if out_mode == to_state:
+                # if we had a valid response we process data
+                if rel_parsed:
+                    for key, value in rel_parsed.items():
+                        rel_output[key] = value
+                    _LOGGER.debug(f"telnet_set_relay: rel_output {rel_output}")
+                    out_mode = int(rel_output["rel"])
                     _LOGGER.debug(
-                        f"telnet_set_relay: relay set success - to_state [{type(to_state)}]: {to_state} output [{type(out_mode)}]: {out_mode}"
+                        f"telnet_set_relay: sent telnet cmd: @rel 0 {to_state} output [{type(out_mode)}]: {out_mode}"
                     )
-                    set_relay = True
+                    if out_mode == to_state:
+                        _LOGGER.debug(
+                            f"telnet_set_relay: relay set success - to_state [{type(to_state)}]: {to_state} output [{type(out_mode)}]: {out_mode}"
+                        )
+                        set_relay = True
+                    else:
+                        _LOGGER.debug(
+                            f"telnet_set_relay: relay set failure - to_state [{type(to_state)}]: {to_state} output [{type(out_mode)}]: {out_mode}"
+                        )
+                        set_relay = False
                 else:
-                    _LOGGER.debug(
-                        f"telnet_set_relay: relay set failure - to_state [{type(to_state)}]: {to_state} output [{type(out_mode)}]: {out_mode}"
-                    )
-                    set_relay = False
+                    _LOGGER.debug("telnet_set_relay: rel_parsed is None")
+            except TimeoutError:
+                _LOGGER.debug("telnet_set_relay: Connection or operation timed out")
             except Exception as ex:
                 _LOGGER.debug(f"telnet_set_relay: failed with error: {ex}")
-                set_relay = False
             finally:
-                if not writer.transport.is_closing():
-                    _LOGGER.debug("telnet_set_relay: closing telnet session")
-                    writer.close()
-                    # await writer.wait_closed()
-            return set_relay
+                _LOGGER.debug("telnet_set_relay: closing telnet session")
+                reader.feed_eof()
         else:
             _LOGGER.debug(
                 f"telnet_set_relay: Elios4you not active on {self._host}:{self._port}"
             )
-            return set_relay
+        return set_relay
