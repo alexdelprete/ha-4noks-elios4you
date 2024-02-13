@@ -6,6 +6,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 import asyncio
 import logging
 import socket
+from datetime import datetime
 
 import telnetlib3
 
@@ -177,9 +178,7 @@ class Elios4YouAPI:
                 _LOGGER.debug(f"An error occurred: {str(e)}")
 
             finally:
-                if not writer.transport.is_closing():
-                    writer.close()
-                    # await writer.wait_closed()
+                reader.feed_eof()
         else:
             _LOGGER.debug("Elios4you not ready for telnet connection")
             raise ConnectionError(f"Elios4you not active on {self._host}:{self._port}")
@@ -194,7 +193,9 @@ class Elios4YouAPI:
             # send the command
             writer.write(cmd + "\n")
             # read stream up to the "ready..." string
+            _LOGGER.debug(f"telnet_get_data: readuntil started at {datetime.now()}")
             response = await reader.readuntil(b"ready...")
+            _LOGGER.debug(f"telnet_get_data: readuntil ended at {datetime.now()}")
             # decode bytes to string using utf-8 and split each line as a list member
             lines = response.decode("utf-8").splitlines()
             # _LOGGER.debug(f"telnet_get_data: lines {lines}")
