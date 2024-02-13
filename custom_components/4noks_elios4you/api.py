@@ -172,15 +172,15 @@ class Elios4YouAPI:
                 )
 
             except TimeoutError:
-                _LOGGER.debug("Connection or operation timed out")
+                _LOGGER.debug("async_get_data: Connection or operation timed out")
 
             except Exception as e:
-                _LOGGER.debug(f"An error occurred: {str(e)}")
-
+                _LOGGER.debug(f"async_get_data: An error occurred: {str(e)}")
             finally:
-                reader.feed_eof()
+                _LOGGER.debug("async_get_data: closing telnet connection")
+                await reader.feed_eof()
         else:
-            _LOGGER.debug("Elios4you not ready for telnet connection")
+            _LOGGER.debug("async_get_data: Elios4you not ready for telnet connection")
             raise ConnectionError(f"Elios4you not active on {self._host}:{self._port}")
 
     async def telnet_get_data(self, cmd, reader, writer):
@@ -189,32 +189,53 @@ class Elios4YouAPI:
             cmd = cmd.lower()
             cmd_main = cmd[0:4]
             _LOGGER.debug(f"telnet_get_data: cmd {cmd} cmd_main: {cmd_main}")
+            response = None
             output = {}
+
             # send the command
             writer.write(cmd + "\n")
             # read stream up to the "ready..." string
             _LOGGER.debug(f"telnet_get_data: readuntil started at {datetime.now()}")
-            response = await reader.readuntil(b"ready...")
-            _LOGGER.debug(f"telnet_get_data: readuntil ended at {datetime.now()}")
-            # decode bytes to string using utf-8 and split each line as a list member
-            lines = response.decode("utf-8").splitlines()
-            # _LOGGER.debug(f"telnet_get_data: lines {lines}")
-            # _LOGGER.debug(f"telnet_get_data: lines-2 {lines[2:-2]}")
-            # exclude first and last two lines
-            for line in lines[2:-2]:
-                try:
-                    # @inf @rel @hwr output use "=" separator
-                    if cmd_main == "@inf" or cmd_main == "@rel" or cmd_main == "@hwr":
-                        key, value = line.split("=")
-                    # @dat and @sta output use ";" separator
-                    else:
-                        key, value = line.split(";")[1:3]
-                    # lower case and replace space with underscore
-                    output[key.lower().replace(" ", "_")] = value.strip()
 
-                except ValueError:
-                    _LOGGER.debug(f"Error parsing line: {line}")
-            _LOGGER.debug(f"telnet_get_data: success {output}")
+            # sometimes telnetlib3 hangs on readuntil so we manage a timeout
+            try:
+                async with asyncio.timeout(3):
+                    response = await reader.readuntil(b"ready...")
+            except TimeoutError:
+                _LOGGER.debug(
+                    f"telnet_get_data: readuntil timed out at {datetime.now()}"
+                )
+                reader.feed_eof()
+            finally:
+                _LOGGER.debug(f"telnet_get_data: readuntil ended at {datetime.now()}")
+
+            # if we had a valid response we process data
+            if response:
+                # decode bytes to string using utf-8 and split each line as a list member
+                lines = response.decode("utf-8").splitlines()
+                # _LOGGER.debug(f"telnet_get_data: lines {lines}")
+                # _LOGGER.debug(f"telnet_get_data: lines-2 {lines[2:-2]}")
+                # exclude first and last two lines
+                for line in lines[2:-2]:
+                    try:
+                        # @inf @rel @hwr output use "=" separator
+                        if (
+                            cmd_main == "@inf"
+                            or cmd_main == "@rel"
+                            or cmd_main == "@hwr"
+                        ):
+                            key, value = line.split("=")
+                        # @dat and @sta output use ";" separator
+                        else:
+                            key, value = line.split(";")[1:3]
+                        # lower case and replace space with underscore
+                        output[key.lower().replace(" ", "_")] = value.strip()
+
+                    except ValueError:
+                        _LOGGER.debug(f"Error parsing line: {line}")
+                _LOGGER.debug(f"telnet_get_data: success {output}")
+            else:
+                _LOGGER.debug("telnet_get_data: response is None")
         except Exception as ex:
             _LOGGER.debug(f"telnet_get_data: failed with error: {ex}")
         return output
