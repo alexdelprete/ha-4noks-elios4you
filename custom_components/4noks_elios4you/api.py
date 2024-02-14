@@ -281,9 +281,9 @@ class Elios4YouAPI:
             # if we had a valid response we process data
             if response:
                 # decode bytes to string using utf-8 and split each line as a list member
-                lines = response.decode("utf-8").splitlines()
-                _LOGGER.debug(f"telnet_get_data (WARNING): lines {lines}")
-                _LOGGER.debug(f"telnet_get_data (WARNING): lines-2 {lines[1:-1]}")
+                lines = response.splitlines()
+                # _LOGGER.debug(f"telnet_get_data (WARNING): lines {lines}")
+                # _LOGGER.debug(f"telnet_get_data (WARNING): lines1-1 {lines[1:-1]}")
                 # exclude first and last two lines
                 for line in lines[1:-1]:
                     try:
