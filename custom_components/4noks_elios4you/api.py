@@ -36,7 +36,7 @@ class Elios4YouAPI:
         self._name = name
         self._host = host
         self._port = port
-        self._timeout = 10
+        self._timeout = 5
         self._sensors = []
         self.data = {}
         # Initialize Elios4You data structure before first read
@@ -209,15 +209,24 @@ class Elios4YouAPI:
     async def telnet_get_data(self, cmd, reader, writer):
         """Send Telnet Commands and process output."""
         try:
-            cmd = cmd.lower() + "\n"
-            cmd_main = cmd[0:4]
-            _LOGGER.debug(f"telnet_get_data: cmd {cmd} cmd_main: {cmd_main}")
+            # cmd for telnetlib3.stream_writer.write()
+            # string with LF
+            cmd_send = cmd.lower() + "\n"
+            # separator for telnetlib3.stream_reader.readuntil()
+            # byte encoded string
+            separator = bytes("ready...", "utf-8")
+            # get only command part without parameters
+            cmd_main = cmd[0:4].lower()
             response = None
             output = {}
 
+            _LOGGER.debug(
+                f"telnet_get_data: cmd {cmd} cmd_send: {cmd_send} cmd_main: {cmd_main}"
+            )
+
             # send the command
             _LOGGER.debug(f"telnet_get_data: before write {datetime.now()}")
-            writer.write(cmd)
+            writer.write(cmd_send)
             _LOGGER.debug(f"telnet_get_data: after write {datetime.now()}")
 
             # read stream up to the "ready..." string
@@ -227,7 +236,7 @@ class Elios4YouAPI:
             # sometimes telnetlib3 hangs on readuntil so we manage a timeout
             try:
                 response = await asyncio.wait_for(
-                    reader.readuntil(b"ready..."), timeout=self._timeout
+                    reader.readuntil(separator), timeout=self._timeout
                 )
             except IncompleteReadError as ex:
                 _LOGGER.debug(
