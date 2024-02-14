@@ -118,7 +118,7 @@ class Elios4YouAPI:
             )
         else:
             _LOGGER.debug(
-                f"Check_Port (error): port not available on {self._host}:{self._port} - error: {sock_res} {datetime.now()}"
+                f"Check_Port (ERROR): port not available on {self._host}:{self._port} - error: {sock_res} {datetime.now()}"
             )
         sock.close()
         return is_open
@@ -126,11 +126,12 @@ class Elios4YouAPI:
     async def async_get_data(self):
         """Read Data Function."""
 
-        _LOGGER.debug(
-            f"async_get_data (WARNING): start async_get_data {datetime.now()}"
-        )
         if self.check_port():
             try:
+                _LOGGER.debug(
+                    f"async_get_data (WARNING): start open_connection {datetime.now()}"
+                )
+                # let's manage timeout for the connection
                 reader, writer = await asyncio.wait_for(
                     telnetlib3.open_connection(self._host, self._port), self._timeout
                 )
@@ -148,7 +149,7 @@ class Elios4YouAPI:
                         else:
                             self.data[key] = int(value)
                 else:
-                    _LOGGER.debug("async_get_data (error): @dat data is None")
+                    _LOGGER.debug("async_get_data (ERROR): @dat data is None")
 
                 sta_parsed = await self.telnet_get_data("@sta", reader, writer)
                 if dat_parsed is not None:
@@ -157,7 +158,7 @@ class Elios4YouAPI:
                         # @sta returns only float numbers as strings
                         self.data[key] = round(float(value), 2)
                 else:
-                    _LOGGER.debug("async_get_data (error): @sta data is None")
+                    _LOGGER.debug("async_get_data (ERROR): @sta data is None")
 
                 inf_parsed = await self.telnet_get_data("@inf", reader, writer)
                 if dat_parsed is not None:
@@ -166,42 +167,48 @@ class Elios4YouAPI:
                         # @inf returns only strings
                         self.data[key] = str(value)
                 else:
-                    _LOGGER.debug("async_get_data (error): @inf data is None")
+                    _LOGGER.debug("async_get_data (ERROR): @inf data is None")
                 _LOGGER.debug(
                     f"async_get_data (WARNING): end telnet_get_data {datetime.now()}"
                 )
 
                 # Calculated sensor to combine TOP/BOTTOM fw versions
                 self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
+
                 # Calculated sensors for self-consumption sensors
                 self.data["self_consumed_power"] = round(
                     (self.data["produced_power"] - self.data["sold_power"]), 2
                 )
+
                 self.data["self_consumed_energy"] = round(
                     (self.data["produced_energy"] - self.data["sold_energy"]), 2
                 )
+
                 self.data["self_consumed_energy_f1"] = round(
-                    (self.data["produced_energy_f1"] - self.data["sold_energy_f1"]), 2
+                    (self.data["produced_energy_f1"] - self.data["sold_energy_f1"]),
+                    2,
                 )
                 self.data["self_consumed_energy_f2"] = round(
-                    (self.data["produced_energy_f2"] - self.data["sold_energy_f2"]), 2
+                    (self.data["produced_energy_f2"] - self.data["sold_energy_f2"]),
+                    2,
                 )
                 self.data["self_consumed_energy_f3"] = round(
-                    (self.data["produced_energy_f3"] - self.data["sold_energy_f3"]), 2
+                    (self.data["produced_energy_f3"] - self.data["sold_energy_f3"]),
+                    2,
                 )
 
             except TimeoutError:
                 _LOGGER.debug(
-                    "async_get_data (error): Connection or operation timed out"
+                    "async_get_data (ERROR): Connection or operation timed out"
                 )
             except Exception as e:
-                _LOGGER.debug(f"async_get_data (error): An error occurred: {str(e)}")
+                _LOGGER.debug(f"async_get_data (ERROR): An error occurred: {str(e)}")
             finally:
-                _LOGGER.debug("async_get_data (error): closing telnet connection")
+                _LOGGER.debug("async_get_data (WARNING): closing telnet connection")
                 reader.feed_eof()
         else:
             _LOGGER.debug(
-                "async_get_data (error): Elios4you not ready for telnet connection"
+                "async_get_data (ERROR): Elios4you not ready for telnet connection"
             )
             raise ConnectionError(f"Elios4you not active on {self._host}:{self._port}")
         _LOGGER.debug(f"async_get_data: end async_get_data {datetime.now()}")
@@ -225,30 +232,31 @@ class Elios4YouAPI:
             )
 
             # send the command
-            _LOGGER.debug(f"telnet_get_data: before write {datetime.now()}")
+            _LOGGER.debug(
+                f"telnet_get_data (WARNING): sending command {datetime.now()}"
+            )
             writer.write(cmd_send)
-            _LOGGER.debug(f"telnet_get_data: after write {datetime.now()}")
 
             # read stream up to the "ready..." string
             _LOGGER.debug(
                 f"telnet_get_data (WARNING): readuntil started at {datetime.now()}"
             )
-            # sometimes telnetlib3 hangs on readuntil so we manage a timeout
             try:
+                # sometimes telnetlib3 hangs on readuntil so we manage a timeout
                 response = await asyncio.wait_for(
                     reader.readuntil(separator), timeout=self._timeout
                 )
             except IncompleteReadError as ex:
                 _LOGGER.debug(
-                    f"telnet_get_data (error): Separator not found, chunk exceeded the limit part: {ex.partial} {datetime.now()}"
+                    f"telnet_get_data (ERROR): Separator not found, chunk exceeded the limit part: {ex.partial} {datetime.now()}"
                 )
             except LimitOverrunError:
                 _LOGGER.debug(
-                    f"telnet_get_data (error): Separator not found, chunk exceeded the limit {datetime.now()}"
+                    f"telnet_get_data (ERROR): Separator not found, chunk exceeded the limit {datetime.now()}"
                 )
             except TimeoutError:
                 _LOGGER.debug(
-                    f"telnet_get_data (error): readuntil timed out at {datetime.now()}"
+                    f"telnet_get_data (ERROR): readuntil timed out at {datetime.now()}"
                 )
             finally:
                 _LOGGER.debug(
@@ -279,17 +287,17 @@ class Elios4YouAPI:
 
                     except ValueError:
                         _LOGGER.debug(
-                            f"telnet_get_data (error): Error parsing line: {line}"
+                            f"telnet_get_data (ERROR): Error parsing line: {line}"
                         )
-                _LOGGER.debug(f"telnet_get_data: success {output}")
+                _LOGGER.debug(f"telnet_get_data (WARNING): success {output}")
             else:
-                _LOGGER.debug("telnet_get_data: response is None")
+                _LOGGER.debug("telnet_get_data (ERROR): response is None")
         except TimeoutError:
             _LOGGER.debug(
-                f"telnet_get_data (error): readuntil timed out at {datetime.now()}"
+                f"telnet_get_data (ERROR): readuntil timed out at {datetime.now()}"
             )
         except Exception as ex:
-            _LOGGER.debug(f"telnet_get_data (error): failed with error: {ex}")
+            _LOGGER.debug(f"telnet_get_data (ERROR): failed with error: {ex}")
         finally:
             return output if response is not None else None
 
@@ -306,8 +314,12 @@ class Elios4YouAPI:
                 return set_relay
             try:
                 rel_output = {}
-                reader, writer = await telnetlib3.open_connection(
-                    self._host, self._port
+                _LOGGER.debug(
+                    f"telnet_set_relay (WARNING): start open_connection {datetime.now()}"
+                )
+                # let's manage timeout for the connection
+                reader, writer = await asyncio.wait_for(
+                    telnetlib3.open_connection(self._host, self._port), self._timeout
                 )
                 rel_parsed = await self.telnet_get_data(
                     f"@rel 0 {to_state}", reader, writer
@@ -329,20 +341,22 @@ class Elios4YouAPI:
                         set_relay = True
                     else:
                         _LOGGER.debug(
-                            f"telnet_set_relay: relay set failure - to_state [{type(to_state)}]: {to_state} output [{type(out_mode)}]: {out_mode}"
+                            f"telnet_set_relay (ERROR): relay set failure - to_state [{type(to_state)}]: {to_state} output [{type(out_mode)}]: {out_mode}"
                         )
                         set_relay = False
                 else:
-                    _LOGGER.debug("telnet_set_relay: rel_parsed is None")
+                    _LOGGER.debug("telnet_set_relay (ERROR): rel_parsed is None")
             except TimeoutError:
-                _LOGGER.debug("telnet_set_relay: Connection or operation timed out")
+                _LOGGER.debug(
+                    "telnet_set_relay (ERROR): Connection or operation timed out"
+                )
             except Exception as ex:
-                _LOGGER.debug(f"telnet_set_relay: failed with error: {ex}")
+                _LOGGER.debug(f"telnet_set_relay (ERROR): failed with error: {ex}")
             finally:
-                _LOGGER.debug("telnet_set_relay: closing telnet session")
+                _LOGGER.debug("telnet_set_relay (WARNING): closing telnet session")
                 reader.feed_eof()
         else:
             _LOGGER.debug(
-                f"telnet_set_relay: Elios4you not active on {self._host}:{self._port}"
+                f"telnet_set_relay (ERROR): Elios4you not active on {self._host}:{self._port}"
             )
         return set_relay
