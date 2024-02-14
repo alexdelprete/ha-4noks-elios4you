@@ -36,7 +36,7 @@ class Elios4YouAPI:
         self._name = name
         self._host = host
         self._port = port
-        self._timeout = scan_interval - 1
+        self._timeout = 10
         self._sensors = []
         self.data = {}
         # Initialize Elios4You data structure before first read
@@ -127,15 +127,15 @@ class Elios4YouAPI:
         """Read Data Function."""
 
         _LOGGER.debug(
-            f"async_get_data (warning): start async_get_data {datetime.now()}"
+            f"async_get_data (WARNING): start async_get_data {datetime.now()}"
         )
         if self.check_port():
             try:
-                reader, writer = await telnetlib3.open_connection(
-                    self._host, self._port
+                reader, writer = await asyncio.wait_for(
+                    telnetlib3.open_connection(self._host, self._port), self._timeout
                 )
                 _LOGGER.debug(
-                    f"async_get_data (warning): start telnet_get_data {datetime.now()}"
+                    f"async_get_data (WARNING): start telnet_get_data {datetime.now()}"
                 )
                 dat_parsed = await self.telnet_get_data("@dat", reader, writer)
                 if dat_parsed is not None:
@@ -143,7 +143,7 @@ class Elios4YouAPI:
                     for key, value in dat_parsed.items():
                         # @dat returns only numbers as strings
                         # power/energy as float all others as int
-                        if "Energy" in key or "Power" in key:
+                        if "energy" in key or "power" in key:
                             self.data[key] = round(float(value), 2)
                         else:
                             self.data[key] = int(value)
@@ -152,7 +152,7 @@ class Elios4YouAPI:
 
                 sta_parsed = await self.telnet_get_data("@sta", reader, writer)
                 if dat_parsed is not None:
-                    _LOGGER.debug("async_get_data (warning): parsing @sta data")
+                    _LOGGER.debug("async_get_data (WARNING): parsing @sta data")
                     for key, value in sta_parsed.items():
                         # @sta returns only float numbers as strings
                         self.data[key] = round(float(value), 2)
@@ -161,14 +161,14 @@ class Elios4YouAPI:
 
                 inf_parsed = await self.telnet_get_data("@inf", reader, writer)
                 if dat_parsed is not None:
-                    _LOGGER.debug("async_get_data (warning): parsing @inf data")
+                    _LOGGER.debug("async_get_data (WARNING): parsing @inf data")
                     for key, value in inf_parsed.items():
                         # @inf returns only strings
                         self.data[key] = str(value)
                 else:
                     _LOGGER.debug("async_get_data (error): @inf data is None")
                 _LOGGER.debug(
-                    f"async_get_data (warning): end telnet_get_data {datetime.now()}"
+                    f"async_get_data (WARNING): end telnet_get_data {datetime.now()}"
                 )
 
                 # Calculated sensor to combine TOP/BOTTOM fw versions
@@ -209,23 +209,26 @@ class Elios4YouAPI:
     async def telnet_get_data(self, cmd, reader, writer):
         """Send Telnet Commands and process output."""
         try:
-            cmd = cmd.lower()
+            cmd = cmd.lower() + "\n"
             cmd_main = cmd[0:4]
             _LOGGER.debug(f"telnet_get_data: cmd {cmd} cmd_main: {cmd_main}")
             response = None
             output = {}
 
             # send the command
-            writer.write(cmd + "\n")
+            _LOGGER.debug(f"telnet_get_data: before write {datetime.now()}")
+            writer.write(cmd)
+            _LOGGER.debug(f"telnet_get_data: after write {datetime.now()}")
 
             # read stream up to the "ready..." string
             _LOGGER.debug(
-                f"telnet_get_data (warning): readuntil started at {datetime.now()}"
+                f"telnet_get_data (WARNING): readuntil started at {datetime.now()}"
             )
             # sometimes telnetlib3 hangs on readuntil so we manage a timeout
             try:
-                async with asyncio.timeout(3):
-                    response = await reader.readuntil(b"ready...")
+                response = await asyncio.wait_for(
+                    reader.readuntil(b"ready..."), timeout=self._timeout
+                )
             except IncompleteReadError as ex:
                 _LOGGER.debug(
                     f"telnet_get_data (error): Separator not found, chunk exceeded the limit part: {ex.partial} {datetime.now()}"
@@ -240,7 +243,7 @@ class Elios4YouAPI:
                 )
             finally:
                 _LOGGER.debug(
-                    f"telnet_get_data (warning): readuntil ended at {datetime.now()}"
+                    f"telnet_get_data (WARNING): readuntil ended at {datetime.now()}"
                 )
 
             # if we had a valid response we process data
