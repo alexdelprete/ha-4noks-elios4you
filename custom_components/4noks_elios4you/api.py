@@ -77,6 +77,7 @@ class Elios4YouAPI:
         self.data["rel_mode"] = 1
         self.data["rel_warning"] = 1
         self.data["rcap"] = 1
+        self.data["utc_time"] = ""
         self.data["fwtop"] = ""
         self.data["fwbtm"] = ""
         self.data["sn"] = ""
@@ -146,6 +147,8 @@ class Elios4YouAPI:
                         # power/energy as float all others as int
                         if "energy" in key or "power" in key:
                             self.data[key] = round(float(value), 2)
+                        elif key == "utc_time":
+                            self.data[key] = str(value)
                         else:
                             self.data[key] = int(value)
                 else:
@@ -221,7 +224,7 @@ class Elios4YouAPI:
             cmd_send = cmd.lower() + "\n"
             # separator for telnetlib3.stream_reader.readuntil()
             # byte encoded string
-            separator = bytes("ready...", "utf-8")
+            separator = "ready..."
             # get only command part without parameters
             cmd_main = cmd[0:4].lower()
             response = None
@@ -243,16 +246,28 @@ class Elios4YouAPI:
             )
             try:
                 # sometimes telnetlib3 hangs on readuntil so we manage a timeout
-                response = await asyncio.wait_for(
-                    reader.readuntil(separator), timeout=self._timeout
-                )
+                # response = await asyncio.wait_for(
+                #     reader.readuntil(separator), timeout=self._timeout
+                # )
+
+                response = ""
+                while True:
+                    line = await asyncio.wait_for(
+                        reader.readline(), timeout=self._timeout
+                    )
+                    if (
+                        separator in line.strip()
+                    ):  # Break the loop if separator string is encountered
+                        break
+                    response += line
+
             except IncompleteReadError as ex:
                 _LOGGER.debug(
-                    f"telnet_get_data (ERROR): Separator not found, chunk exceeded the limit part: {ex.partial} {datetime.now()}"
+                    f"telnet_get_data (ERROR): no separator, chunk exceeded limit. Part: {ex.partial} {datetime.now()}"
                 )
             except LimitOverrunError:
                 _LOGGER.debug(
-                    f"telnet_get_data (ERROR): Separator not found, chunk exceeded the limit {datetime.now()}"
+                    f"telnet_get_data (ERROR): no separator, chunk exceeded limit {datetime.now()}"
                 )
             except TimeoutError:
                 _LOGGER.debug(
@@ -267,10 +282,10 @@ class Elios4YouAPI:
             if response:
                 # decode bytes to string using utf-8 and split each line as a list member
                 lines = response.decode("utf-8").splitlines()
-                # _LOGGER.debug(f"telnet_get_data: lines {lines}")
-                # _LOGGER.debug(f"telnet_get_data: lines-2 {lines[2:-2]}")
+                _LOGGER.debug(f"telnet_get_data (WARNING): lines {lines}")
+                _LOGGER.debug(f"telnet_get_data (WARNING): lines-2 {lines[1:-1]}")
                 # exclude first and last two lines
-                for line in lines[2:-2]:
+                for line in lines[1:-1]:
                     try:
                         # @inf @rel @hwr output use "=" separator
                         if (
