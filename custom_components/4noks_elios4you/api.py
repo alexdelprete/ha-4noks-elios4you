@@ -345,16 +345,16 @@ class Elios4YouAPI:
                     _LOGGER.debug(f"telnet_set_relay: rel_output {rel_output}")
                     out_mode = int(rel_output["rel"])
                     _LOGGER.debug(
-                        f"telnet_set_relay: sent telnet cmd: @rel 0 {to_state} output: {out_mode}"
+                        f"telnet_set_relay (WARNING): sent telnet cmd: @rel 0 {to_state} output: {out_mode}"
                     )
                     if out_mode == to_state:
                         _LOGGER.debug(
-                            f"telnet_set_relay: relay set success - to_state [{type(to_state)}]: {to_state} output: {out_mode}"
+                            f"telnet_set_relay (WARNING): relay set success - to_state: {to_state} output: {out_mode}"
                         )
                         set_relay = True
                     else:
                         _LOGGER.debug(
-                            f"telnet_set_relay (ERROR): relay set failure - to_state [{type(to_state)}]: {to_state} output: {out_mode}"
+                            f"telnet_set_relay (ERROR): relay set failure - to_state: {to_state} output: {out_mode}"
                         )
                         set_relay = False
                 else:
