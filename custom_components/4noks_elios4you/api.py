@@ -6,7 +6,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 import asyncio
 import logging
 import socket
-from asyncio import IncompleteReadError, LimitOverrunError
+from asyncio import IncompleteReadError
 from datetime import datetime
 
 import telnetlib3
@@ -126,7 +126,7 @@ class Elios4YouAPI:
 
     async def async_get_data(self):
         """Read Data Function."""
-
+        get_data_res = False
         if self.check_port():
             try:
                 _LOGGER.debug(
@@ -145,8 +145,9 @@ class Elios4YouAPI:
                     for key, value in dat_parsed.items():
                         # @dat returns only numbers as strings
                         # power/energy as float all others as int
-                        if "energy" in key or "power" in key:
+                        if ("energy" in key) or ("power" in key):
                             self.data[key] = round(float(value), 2)
+                        # don't create a utc_time sensor
                         elif key == "utc_time":
                             pass
                         else:
@@ -196,25 +197,26 @@ class Elios4YouAPI:
                     (self.data["produced_energy_f3"] - self.data["sold_energy_f3"]),
                     2,
                 )
-
+                get_data_res = True
             except TimeoutError:
                 _LOGGER.debug(
                     "async_get_data (ERROR): Connection or operation timed out"
                 )
+                get_data_res = False
             except Exception as e:
                 _LOGGER.debug(f"async_get_data (ERROR): An error occurred: {str(e)}")
+                get_data_res = False
             finally:
                 _LOGGER.debug("async_get_data (WARNING): closing telnet connection")
                 reader.feed_eof()
-                _LOGGER.debug(
-                    f"async_get_data (WARNING): end async_get_data {datetime.now()}"
-                )
         else:
             _LOGGER.debug(
-                "async_get_data (ERROR): Elios4you not ready for telnet connection"
+                "async_get_data (ERROR): device not ready for telnet connection"
             )
-            raise ConnectionError(f"Elios4you not active on {self._host}:{self._port}")
+            raise ConnectionError(f"device not active on {self._host}:{self._port}")
+        # end async_get_data
         _LOGGER.debug(f"async_get_data: end async_get_data {datetime.now()}")
+        return get_data_res
 
     async def telnet_get_data(self, cmd, reader, writer):
         """Send Telnet Commands and process output."""
@@ -242,7 +244,7 @@ class Elios4YouAPI:
 
             # read stream up to the "ready..." string
             _LOGGER.debug(
-                f"telnet_get_data (WARNING): readuntil started at {datetime.now()}"
+                f"telnet_get_data (WARNING): readline loop started at {datetime.now()}"
             )
             try:
                 # sometimes telnetlib3 hangs on readuntil so we manage a timeout
@@ -263,19 +265,15 @@ class Elios4YouAPI:
 
             except IncompleteReadError as ex:
                 _LOGGER.debug(
-                    f"telnet_get_data (ERROR): no separator, chunk exceeded limit. Part: {ex.partial} {datetime.now()}"
-                )
-            except LimitOverrunError:
-                _LOGGER.debug(
-                    f"telnet_get_data (ERROR): no separator, chunk exceeded limit {datetime.now()}"
+                    f"telnet_get_data (ERROR): only partial line could be read. Part: {ex.partial} {datetime.now()}"
                 )
             except TimeoutError:
                 _LOGGER.debug(
-                    f"telnet_get_data (ERROR): readuntil timed out at {datetime.now()}"
+                    f"telnet_get_data (ERROR): read loop timed out at {datetime.now()}"
                 )
             finally:
                 _LOGGER.debug(
-                    f"telnet_get_data (WARNING): readuntil ended at {datetime.now()}"
+                    f"telnet_get_data (WARNING): read loop ended at {datetime.now()}"
                 )
 
             # if we had a valid response we process data
@@ -365,8 +363,10 @@ class Elios4YouAPI:
                 _LOGGER.debug(
                     "telnet_set_relay (ERROR): Connection or operation timed out"
                 )
+                set_relay = False
             except Exception as ex:
                 _LOGGER.debug(f"telnet_set_relay (ERROR): failed with error: {ex}")
+                set_relay = False
             finally:
                 _LOGGER.debug("telnet_set_relay (WARNING): closing telnet session")
                 reader.feed_eof()
@@ -375,4 +375,7 @@ class Elios4YouAPI:
             _LOGGER.debug(
                 f"telnet_set_relay (ERROR): Elios4you not active on {self._host}:{self._port}"
             )
+            set_relay = False
+        # end telnet_set_relay
+        _LOGGER.debug(f"telnet_set_relay: end telnet_set_relay {datetime.now()}")
         return set_relay
