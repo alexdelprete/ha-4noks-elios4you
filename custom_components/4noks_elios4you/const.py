@@ -272,14 +272,6 @@ SENSOR_ENTITIES = [
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
     },
     {
-        "name": "UTC Time",
-        "key": "utc_time",
-        "icon": "mdi:clock-outline",
-        "device_class": None,
-        "state_class": None,
-        "unit": None,
-    },
-    {
         "name": "Alarm 1",
         "key": "alarm_1",
         "icon": "mdi:alarm-light-outline",
