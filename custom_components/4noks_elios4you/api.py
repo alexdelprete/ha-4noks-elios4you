@@ -175,7 +175,8 @@ class Elios4YouAPI:
                 _LOGGER.debug(
                     f"async_get_data (WARNING): start telnet_get_data {datetime.now()}"
                 )
-
+                # Do we need to use HA function to call sync function in async context?
+                # https://developers.home-assistant.io/docs/asyncio_working_with_async?#calling-sync-functions-from-async
                 dat_parsed = self.telnet_get_data("@dat")
                 if dat_parsed is not None:
                     _LOGGER.debug("async_get_data: parsing @dat data")
