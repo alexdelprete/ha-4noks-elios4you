@@ -8,9 +8,8 @@ import socket
 import sys
 from datetime import datetime
 
-from lib.telnetlib import Telnet
-
 from .const import MANUFACTURER, MODEL
+from .telnetlib import Telnet
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -161,29 +160,23 @@ class Elios4YouAPI:
         get_data_res = False
         if self.check_port():
             try:
-                _LOGGER.debug(
-                    f"async_get_data (WARNING): open telnet session {datetime.now()}"
-                )
-                # ensure that previous connections are closed
+                # open connection ensuring previous connections are closed
                 if self.E4Uclient.get_socket() is not None:
                     _LOGGER.debug(
                         f"async_get_data (ERROR): telnet session already open {datetime.now()}"
                     )
                     self.E4Uclient.close()
-
-                # HA way to call a sync function from async function
-                # https://developers.home-assistant.io/docs/asyncio_working_with_async?#calling-sync-functions-from-async
-                await self._hass.async_add_executor_job(
-                    self.E4Uclient.open(
-                        host=self._host, port=self._port, timeout=self._timeout
-                    )
+                _LOGGER.debug(
+                    f"async_get_data (WARNING): opening telnet session {datetime.now()}"
+                )
+                self.E4Uclient.open(
+                    host=self._host, port=self._port, timeout=self._timeout
                 )
                 _LOGGER.debug(
                     f"async_get_data (WARNING): start telnet_get_data {datetime.now()}"
                 )
-                dat_parsed = await self._hass.async_add_executor_job(
-                    self.telnet_get_data("@dat")
-                )
+
+                dat_parsed = self.telnet_get_data("@dat")
                 if dat_parsed is not None:
                     _LOGGER.debug("async_get_data: parsing @dat data")
                     for key, value in dat_parsed.items():
@@ -199,9 +192,7 @@ class Elios4YouAPI:
                 else:
                     _LOGGER.debug("async_get_data (ERROR): @dat data is None")
 
-                sta_parsed = await self._hass.async_add_executor_job(
-                    self.telnet_get_data("@sta")
-                )
+                sta_parsed = self.telnet_get_data("@sta")
                 if dat_parsed is not None:
                     _LOGGER.debug("async_get_data (WARNING): parsing @sta data")
                     for key, value in sta_parsed.items():
@@ -210,9 +201,7 @@ class Elios4YouAPI:
                 else:
                     _LOGGER.debug("async_get_data (ERROR): @sta data is None")
 
-                inf_parsed = await self._hass.async_add_executor_job(
-                    self.telnet_get_data("@inf")
-                )
+                inf_parsed = self.telnet_get_data("@inf")
                 if dat_parsed is not None:
                     _LOGGER.debug("async_get_data (WARNING): parsing @inf data")
                     for key, value in inf_parsed.items():
@@ -353,22 +342,15 @@ class Elios4YouAPI:
                 _LOGGER.debug(
                     f"telnet_set_relay (WARNING): start open_connection {datetime.now()}"
                 )
-                # ensure that previous connections are closed
+                # open connection ensuring previous connections are closed
                 if self.E4Uclient.get_socket() is not None:
                     self.E4Uclient.close()
-                # HA way to call a sync function from async function
-                # https://developers.home-assistant.io/docs/asyncio_working_with_async?#calling-sync-functions-from-async
-                await self._hass.async_add_executor_job(
-                    self.E4Uclient.open(
-                        host=self._host, port=self._port, timeout=self._timeout
-                    )
+                self.E4Uclient.open(
+                    host=self._host, port=self._port, timeout=self._timeout
                 )
-                rel_parsed = await self._hass.async_add_executor_job(
-                    self.telnet_get_data(f"@rel 0 {to_state}")
-                )
-                rel_parsed = await self._hass.async_add_executor_job(
-                    self.telnet_get_data("@rel")
-                )
+
+                rel_parsed = self.telnet_get_data(f"@rel 0 {to_state}")
+                rel_parsed = self.telnet_get_data("@rel")
                 # if we had a valid response we process data
                 if rel_parsed:
                     for key, value in rel_parsed.items():
