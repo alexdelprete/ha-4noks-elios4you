@@ -106,7 +106,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def is_on(self):
         """Return true if switch is on."""
-        return True if int(self._is_on) == 1 else False
+        return True if self._is_on == 1 else False
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
@@ -115,7 +115,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
             _LOGGER.debug("switch async_turn_on (WARNING): turned on")
         else:
             _LOGGER.debug("switch async_turn_on (ERROR): error turning on")
-        await self.async_force_update()
+        # await self.async_force_update()
         return set_response
 
     async def async_turn_off(self, **kwargs):
@@ -125,7 +125,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
             _LOGGER.debug("switch async_turn_off (WARNING): turned off")
         else:
             _LOGGER.debug("switch async_turn_off (ERROR): error turning off")
-        await self.async_force_update()
+        # await self.async_force_update()
         return set_response
 
     @property
