@@ -193,7 +193,7 @@ class Telnet:
     """
 
     def __init__(self, host=None, port=0, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
-        """Constructor.
+        """Init Constructor for telnetlib.
 
         When called without arguments, create an unconnected instance.
         With a hostname argument, it connects the instance; port number
@@ -244,11 +244,11 @@ class Telnet:
 
         """
         if self.debuglevel > 0:
-            print("Telnet(%s,%s):" % (self.host, self.port), end=" ")
+            print("Telnet(%s,%s):" % (self.host, self.port), end=" ")  # noqa: UP031, T201
             if args:
-                print(msg % args)
+                print(msg % args)  # noqa: T201
             else:
-                print(msg)
+                print(msg)  # noqa: T201
 
     def set_debuglevel(self, debuglevel):
         """Set the debug level.
@@ -273,7 +273,7 @@ class Telnet:
         return self.sock
 
     def fileno(self):
-        """Return the fileno() of the socket object used internally."""
+        """Return the fileno of the socket object used internally."""
         return self.sock.fileno()
 
     def write(self, buffer):
@@ -541,12 +541,12 @@ class Telnet:
             selector.register(sys.stdin, selectors.EVENT_READ)
 
             while True:
-                for key, events in selector.select():
+                for key, events in selector.select():  # noqa: B007
                     if key.fileobj is self:
                         try:
                             text = self.read_eager()
                         except EOFError:
-                            print("*** Connection closed by remote host ***")
+                            print("*** Connection closed by remote host ***")  # noqa: T201
                             return
                         if text:
                             sys.stdout.write(text.decode("ascii"))
@@ -569,12 +569,12 @@ class Telnet:
             self.write(line.encode("ascii"))
 
     def listener(self):
-        """Helper for mt_interact() -- this executes in the other thread."""
+        """Implement Helper for mt_interact() -- this executes in the other thread."""
         while 1:
             try:
                 data = self.read_eager()
             except EOFError:
-                print("*** Connection closed by remote host ***")
+                print("*** Connection closed by remote host ***")  # noqa: T201
                 return
             if data:
                 sys.stdout.write(data.decode("ascii"))
@@ -638,10 +638,10 @@ class Telnet:
             raise EOFError
         return (-1, None, text)
 
-    def __enter__(self):
+    def __enter__(self):  # noqa: D105
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type, value, traceback):  # noqa: D105
         self.close()
 
 
