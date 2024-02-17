@@ -62,7 +62,6 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
             config_entry.data.get(CONF_NAME),
             config_entry.data.get(CONF_HOST),
             config_entry.data.get(CONF_PORT),
-            self.scan_interval,
         )
 
         _LOGGER.debug("Coordinator Config Data: %s", config_entry.data)

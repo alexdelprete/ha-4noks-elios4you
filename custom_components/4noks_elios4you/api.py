@@ -3,13 +3,12 @@
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
-import asyncio
 import logging
 import socket
-from asyncio import IncompleteReadError
+import sys
 from datetime import datetime
 
-import telnetlib3
+from lib.telnetlib import Telnet
 
 from .const import MANUFACTURER, MODEL
 
@@ -18,6 +17,39 @@ _LOGGER = logging.getLogger(__name__)
 
 class ConnectionError(Exception):
     """Empty Error Class."""
+
+
+class E4Utelnet(Telnet):
+    """Python2/3 compatibility.
+
+    Override telnetlib methods: bytes vs str
+    ref: https://stackoverflow.com/a/26101026
+    """
+
+    if sys.version > "3":
+
+        def read_until(self, expected, timeout=None):
+            """Override telnetlib.telnet read_until."""
+            expected = bytes(expected, encoding="utf-8")
+            received = super().read_until(expected, timeout)
+            return str(received, encoding="utf-8")
+
+        def read_all(self):
+            """Override telnetlib.telnet read_all."""
+            received = super().read_all()
+            return str(received, encoding="utf-8")
+
+        def write(self, buffer):
+            """Override telnetlib.telnet write."""
+            buffer = bytes(buffer + "\n", encoding="utf-8")
+            super().write(buffer)
+
+        def expect(self, list, timeout=None):
+            """Override telnetlib.telnet expect."""
+            for index, item in enumerate(list):
+                list[index] = bytes(item, encoding="utf-8")
+            match_index, match_object, match_text = super().expect(list, timeout)
+            return match_index, match_object, str(match_text, encoding="utf-8")
 
 
 class Elios4YouAPI:
@@ -29,7 +61,6 @@ class Elios4YouAPI:
         name,
         host,
         port,
-        scan_interval,
     ):
         """Initialize the Elios4You API Client."""
         self._hass = hass
@@ -38,6 +69,7 @@ class Elios4YouAPI:
         self._port = port
         self._timeout = 5
         self._sensors = []
+        self.E4Uclient = E4Utelnet()
         self.data = {}
         # Initialize Elios4You data structure before first read
         self.data["produced_power"] = 1
@@ -130,16 +162,28 @@ class Elios4YouAPI:
         if self.check_port():
             try:
                 _LOGGER.debug(
-                    f"async_get_data (WARNING): start open_connection {datetime.now()}"
+                    f"async_get_data (WARNING): open telnet session {datetime.now()}"
                 )
-                # let's manage timeout for the connection
-                reader, writer = await asyncio.wait_for(
-                    telnetlib3.open_connection(self._host, self._port), self._timeout
+                # ensure that previous connections are closed
+                if self.E4Uclient.get_socket() is not None:
+                    _LOGGER.debug(
+                        f"async_get_data (ERROR): telnet session already open {datetime.now()}"
+                    )
+                    self.E4Uclient.close()
+
+                # HA way to call a sync function from async function
+                # https://developers.home-assistant.io/docs/asyncio_working_with_async?#calling-sync-functions-from-async
+                await self._hass.async_add_executor_job(
+                    self.E4Uclient.open(
+                        host=self._host, port=self._port, timeout=self._timeout
+                    )
                 )
                 _LOGGER.debug(
                     f"async_get_data (WARNING): start telnet_get_data {datetime.now()}"
                 )
-                dat_parsed = await self.telnet_get_data("@dat", reader, writer)
+                dat_parsed = await self._hass.async_add_executor_job(
+                    self.telnet_get_data("@dat")
+                )
                 if dat_parsed is not None:
                     _LOGGER.debug("async_get_data: parsing @dat data")
                     for key, value in dat_parsed.items():
@@ -155,7 +199,9 @@ class Elios4YouAPI:
                 else:
                     _LOGGER.debug("async_get_data (ERROR): @dat data is None")
 
-                sta_parsed = await self.telnet_get_data("@sta", reader, writer)
+                sta_parsed = await self._hass.async_add_executor_job(
+                    self.telnet_get_data("@sta")
+                )
                 if dat_parsed is not None:
                     _LOGGER.debug("async_get_data (WARNING): parsing @sta data")
                     for key, value in sta_parsed.items():
@@ -164,7 +210,9 @@ class Elios4YouAPI:
                 else:
                     _LOGGER.debug("async_get_data (ERROR): @sta data is None")
 
-                inf_parsed = await self.telnet_get_data("@inf", reader, writer)
+                inf_parsed = await self._hass.async_add_executor_job(
+                    self.telnet_get_data("@inf")
+                )
                 if dat_parsed is not None:
                     _LOGGER.debug("async_get_data (WARNING): parsing @inf data")
                     for key, value in inf_parsed.items():
@@ -208,7 +256,7 @@ class Elios4YouAPI:
                 get_data_res = False
             finally:
                 _LOGGER.debug("async_get_data (WARNING): closing telnet connection")
-                reader.feed_eof()
+                self.E4Uclient.close()
         else:
             _LOGGER.debug(
                 "async_get_data (ERROR): device not ready for telnet connection"
@@ -218,19 +266,14 @@ class Elios4YouAPI:
         _LOGGER.debug(f"async_get_data: end async_get_data {datetime.now()}")
         return get_data_res
 
-    async def telnet_get_data(self, cmd, reader, writer):
+    def telnet_get_data(self, cmd: str):
         """Send Telnet Commands and process output."""
         try:
-            # cmd for telnetlib3.stream_writer.write()
-            # string with LF
-            cmd_send = cmd.lower() + "\n"
-            # separator for telnetlib3.stream_reader.readuntil()
-            # byte encoded string
-            separator = "ready..."
-            # get only command part without parameters
             cmd_main = cmd[0:4].lower()
-            response = None
+            cmd_send = cmd.lower()
             output = {}
+            response = None
+            separator = "ready..."
 
             _LOGGER.debug(
                 f"telnet_get_data: cmd {cmd} cmd_send: {cmd_send} cmd_main: {cmd_main}"
@@ -240,74 +283,54 @@ class Elios4YouAPI:
             _LOGGER.debug(
                 f"telnet_get_data (WARNING): sending command {datetime.now()}"
             )
-            writer.write(cmd_send)
+            # send the command
+            self.E4Uclient.write(cmd_send)
 
             # read stream up to the "ready..." string
             _LOGGER.debug(
                 f"telnet_get_data (WARNING): readline loop started at {datetime.now()}"
             )
             try:
-                # sometimes telnetlib3 hangs on readuntil so we manage a timeout
-                # response = await asyncio.wait_for(
-                #     reader.readuntil(separator), timeout=self._timeout
-                # )
-
                 response = ""
-                while True:
-                    line = await asyncio.wait_for(
-                        reader.readline(), timeout=self._timeout
-                    )
-                    if (
-                        separator in line.strip()
-                    ):  # Break the loop if separator string is encountered
-                        break
-                    response += line
-
-            except IncompleteReadError as ex:
-                _LOGGER.debug(
-                    f"telnet_get_data (ERROR): only partial line could be read. Part: {ex.partial} {datetime.now()}"
-                )
+                # read stream up to the "ready..."" string (end of response)
+                response = self.E4Uclient.read_until(separator, timeout=3)
             except TimeoutError:
                 _LOGGER.debug(
                     f"telnet_get_data (ERROR): read loop timed out at {datetime.now()}"
                 )
             finally:
                 _LOGGER.debug(
-                    f"telnet_get_data (WARNING): read loop ended at {datetime.now()}"
+                    f"telnet_get_data (WARNING): read_until ended at {datetime.now()}"
                 )
 
             # if we had a valid response we process data
             if response:
                 # decode bytes to string using utf-8 and split each line as a list member
                 lines = response.splitlines()
+                lines_start = (
+                    1
+                    if lines[0].lower() in ["@dat", "@sta", "@inf", "@rel", "@hwr"]
+                    else 2
+                )
+                lines_end = -2
                 # _LOGGER.debug(f"telnet_get_data (WARNING): lines {lines}")
                 # _LOGGER.debug(f"telnet_get_data (WARNING): lines1-1 {lines[1:-1]}")
                 # exclude first and last two lines
-                for line in lines[1:-1]:
-                    try:
-                        # @inf @rel @hwr output use "=" separator
-                        if (
-                            cmd_main == "@inf"
-                            or cmd_main == "@rel"
-                            or cmd_main == "@hwr"
-                        ):
-                            key, value = line.split("=")
-                        # @dat and @sta output use ";" separator
-                        else:
-                            key, value = line.split(";")[1:3]
+                for line in lines[lines_start:lines_end]:
+                    if cmd_main in ["@inf", "@rel", "@hwr"]:
+                        # @inf data uses a different separator
+                        key, value = line.split("=")
+                    else:
+                        # @dat and @sta share the same data format
+                        key, value = line.split(";")[1:3]
                         # lower case and replace space with underscore
-                        output[key.lower().replace(" ", "_")] = value.strip()
-
-                    except ValueError:
-                        _LOGGER.debug(
-                            f"telnet_get_data (ERROR): Error parsing line: {line}"
-                        )
+                    output[key.lower().replace(" ", "_")] = value.strip()
                 _LOGGER.debug(f"telnet_get_data (WARNING): success {output}")
             else:
                 _LOGGER.debug("telnet_get_data (ERROR): response is None")
         except TimeoutError:
             _LOGGER.debug(
-                f"telnet_get_data (ERROR): readuntil timed out at {datetime.now()}"
+                f"telnet_get_data (ERROR): read_until timed out at {datetime.now()}"
             )
         except Exception as ex:
             _LOGGER.debug(f"telnet_get_data (ERROR): failed with error: {ex}")
@@ -330,14 +353,22 @@ class Elios4YouAPI:
                 _LOGGER.debug(
                     f"telnet_set_relay (WARNING): start open_connection {datetime.now()}"
                 )
-                # let's manage timeout for the connection
-                reader, writer = await asyncio.wait_for(
-                    telnetlib3.open_connection(self._host, self._port), self._timeout
+                # ensure that previous connections are closed
+                if self.E4Uclient.get_socket() is not None:
+                    self.E4Uclient.close()
+                # HA way to call a sync function from async function
+                # https://developers.home-assistant.io/docs/asyncio_working_with_async?#calling-sync-functions-from-async
+                await self._hass.async_add_executor_job(
+                    self.E4Uclient.open(
+                        host=self._host, port=self._port, timeout=self._timeout
+                    )
                 )
-                rel_parsed = await self.telnet_get_data(
-                    f"@rel 0 {to_state}", reader, writer
+                rel_parsed = await self._hass.async_add_executor_job(
+                    self.telnet_get_data(f"@rel 0 {to_state}")
                 )
-                rel_parsed = await self.telnet_get_data("@rel", reader, writer)
+                rel_parsed = await self._hass.async_add_executor_job(
+                    self.telnet_get_data("@rel")
+                )
                 # if we had a valid response we process data
                 if rel_parsed:
                     for key, value in rel_parsed.items():
@@ -369,7 +400,7 @@ class Elios4YouAPI:
                 set_relay = False
             finally:
                 _LOGGER.debug("telnet_set_relay (WARNING): closing telnet session")
-                reader.feed_eof()
+                self.E4Uclient.close()
                 _LOGGER.debug("telnet_set_relay (WARNING): end set_relay")
         else:
             _LOGGER.debug(
