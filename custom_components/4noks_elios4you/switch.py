@@ -115,6 +115,8 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
             _LOGGER.debug("switch async_turn_on (WARNING): turned on")
         else:
             _LOGGER.debug("switch async_turn_on (ERROR): error turning on")
+        # call coord update for immediate refresh state
+        self._handle_coordinator_update(self)
         # await self.async_force_update()
         return set_response
 
@@ -125,6 +127,8 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
             _LOGGER.debug("switch async_turn_off (WARNING): turned off")
         else:
             _LOGGER.debug("switch async_turn_off (ERROR): error turning off")
+        # call coord update for immediate refresh state
+        self._handle_coordinator_update(self)
         # await self.async_force_update()
         return set_response
 
