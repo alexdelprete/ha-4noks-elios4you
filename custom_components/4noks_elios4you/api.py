@@ -206,7 +206,7 @@ class Elios4YouAPI:
                     f"async_get_data (WARNING): opening telnet session {datetime.now()}"
                 )
                 self.E4Uclient.connection(
-                    "close", self._host, self._port, self._timeout, self._persistence
+                    "open", self._host, self._port, self._timeout, self._persistence
                 )
 
                 _LOGGER.debug(
@@ -384,7 +384,7 @@ class Elios4YouAPI:
                 )
                 # open connection ensuring previous connections are closed
                 self.E4Uclient.connection(
-                    "close", self._host, self._port, self._timeout, self._persistence
+                    "open", self._host, self._port, self._timeout, self._persistence
                 )
 
                 rel_parsed = self.telnet_get_data(f"@rel 0 {to_state}")
