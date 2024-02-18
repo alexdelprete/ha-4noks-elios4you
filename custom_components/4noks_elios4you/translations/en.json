@@ -9,7 +9,7 @@
           "host": "IP or hostname",
           "port": "TCP port",
           "scan_interval": "Polling Period (min: 30s max: 600s)",
-          "persistent_connection": "Keep telnet connection always active"
+          "persistence": "Keep telnet connection always active"
         }
       }
     },
@@ -29,7 +29,7 @@
           "host": "IP or hostname",
           "port": "TCP port",
           "scan_interval": "Polling Period (min: 30s max: 600s)",
-          "persistent_connection": "Keep telnet connection always active"
+          "persistence": "Keep telnet connection always active"
         }
       }
     }
