@@ -59,13 +59,13 @@ class E4Utelnet(Telnet):
             if self.is_open():
                 if not persistence:
                     _LOGGER.debug(
-                        f"E4Utelnet.close() (WARNING): close connection - persistence is false) {datetime.now()}"
+                        f"E4Utelnet.close() (WARNING): close connection - persistence: false) {datetime.now()}"
                     )
                     super().close()
                     return "closed"
                 else:
                     _LOGGER.debug(
-                        f"E4Utelnet.close() (WARNING): don't close connection - persistence is true) {datetime.now()}"
+                        f"E4Utelnet.close() (WARNING): don't close connection - persistence: true) {datetime.now()}"
                     )
                     return "persistence"
             else:
@@ -88,7 +88,7 @@ class E4Utelnet(Telnet):
                     )
                 elif close_resp == "persistence":
                     _LOGGER.debug(
-                        f"E4Utelnet.connection(open) (WARNING): connection was open and {close_resp}) {datetime.now()}"
+                        f"E4Utelnet.connection(open) (WARNING): connection open - persistence: true) {datetime.now()}"
                     )
             elif action == "close":
                 close_resp = self.close(persistence)

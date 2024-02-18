@@ -190,7 +190,7 @@ class Elios4YouOptionsFlow(config_entries.OptionsFlow):
                 ),
                 vol.Optional(
                     CONF_PERSISTENCE,
-                    default=DEFAULT_PERSISTENCE,
+                    default=self.config_entry.data.get(CONF_PERSISTENCE),
                 ): bool,
             }
         )
