@@ -317,7 +317,7 @@ class Elios4YouAPI:
 
             # read stream up to the "ready..." string
             _LOGGER.debug(
-                f"telnet_get_data (WARNING): readline loop started at {datetime.now()}"
+                f"telnet_get_data (WARNING): read_until loop started at {datetime.now()}"
             )
             try:
                 response = ""
@@ -325,7 +325,7 @@ class Elios4YouAPI:
                 response = self.E4Uclient.read_until(separator, timeout=3)
             except TimeoutError:
                 _LOGGER.debug(
-                    f"telnet_get_data (ERROR): read loop timed out at {datetime.now()}"
+                    f"telnet_get_data (ERROR): read_until timed out at {datetime.now()}"
                 )
             finally:
                 _LOGGER.debug(
