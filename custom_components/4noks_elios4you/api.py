@@ -396,20 +396,20 @@ class Elios4YouAPI:
                     _LOGGER.debug(f"telnet_set_relay: rel_output {rel_output}")
                     out_mode = int(rel_output["rel"])
                     _LOGGER.debug(
-                        f"telnet_set_relay (WARNING): sent telnet cmd: @rel 0 {to_state} output: {out_mode}"
+                        f"telnet_set_relay (WARNING): sent telnet cmd: @rel 0 {to_state} rel: {out_mode}"
                     )
                     if out_mode == to_state:
-                        _LOGGER.debug(
-                            f"telnet_set_relay (WARNING): relay set success - to_state: {to_state} output: {out_mode}"
-                        )
                         set_relay = True
                         # refresh relay_state value to avoid waiting for poll cycle
                         self.data["relay_state"] = out_mode
-                    else:
                         _LOGGER.debug(
-                            f"telnet_set_relay (ERROR): relay set failure - to_state: {to_state} output: {out_mode}"
+                            f"telnet_set_relay (WARNING): set relay success - to_state: {to_state} - rel: {out_mode} - relay_state: {self.data["relay_state"]}"
                         )
+                    else:
                         set_relay = False
+                        _LOGGER.debug(
+                            f"telnet_set_relay (ERROR): set relay failure - to_state: {to_state} - rel: {out_mode} - relay_state: {self.data["relay_state"]}"
+                        )
                 else:
                     _LOGGER.debug("telnet_set_relay (ERROR): rel_parsed is None")
             except TimeoutError:
