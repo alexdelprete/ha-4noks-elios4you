@@ -87,9 +87,15 @@ class E4Utelnet(Telnet):
                         f"E4Utelnet.connection(open) (WARNING): connection was {close_resp} and re-opened) {datetime.now()}"
                     )
                 elif close_resp == "persistence":
-                    _LOGGER.debug(
-                        f"E4Utelnet.connection(open) (WARNING): connection open - persistence: true) {datetime.now()}"
-                    )
+                    if self.is_open():
+                        _LOGGER.debug(
+                            f"E4Utelnet.connection(open) (WARNING): connection already open - persistence: true) {datetime.now()}"
+                        )
+                    else:
+                        super().open(host=host, port=port, timeout=timeout)
+                        _LOGGER.debug(
+                            f"E4Utelnet.connection(open) (WARNING): connection re-opened - persistence: true) {datetime.now()}"
+                        )
             elif action == "close":
                 close_resp = self.close(persistence)
                 _LOGGER.debug(
