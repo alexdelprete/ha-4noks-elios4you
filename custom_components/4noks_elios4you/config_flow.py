@@ -18,11 +18,11 @@ from .api import Elios4YouAPI
 from .const import (
     CONF_HOST,
     CONF_NAME,
-    CONF_PERSISTENT_CONNECTION,
+    CONF_PERSISTENCE,
     CONF_PORT,
     CONF_SCAN_INTERVAL,
     DEFAULT_NAME,
-    DEFAULT_PERSISTENT_CONNECTION,
+    DEFAULT_PERSISTENCE,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -147,8 +147,8 @@ class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         }
                     ),
                     vol.Optional(
-                        CONF_PERSISTENT_CONNECTION,
-                        default=DEFAULT_PERSISTENT_CONNECTION,
+                        CONF_PERSISTENCE,
+                        default=DEFAULT_PERSISTENCE,
                     ): bool,
                 },
             ),
@@ -189,8 +189,8 @@ class Elios4YouOptionsFlow(config_entries.OptionsFlow):
                     }
                 ),
                 vol.Optional(
-                    CONF_PERSISTENT_CONNECTION,
-                    default=DEFAULT_PERSISTENT_CONNECTION,
+                    CONF_PERSISTENCE,
+                    default=DEFAULT_PERSISTENCE,
                 ): bool,
             }
         )

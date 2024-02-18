@@ -8,7 +8,7 @@ import socket
 import sys
 from datetime import datetime
 
-from .const import MANUFACTURER, MODEL
+from .const import CONN_TIMEOUT, MANUFACTURER, MODEL
 from .telnetlib import Telnet
 
 _LOGGER = logging.getLogger(__name__)
@@ -107,7 +107,7 @@ class Elios4YouAPI:
         self._host = host
         self._port = port
         self._persistence = persistence
-        self._timeout = 5
+        self._timeout = CONN_TIMEOUT
         self._sensors = []
         self.E4Uclient = E4Utelnet()
         self.data = {}
