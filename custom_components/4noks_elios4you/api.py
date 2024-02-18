@@ -403,6 +403,8 @@ class Elios4YouAPI:
                             f"telnet_set_relay (WARNING): relay set success - to_state: {to_state} output: {out_mode}"
                         )
                         set_relay = True
+                        # refresh relay_state value to avoid waiting for poll cycle
+                        self.data["relay_state"] = out_mode
                     else:
                         _LOGGER.debug(
                             f"telnet_set_relay (ERROR): relay set failure - to_state: {to_state} output: {out_mode}"
