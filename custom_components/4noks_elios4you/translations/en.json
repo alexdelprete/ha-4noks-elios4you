@@ -8,8 +8,7 @@
           "name": "Custom Name of the device (used for sensors' prefix)",
           "host": "IP or hostname",
           "port": "TCP port",
-          "scan_interval": "Polling Period (min: 30s max: 600s)",
-          "persistence": "Keep telnet connection always active"
+          "scan_interval": "Polling Period (min: 30s max: 600s)"
         }
       }
     },
@@ -28,8 +27,7 @@
         "data": {
           "host": "IP or hostname",
           "port": "TCP port",
-          "scan_interval": "Polling Period (min: 30s max: 600s)",
-          "persistence": "Keep telnet connection always active"
+          "scan_interval": "Polling Period (min: 30s max: 600s)"
         }
       }
     }

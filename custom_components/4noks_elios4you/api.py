@@ -54,65 +54,38 @@ class E4Utelnet(Telnet):
             """Return state of connection."""
             return False if super().get_socket() is None else True
 
-        def close(self, persistence: bool) -> str:
+        def close(self) -> bool:
             """Close connection."""
             if self.is_open():
-                if not persistence:
-                    _LOGGER.debug(
-                        f"E4Utelnet.close() (WARNING): close connection - persistence: false) {datetime.now()}"
-                    )
-                    super().close()
-                    return "closed"
-                else:
-                    _LOGGER.debug(
-                        f"E4Utelnet.close() (WARNING): don't close connection - persistence: true) {datetime.now()}"
-                    )
-                    return "persistence"
+                _LOGGER.debug(
+                    f"E4Utelnet.close() (WARNING): close connection) {datetime.now()}"
+                )
+                super().close()
             else:
                 _LOGGER.debug(
                     f"E4Utelnet.close() (WARNING): connection already closed) {datetime.now()}"
                 )
-                return "already_closed"
+            return True
 
-        def connection(
-            self, action: str, host: str, port: int, timeout: int, persistence: bool
-        ) -> bool:
-            """Manage connection."""
-            action = action.lower()
-            if action == "open":
-                close_resp = self.close(persistence)
-                if close_resp in ["closed", "already_closed"]:
-                    super().open(host=host, port=port, timeout=timeout)
-                    _LOGGER.debug(
-                        f"E4Utelnet.connection(open) (WARNING): connection was {close_resp} and re-opened) {datetime.now()}"
-                    )
-                elif close_resp == "persistence":
-                    if self.is_open():
-                        _LOGGER.debug(
-                            f"E4Utelnet.connection(open) (WARNING): connection already open - persistence: true) {datetime.now()}"
-                        )
-                    else:
-                        super().open(host=host, port=port, timeout=timeout)
-                        _LOGGER.debug(
-                            f"E4Utelnet.connection(open) (WARNING): connection re-opened - persistence: true) {datetime.now()}"
-                        )
-            elif action == "close":
-                close_resp = self.close(persistence)
-                _LOGGER.debug(
-                    f"E4Utelnet.connection(close) (WARNING): connection was {close_resp}) {datetime.now()}"
-                )
+        def open(self, host: str, port: int, timeout: int) -> bool:
+            """Open connection."""
+            self.close()
+            super().open(host=host, port=port, timeout=timeout)
+            _LOGGER.debug(
+                f"E4Utelnet.open() (WARNING): opened connection) {datetime.now()}"
+            )
+            return True
 
 
 class Elios4YouAPI:
     """Wrapper class."""
 
-    def __init__(self, hass, name, host, port, persistence):
+    def __init__(self, hass, name, host, port):
         """Initialize the Elios4You API Client."""
         self._hass = hass
         self._name = name
         self._host = host
         self._port = port
-        self._persistence = persistence
         self._timeout = CONN_TIMEOUT
         self._sensors = []
         self.E4Uclient = E4Utelnet()
@@ -207,19 +180,14 @@ class Elios4YouAPI:
         get_data_res = False
         if self.check_port():
             try:
-                # ensure connection is closed before opening
                 _LOGGER.debug(
                     f"async_get_data (WARNING): opening telnet session {datetime.now()}"
                 )
-                self.E4Uclient.connection(
-                    "open", self._host, self._port, self._timeout, self._persistence
-                )
+                self.E4Uclient.open(self._host, self._port, self._timeout)
 
                 _LOGGER.debug(
                     f"async_get_data (WARNING): start telnet_get_data {datetime.now()}"
                 )
-                # Do we need to use HA function to call sync function in async context?
-                # https://developers.home-assistant.io/docs/asyncio_working_with_async?#calling-sync-functions-from-async
                 dat_parsed = self.telnet_get_data("@dat")
                 if dat_parsed is not None:
                     _LOGGER.debug("async_get_data: parsing @dat data")
@@ -289,9 +257,7 @@ class Elios4YouAPI:
                 get_data_res = False
             finally:
                 _LOGGER.debug("async_get_data (WARNING): closing telnet connection")
-                self.E4Uclient.connection(
-                    "close", self._host, self._port, self._timeout, self._persistence
-                )
+                self.E4Uclient.close()
         else:
             _LOGGER.debug(
                 "async_get_data (ERROR): device not ready for telnet connection"
@@ -321,14 +287,16 @@ class Elios4YouAPI:
             # send the command
             self.E4Uclient.write(cmd_send)
 
-            # read stream up to the "ready..." string
-            _LOGGER.debug(
-                f"telnet_get_data (WARNING): read_until loop started at {datetime.now()}"
-            )
             try:
                 response = ""
+                _LOGGER.debug(
+                    f"telnet_get_data (WARNING): read_until loop started (conn: {self.E4Uclient.is_open()}) at {datetime.now()}"
+                )
                 # read stream up to the "ready..."" string (end of response)
                 response = self.E4Uclient.read_until(separator, timeout=3)
+                _LOGGER.debug(
+                    f"telnet_get_data (WARNING): read_until loop ended (conn: {self.E4Uclient.is_open()}) at {datetime.now()}"
+                )
             except TimeoutError:
                 _LOGGER.debug(
                     f"telnet_get_data (ERROR): read_until timed out at {datetime.now()}"
@@ -342,15 +310,15 @@ class Elios4YouAPI:
             if response:
                 # decode bytes to string using utf-8 and split each line as a list member
                 lines = response.splitlines()
-                lines_start = (
-                    1
-                    if lines[0].lower() in ["@dat", "@sta", "@inf", "@rel", "@hwr"]
-                    else 2
-                )
+                # sometimes the first line is not the command but a line-feed
+                if lines[0].lower() in ["@dat", "@sta", "@inf", "@rel", "@hwr"]:
+                    lines_start = 1
+                else:
+                    # skip the possible LF in first line
+                    lines_start = 2
+                # skip last two lines (line-feed and read_until separator)
                 lines_end = -2
-                # _LOGGER.debug(f"telnet_get_data (WARNING): lines {lines}")
-                # _LOGGER.debug(f"telnet_get_data (WARNING): lines1-1 {lines[1:-1]}")
-                # exclude first and last two lines
+                # exclude first X and last Y lines
                 for line in lines[lines_start:lines_end]:
                     if cmd_main in ["@inf", "@rel", "@hwr"]:
                         # @inf data uses a different separator
@@ -389,9 +357,7 @@ class Elios4YouAPI:
                     f"telnet_set_relay (WARNING): open connection {datetime.now()}"
                 )
                 # open connection ensuring previous connections are closed
-                self.E4Uclient.connection(
-                    "open", self._host, self._port, self._timeout, self._persistence
-                )
+                self.E4Uclient.open(self._host, self._port, self._timeout)
 
                 rel_parsed = self.telnet_get_data(f"@rel 0 {to_state}")
                 rel_parsed = self.telnet_get_data("@rel")
@@ -428,9 +394,7 @@ class Elios4YouAPI:
                 set_relay = False
             finally:
                 _LOGGER.debug("telnet_set_relay (WARNING): closing telnet session")
-                self.E4Uclient.connection(
-                    "close", self._host, self._port, self._timeout, self._persistence
-                )
+                self.E4Uclient.close()
                 _LOGGER.debug("telnet_set_relay (WARNING): end set_relay")
         else:
             _LOGGER.debug(
