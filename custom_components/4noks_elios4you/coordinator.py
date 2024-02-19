@@ -14,7 +14,6 @@ from .api import Elios4YouAPI
 from .const import (
     CONF_HOST,
     CONF_NAME,
-    CONF_PERSISTENCE,
     CONF_PORT,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
@@ -63,16 +62,14 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
             config_entry.data.get(CONF_NAME),
             config_entry.data.get(CONF_HOST),
             config_entry.data.get(CONF_PORT),
-            config_entry.data.get(CONF_PERSISTENCE),
         )
 
         _LOGGER.debug("Coordinator Config Data: %s", config_entry.data)
         _LOGGER.debug(
-            "Coordinator API init: Host: %s Port: %s ID: %s ScanInterval: %s Persistent Conn.: %s",
+            "Coordinator API init: Host: %s Port: %s ID: %s ScanInterval: %s",
             config_entry.data.get(CONF_HOST),
             config_entry.data.get(CONF_PORT),
             self.scan_interval,
-            config_entry.data.get(CONF_PERSISTENCE),
         )
 
     async def async_update_data(self):

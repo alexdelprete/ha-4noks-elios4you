@@ -27,10 +27,10 @@ class E4Utelnet(Telnet):
 
     if sys.version > "3":
 
-        def read_until(self, expected, timeout=None) -> str:
+        def read_until(self, separator: str, timeout: int) -> str:
             """Override telnetlib.telnet read_until."""
-            expected = bytes(expected, encoding="utf-8")
-            received = super().read_until(expected, timeout)
+            separator = bytes(separator, encoding="utf-8")
+            received = super().read_until(separator, timeout)
             return str(received, encoding="utf-8")
 
         def read_all(self) -> str:
@@ -293,7 +293,7 @@ class Elios4YouAPI:
                     f"telnet_get_data (WARNING): read_until loop started (conn: {self.E4Uclient.is_open()}) at {datetime.now()}"
                 )
                 # read stream up to the "ready..."" string (end of response)
-                response = self.E4Uclient.read_until(separator, timeout=3)
+                response = self.E4Uclient.read_until(separator, self._timeout)
                 _LOGGER.debug(
                     f"telnet_get_data (WARNING): read_until loop ended (conn: {self.E4Uclient.is_open()}) at {datetime.now()}"
                 )
