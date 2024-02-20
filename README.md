@@ -1,29 +1,33 @@
-# HA Custom Component for 4-noks Elios4you energy monitoring device
+![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/159cffe5-1754-43bf-a69d-614b00bf2f44)# HA Custom Component for 4-noks Elios4you energy monitoring device
 
 [![GitHub Release][releases-shield]][releases]
 [![BuyMeCoffee][buymecoffee-shield]][buymecoffee]
 [![Community Forum][forum-shield]][forum]
 
-_This project is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by ABB or FIMER_
+_This project is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by 4-noks / Astrel Group_
 
 # Introduction
 
-HA Custom Component to integrate data from ABB/Power-One/FIMER PV mono-phase and three-phase inverters that support SunSpec Modbus Models M1/M103/M160, natively or through the VSN300/VSN700 wifi logger card. The VSN300/VSN700 cards provide a SunSpec to Aurora protocol adapter so that all modbus commands are translated to the proprietary Aurora protocol.
+HA Custom Component to integrate data from [4-noks Elios4you](https://www.4-noks.com/product-categories/solar-photovoltaic-en/elios4you-en/?lang=en) products.
+Tested personally on my [Elios4you Pro](https://www.4-noks.com/shop/elios4you-en/elios4you-pro/?lang=en) to monitor tha main 3-phase 6kw line, plus my 7.5kW photovoltaic system.
 
-The component has been originally developed by @binsentsu for SolarEdge inverters, I adapted it, adding some features, rewriting all the registers' mapping, for my Power-One Aurora PVI-10.0-OUTD 3-phase inverter to which I added a VSN300 card. It has also been tested with an ABB TRIO-8.5-TL-OUTD-S through a VSN300 and REACT2-3.6-TL through a VSN700 datalogger.
+![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/9cf706c7-8f7e-49c1-8447-05f8e0104766)
 
-Register address map has been implemented following the vendor's specification documentation, available in the [doc](https://github.com/alexdelprete/ha-4noks-elios4you/tree/master/doc) folder.
+Elio4you is a great product, it provides very reliable measurements, but it has no documented local API to get the energy data. Luckily, 3y ago I found [this great article](https://www.hackster.io/daveVertu/reverse-engineering-elios4you-photovoltaic-monitoring-device-458aa0) by Davide Vertuani, that reversed-engineered how the official mobile app communicated with the device to fetch data, and found out it's a tcp connection on port 5001, through which the app sent specific commands to which the device replies with data. That was a great find by Davide, and I initially used Node-RED to create a quick integration like Davide suggested in the article: I completed a full integration in 1 day and was rock solid, Node-RED is fantastic. :)
 
+![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/8ae56c74-5e37-4db9-89df-c275ddf9da3b)
+
+One month ago I decided to port the Node-RED integration to an HA Custom Component, because in the last 2 years I developed my first HA component to monitor ABB/FIMER inverters, and now I'm quite knowledgable on custom component developement (learned a lot thanks to the dev community and studying some excellent integrations).
+
+So finally here we are with the first official version of the HA custom integration for Elios4you devices. :)
 
 ### Features
 
 - Installation/Configuration through Config Flow UI
-- Separate sensor per register
-- Configurable TCP modbus port, also at runtime (no restart needed)
-- Configurable modbus slave address, also at runtime (no restart needed)
-- Configurable register map base address, also at runtime (no restart needed)
-- Configurable polling interval, also at runtime (no restart needed)
-- Supports SunSpec models M1, M103, M160
+- Sensor entities for all data provided by the device (I don't even know what some of the ones in the diagnostic category specifically represent)
+- Switch entity to control the device internal relay
+- Configuration options: Name, hostname, tcp port, polling period
+- Reconfigure options (except device name) also at runtime: no restart needed.
 
 # Installation through HACS
 
@@ -44,27 +48,21 @@ This integration is available in [HACS][hacs] official repository. Click this bu
 
 Download the source code archive from the release page. Unpack the archive and copy the contents of custom_components folder to your home-assistant config/custom_components folder. Restart Home Assistant, and then the integration can be added and configured through the native integration setup UI. If you don't see it in the native integrations list, press ctrl-F5 to refresh the browser while you're on that page and retry.
 
-# Enabling Modbus TCP on the inverter
-
-Enable Modbus TCP client on the VSN300, take note of the Unit ID (aka Slave ID) of the inverter (depends on the model, default on some models is 2 on others is 247) and during the configuration of the component, use the appropriate Slave address. Another important parameter is the registers map base address, default is 40000 but it may vary. All these parameters can be reconfigured after installation, clicking CONFIGURE on the integration.
-
 # Configuration
 
-Configuration is done via config flow right after adding the integration. After the first configuration you can change parameters (except custom name and ip/hostname) at runtime through the integration page configuration, without the need to restart HA (this works since v2.5.0). 
+Configuration is done via config flow right after adding the integration. After the first configuration you can change parameters (except device name) at runtime through the integration page configuration, without the need to restart HA. 
 
-![](https://user-images.githubusercontent.com/7027842/214734702-bf899013-5e28-47b5-87a7-827e49ca465b.gif)
+![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/cbe045c6-8753-4c52-9d50-97de983d18b0)
 
-- **custom name**: custom name for the inverter, that will be used as prefix for sensors created by the component
+- **custom name**: custom name for the device, that will be used as prefix for sensors created by the component
 - **ip/hostname**: IP/hostname of the inverter - this is used as unique_id, if you change it and reinstall you will lose historical data, that's why I advice to use hostname, so you can change IP without losing historical data
-- **tcp port**: TCP port of the datalogger
-- **slave id**: the unit id of the inverter in the chain: default is 254, if using VS300/VS700 it's usually 2
-- **register map base address**: the base address from where the register map starts, usually it's 40000, but for ABB VSN300/VSN700 dataloggers it's 0
+- **tcp port**: TCP port of the device. tcp/5001 is the only known working port, but I preferred to leave it configurable
 - **polling period**: frequency, in seconds, to read the registers and update the sensors
 
-<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/blob/master/gfxfiles/config.png?raw=true" alt="Config">
+<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/cbe045c6-8753-4c52-9d50-97de983d18b0" alt="Config">
 
-# Sensor screenshot
-<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/blob/master/gfxfiles/demo.png?raw=true" alt="Config">
+# Sensor view
+<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/702ec869-f945-4718-8e56-256e24b94072" alt="Config">
 
 # Coffee
 
