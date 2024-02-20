@@ -57,10 +57,10 @@ Configuration is done via config flow right after adding the integration. After 
 - **tcp port**: TCP port of the device. tcp/5001 is the only known working port, but I preferred to leave it configurable
 - **polling period**: frequency, in seconds, to read the registers and update the sensors
 
-<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/cbe045c6-8753-4c52-9d50-97de983d18b0" alt="Config">
+<img style="border: 5px solid #767676;border-radius: 10px;max-width: 500px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/cbe045c6-8753-4c52-9d50-97de983d18b0" alt="Config">
 
 # Sensor view
-<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/e3675933-19b0-453e-8881-210e85793a93" alt="Config">
+<img style="border: 5px solid #767676;border-radius: 10px;max-width: 500px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/e3675933-19b0-453e-8881-210e85793a93" alt="Config">
 
 # Coffee
 
