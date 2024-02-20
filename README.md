@@ -1,4 +1,4 @@
-![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/159cffe5-1754-43bf-a69d-614b00bf2f44)# HA Custom Component for 4-noks Elios4you energy monitoring device
+# HA Custom Component for 4-noks Elios4you energy monitoring device
 
 [![GitHub Release][releases-shield]][releases]
 [![BuyMeCoffee][buymecoffee-shield]][buymecoffee]
@@ -11,11 +11,11 @@ _This project is not endorsed by, directly affiliated with, maintained, authoriz
 HA Custom Component to integrate data from [4-noks Elios4you](https://www.4-noks.com/product-categories/solar-photovoltaic-en/elios4you-en/?lang=en) products.
 Tested personally on my [Elios4you Pro](https://www.4-noks.com/shop/elios4you-en/elios4you-pro/?lang=en) to monitor tha main 3-phase 6kw line, plus my 7.5kW photovoltaic system.
 
-![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/9cf706c7-8f7e-49c1-8447-05f8e0104766)
+![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/8f7d1010-3dfa-44b3-85f0-7d804332a8ef)
 
 Elio4you is a great product, it provides very reliable measurements, but it has no documented local API to get the energy data. Luckily, 3y ago I found [this great article](https://www.hackster.io/daveVertu/reverse-engineering-elios4you-photovoltaic-monitoring-device-458aa0) by Davide Vertuani, that reversed-engineered how the official mobile app communicated with the device to fetch data, and found out it's a tcp connection on port 5001, through which the app sent specific commands to which the device replies with data. That was a great find by Davide, and I initially used Node-RED to create a quick integration like Davide suggested in the article: I completed a full integration in 1 day and was rock solid, Node-RED is fantastic. :)
 
-![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/8ae56c74-5e37-4db9-89df-c275ddf9da3b)
+![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/46eb022f-1da0-48eb-ad70-46832bfa2f4e)
 
 One month ago I decided to port the Node-RED integration to an HA Custom Component, because in the last 2 years I developed my first HA component to monitor ABB/FIMER inverters, and now I'm quite knowledgable on custom component developement (learned a lot thanks to the dev community and studying some excellent integrations).
 
@@ -52,8 +52,6 @@ Download the source code archive from the release page. Unpack the archive and c
 
 Configuration is done via config flow right after adding the integration. After the first configuration you can change parameters (except device name) at runtime through the integration page configuration, without the need to restart HA. 
 
-![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/cbe045c6-8753-4c52-9d50-97de983d18b0)
-
 - **custom name**: custom name for the device, that will be used as prefix for sensors created by the component
 - **ip/hostname**: IP/hostname of the inverter - this is used as unique_id, if you change it and reinstall you will lose historical data, that's why I advice to use hostname, so you can change IP without losing historical data
 - **tcp port**: TCP port of the device. tcp/5001 is the only known working port, but I preferred to leave it configurable
@@ -62,7 +60,7 @@ Configuration is done via config flow right after adding the integration. After 
 <img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/cbe045c6-8753-4c52-9d50-97de983d18b0" alt="Config">
 
 # Sensor view
-<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/702ec869-f945-4718-8e56-256e24b94072" alt="Config">
+<img style="border: 5px solid #767676;border-radius: 10px;max-width: 350px;width: 40%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/e3675933-19b0-453e-8881-210e85793a93" alt="Config">
 
 # Coffee
 
