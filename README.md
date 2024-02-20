@@ -73,8 +73,8 @@ _If you like this integration, I'll gladly accept some quality coffee, but pleas
 [buymecoffee]: https://www.buymeacoffee.com/alexdelprete
 [buymecoffee-shield]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-white?style=for-the-badge
 [hacs]: https://hacs.xyz
-[my-hacs]: https://my.home-assistant.io/redirect/hacs_repository/?owner=alexdelprete&repository=ha-abb-powerone-pvi-sunspec&category=integration
+[my-hacs]: https://my.home-assistant.io/redirect/hacs_repository/?owner=alexdelprete&repository=ha-4noks-elios4you&category=integration
 [forum-shield]: https://img.shields.io/badge/community-forum-darkred?style=for-the-badge
 [forum]: https://community.home-assistant.io/t/custom-component-abb-power-one-fimer-pv-inverters-sunspec-modbus-tcp/316363?u=alexdelprete
-[releases-shield]: https://img.shields.io/github/v/release/alexdelprete/ha-abb-powerone-pvi-sunspec?style=for-the-badge&color=darkgreen
+[releases-shield]: https://img.shields.io/github/v/release/alexdelprete/ha-4noks-elios4you?style=for-the-badge&color=darkgreen
 [releases]: https://github.com/alexdelprete/ha-4noks-elios4you/releases
