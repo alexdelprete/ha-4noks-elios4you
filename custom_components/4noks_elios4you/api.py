@@ -205,7 +205,7 @@ class Elios4YouAPI:
                     _LOGGER.debug("async_get_data (ERROR): @dat data is None")
 
                 sta_parsed = self.telnet_get_data("@sta")
-                if dat_parsed is not None:
+                if sta_parsed is not None:
                     _LOGGER.debug("async_get_data (WARNING): parsing @sta data")
                     for key, value in sta_parsed.items():
                         # @sta returns only float numbers as strings
@@ -214,7 +214,7 @@ class Elios4YouAPI:
                     _LOGGER.debug("async_get_data (ERROR): @sta data is None")
 
                 inf_parsed = self.telnet_get_data("@inf")
-                if dat_parsed is not None:
+                if inf_parsed is not None:
                     _LOGGER.debug("async_get_data (WARNING): parsing @inf data")
                     for key, value in inf_parsed.items():
                         # @inf returns only strings
