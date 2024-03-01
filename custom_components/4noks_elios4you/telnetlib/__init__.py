@@ -31,7 +31,6 @@ To do:
 
 """
 
-
 # Imported modules
 import selectors
 import socket

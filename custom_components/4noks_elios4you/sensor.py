@@ -2,6 +2,7 @@
 
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
+
 import logging
 from typing import Any
 
