@@ -70,12 +70,12 @@ class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return True
         return False
 
-    async def test_connection(self, name, host, port, scan_interval):
+    async def test_connection(self, name, host, port):
         """Return true if credentials is valid."""
         _LOGGER.debug(f"Test connection to {host}:{port}")
         try:
             _LOGGER.debug("Creating API Client")
-            self.api = Elios4YouAPI(self.hass, name, host, port, scan_interval)
+            self.api = Elios4YouAPI(self.hass, name, host, port)
             _LOGGER.debug("API Client created: calling get data")
             self.api_data = await self.api.async_get_data()
             _LOGGER.debug("API Client: get data")
