@@ -95,14 +95,13 @@ class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             name = user_input[CONF_NAME]
             host = user_input[CONF_HOST]
             port = user_input[CONF_PORT]
-            scan_interval = user_input[CONF_SCAN_INTERVAL]
 
             if self._host_in_configuration_exists(host):
                 errors[CONF_HOST] = "Device Already Configured"
             elif not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid Host IP"
             else:
-                uid = await self.test_connection(name, host, port, scan_interval)
+                uid = await self.test_connection(name, host, port)
                 if uid is not False:
                     _LOGGER.debug(f"Device unique id: {uid}")
                     await self.async_set_unique_id(uid)
