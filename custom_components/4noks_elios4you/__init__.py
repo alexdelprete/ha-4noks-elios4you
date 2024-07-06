@@ -23,7 +23,7 @@ from .coordinator import Elios4YouCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH]
 
 # The type alias needs to be suffixed with 'ConfigEntry'
 type Elios4YouConfigEntry = ConfigEntry[RuntimeData]
