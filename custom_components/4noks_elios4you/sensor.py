@@ -11,21 +11,24 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import Elios4YouConfigEntry
 from .const import (
     CONF_NAME,
-    DATA,
     DOMAIN,
     SENSOR_ENTITIES,
 )
+from .coordinator import Elios4YouCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: Elios4YouConfigEntry, async_add_entities
+):
     """Sensor Platform setup."""
 
-    # Get handler to coordinator from config
-    coordinator = hass.data[DOMAIN][config_entry.entry_id][DATA]
+    # This gets the data update coordinator from hass.data as specified in your __init__.py
+    coordinator: Elios4YouCoordinator = config_entry.runtime_data.coordinator
 
     _LOGGER.debug("(sensor) Name: %s", config_entry.data.get(CONF_NAME))
     _LOGGER.debug("(sensor) Manufacturer: %s", coordinator.api.data["manufact"])
@@ -129,6 +132,8 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
         """Return the state of the sensor."""
         if self._key in self._coordinator.api.data:
             return self._coordinator.api.data[self._key]
+        else:
+            return None
 
     @property
     def state_attributes(self) -> dict[str, Any] | None:

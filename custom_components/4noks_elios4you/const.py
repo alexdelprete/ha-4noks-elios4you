@@ -13,14 +13,6 @@ DOMAIN = "4noks_elios4you"
 ATTRIBUTION = "by @alexdelprete"
 ISSUE_URL = "https://github.com/alexdelprete/ha-4noks-elios4you/issues"
 
-# Platforms
-PLATFORMS = [
-    "sensor",
-    "switch",
-]
-UPDATE_LISTENER = "update_listener"
-DATA = "data"
-
 # Configuration and options
 CONF_NAME = "name"
 CONF_HOST = "host"

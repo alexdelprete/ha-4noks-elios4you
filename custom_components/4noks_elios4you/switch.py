@@ -11,16 +11,20 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DATA, DOMAIN, SWITCH_ENTITIES
+from . import Elios4YouConfigEntry
+from .const import DOMAIN, SWITCH_ENTITIES
+from .coordinator import Elios4YouCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: Elios4YouConfigEntry, async_add_entities
+):
     """Switch Platform setup."""
 
-    # Get handler to coordinator from config
-    coordinator = hass.data[DOMAIN][config_entry.entry_id][DATA]
+    # This gets the data update coordinator from hass.data as specified in your __init__.py
+    coordinator: Elios4YouCoordinator = config_entry.runtime_data.coordinator
 
     # Add defined switches
     switches = []
