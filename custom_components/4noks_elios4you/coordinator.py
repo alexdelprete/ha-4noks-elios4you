@@ -6,10 +6,10 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 import logging
 from datetime import datetime, timedelta
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+from . import Elios4YouConfigEntry
 from .api import Elios4YouAPI
 from .const import (
     CONF_HOST,
@@ -27,9 +27,9 @@ _LOGGER = logging.getLogger(__name__)
 class Elios4YouCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the API."""
 
-    config_entry: ConfigEntry
+    config_entry: Elios4YouConfigEntry
 
-    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, config_entry: Elios4YouConfigEntry) -> None:
         """Initialize data update coordinator."""
 
         # get scan_interval from user config
