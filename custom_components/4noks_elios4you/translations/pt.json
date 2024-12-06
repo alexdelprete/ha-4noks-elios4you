@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Elios4You Connection Configuration",
+        "description": "If you need help with the configuration go to: https://github.com/alexdelprete/ha-4noks-elios4you",
+        "data": {
+          "name": "Custom Name of the device (used for sensors' prefix)",
+          "host": "IP or hostname",
+          "port": "TCP port",
+          "scan_interval": "Polling Period (min: 30s max: 600s)"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Device is already configured"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Elios4You Connection Options",
+        "description": "Set Connection Options",
+        "data": {
+          "host": "IP or hostname",
+          "port": "TCP port",
+          "scan_interval": "Polling Period (min: 30s max: 600s)"
+        }
+      }
+    }
+  }
+}
