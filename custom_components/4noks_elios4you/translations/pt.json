@@ -2,32 +2,32 @@
   "config": {
     "step": {
       "user": {
-        "title": "Elios4You Connection Configuration",
-        "description": "If you need help with the configuration go to: https://github.com/alexdelprete/ha-4noks-elios4you",
+        "title": "Configuração de Ligação do Elios4You",
+        "description": "Se precisar de ajuda com a configuração, visite: https://github.com/alexdelprete/ha-4noks-elios4you",
         "data": {
-          "name": "Custom Name of the device (used for sensors' prefix)",
-          "host": "IP or hostname",
-          "port": "TCP port",
-          "scan_interval": "Polling Period (min: 30s max: 600s)"
+          "name": "Nome personalizado do dispositivo (usado como prefixo dos sensores)",
+          "host": "IP ou nome do host",
+          "port": "Porta TCP",
+          "scan_interval": "Período de consulta (mín: 30s máx: 600s)"
         }
       }
     },
     "error": {
-      "already_configured": "Device is already configured"
+      "already_configured": "O dispositivo já está configurado"
     },
     "abort": {
-      "already_configured": "Device is already configured"
+      "already_configured": "O dispositivo já está configurado"
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Elios4You Connection Options",
-        "description": "Set Connection Options",
+        "title": "Opções de Ligação do Elios4You",
+        "description": "Definir opções de ligação",
         "data": {
-          "host": "IP or hostname",
-          "port": "TCP port",
-          "scan_interval": "Polling Period (min: 30s max: 600s)"
+          "host": "IP ou nome do host",
+          "port": "Porta TCP",
+          "scan_interval": "Período de consulta (mín: 30s máx: 600s)"
         }
       }
     }
