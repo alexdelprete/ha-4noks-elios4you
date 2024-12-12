@@ -464,7 +464,7 @@ class Telnet:
                             # We can't offer automatic processing of
                             # suboptions. Alas, we should not get any
                             # unless we did a WILL/DO before.
-                            self.msg("IAC %d not recognized" % ord(c))
+                            self.msg(f"IAC {ord(c)} not recognized")
                 elif len(self.iacseq) == 2:
                     cmd = self.iacseq[1:2]
                     self.iacseq = b""
