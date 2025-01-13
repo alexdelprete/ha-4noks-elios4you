@@ -80,6 +80,12 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         self.async_write_ha_state()
         _LOGGER.debug(f"{self.name} switch coord. update requested")
 
+    # when has_entity_name is True, the resulting entity name will be: {device_name}_{self._name}
+    @property
+    def has_entity_name(self):
+        """Return the name state."""
+        return True
+
     @property
     def name(self):
         """Return the name of the Device."""

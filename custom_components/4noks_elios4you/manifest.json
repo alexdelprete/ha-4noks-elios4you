@@ -9,5 +9,6 @@
   "issue_tracker": "https://github.com/alexdelprete/ha-4noks-elios4you/issues",
   "loggers": ["custom_components.4noks_elios4you"],
   "requirements": ["telnetlib3>=2.0.4"],
+  "single_config_entry": false,
   "version": "0.1.0"
 }

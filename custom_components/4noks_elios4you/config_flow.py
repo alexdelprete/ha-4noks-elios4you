@@ -9,10 +9,16 @@ import re
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.selector import selector
+from pymodbus.exceptions import ConnectionException
 
 from .api import Elios4YouAPI
 from .const import (
@@ -27,10 +33,6 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class ConnectionError(Exception):
-    """Empty Error Class."""
 
 
 def host_valid(host):
@@ -52,7 +54,7 @@ def get_host_from_config(hass: HomeAssistant):
     }
 
 
-class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
     """4-noks Elios4You config flow."""
 
     VERSION = 1
@@ -70,7 +72,7 @@ class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return True
         return False
 
-    async def test_connection(self, name, host, port):
+    async def get_unique_id(self, name, host, port):
         """Return true if credentials is valid."""
         _LOGGER.debug(f"Test connection to {host}:{port}")
         try:
@@ -81,13 +83,13 @@ class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.debug("API Client: get data")
             _LOGGER.debug(f"API Client Data: {self.api_data}")
             return self.api.data["sn"]
-        except ConnectionError as connerr:
+        except ConnectionException as connerr:
             _LOGGER.error(
                 f"Failed to connect to host: {host}:{port} - Exception: {connerr}"
             )
             return False
 
-    async def async_step_user(self, user_input=None):
+    async def async_step_user(self, user_input=None) -> ConfigFlowResult:
         """Handle the initial step."""
         errors = {}
 
@@ -101,7 +103,7 @@ class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             elif not host_valid(user_input[CONF_HOST]):
                 errors[CONF_HOST] = "invalid Host IP"
             else:
-                uid = await self.test_connection(name, host, port)
+                uid = await self.get_unique_id(name, host, port)
                 if uid is not False:
                     _LOGGER.debug(f"Device unique id: {uid}")
                     await self.async_set_unique_id(uid)
@@ -128,7 +130,7 @@ class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_PORT,
                         default=DEFAULT_PORT,
-                    ): vol.Coerce(int),
+                    ): vol.All(vol.Coerce(int), vol.Range(min=0, max=65535)),
                     vol.Required(
                         CONF_SCAN_INTERVAL,
                         default=DEFAULT_SCAN_INTERVAL,
@@ -149,27 +151,26 @@ class Elios4YouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
-class Elios4YouOptionsFlow(config_entries.OptionsFlow):
+class Elios4YouOptionsFlow(OptionsFlow):
     """Config flow options handler."""
 
     VERSION = 1
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize option flow instance."""
-        self.config_entry = config_entry
         self.data_schema = vol.Schema(
             {
                 vol.Required(
                     CONF_HOST,
-                    default=self.config_entry.data.get(CONF_HOST),
+                    default=config_entry.data.get(CONF_HOST),
                 ): cv.string,
                 vol.Required(
                     CONF_PORT,
-                    default=self.config_entry.data.get(CONF_PORT),
-                ): vol.Coerce(int),
+                    default=config_entry.data.get(CONF_PORT),
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=65535)),
                 vol.Required(
                     CONF_SCAN_INTERVAL,
-                    default=self.config_entry.data.get(CONF_SCAN_INTERVAL),
+                    default=config_entry.data.get(CONF_SCAN_INTERVAL),
                 ): selector(
                     {
                         "number": {
@@ -184,7 +185,7 @@ class Elios4YouOptionsFlow(config_entries.OptionsFlow):
             }
         )
 
-    async def async_step_init(self, user_input=None):
+    async def async_step_init(self, user_input=None) -> ConfigFlowResult:
         """Manage the options."""
 
         if user_input is not None:
