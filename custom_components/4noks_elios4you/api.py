@@ -194,13 +194,17 @@ class Elios4YouAPI:
                     for key, value in dat_parsed.items():
                         # @dat returns only numbers as strings
                         # power/energy as float all others as int
-                        if ("energy" in key) or ("power" in key):
-                            self.data[key] = round(float(value), 2)
-                        # don't create a utc_time sensor
-                        elif key == "utc_time":
-                            pass
-                        else:
-                            self.data[key] = int(value)
+                        try:
+                            if ("energy" in key) or ("power" in key):
+                                self.data[key] = round(float(value), 2)
+                            elif key == "utc_time":
+                                pass
+                            else:
+                                self.data[key] = int(value)
+                        except ValueError:
+                            # If the value cannot be converted to int, log it and skip
+                            _LOGGER.debug(f"async_get_data: Value for {key} could not be parsed to int: {value}")
+                            continue  # Skip the invalid value
                 else:
                     _LOGGER.debug("async_get_data (ERROR): @dat data is None")
 
@@ -209,7 +213,10 @@ class Elios4YouAPI:
                     _LOGGER.debug("async_get_data (WARNING): parsing @sta data")
                     for key, value in sta_parsed.items():
                         # @sta returns only float numbers as strings
-                        self.data[key] = round(float(value), 2)
+                        try:
+                            self.data[key] = round(float(value), 2)
+                        except ValueError:
+                            _LOGGER.debug(f"async_get_data: Value for {key} could not be parsed to float: {value}")
                 else:
                     _LOGGER.debug("async_get_data (ERROR): @sta data is None")
 
@@ -223,7 +230,7 @@ class Elios4YouAPI:
                     _LOGGER.debug("async_get_data (ERROR): @inf data is None")
 
                 # Calculated sensor to combine TOP/BOTTOM fw versions
-                self.data["swver"] = f"{self.data["fwtop"]} / {self.data["fwbtm"]}"
+                self.data["swver"] = f"{self.data['fwtop']} / {self.data['fwbtm']}"
 
                 # Calculated sensors for self-consumption sensors
                 self.data["self_consumed_power"] = round(
