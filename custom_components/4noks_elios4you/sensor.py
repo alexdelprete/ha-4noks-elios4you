@@ -30,12 +30,12 @@ async def async_setup_entry(
     # This gets the data update coordinator from hass.data as specified in your __init__.py
     coordinator: Elios4YouCoordinator = config_entry.runtime_data.coordinator
 
-    _LOGGER.debug("(sensor) Name: %s", config_entry.data.get(CONF_NAME))
-    _LOGGER.debug("(sensor) Manufacturer: %s", coordinator.api.data["manufact"])
-    _LOGGER.debug("(sensor) Model: %s", coordinator.api.data["model"])
-    _LOGGER.debug("(sensor) HW Version: %s", coordinator.api.data["hwver"])
-    _LOGGER.debug("(sensor) SW Version: %s", coordinator.api.data["swver"])
-    _LOGGER.debug("(sensor) Serial#: %s", coordinator.api.data["sn"])
+    _LOGGER.debug(f"(sensor) Name: {config_entry.data.get(CONF_NAME)}")
+    _LOGGER.debug(f"(sensor) Manufacturer: {coordinator.api.data['manufact']}")
+    _LOGGER.debug(f"(sensor) Model: {coordinator.api.data['model']}")
+    _LOGGER.debug(f"(sensor) HW Version: {coordinator.api.data['hwver']}")
+    _LOGGER.debug(f"(sensor) SW Version: {coordinator.api.data['swver']}")
+    _LOGGER.debug(f"(sensor) Serial#: {coordinator.api.data['sn']}")
 
     sensors = []
     for sensor in SENSOR_ENTITIES:
