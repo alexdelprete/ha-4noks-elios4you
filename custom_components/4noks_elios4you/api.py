@@ -172,6 +172,12 @@ class Elios4YouAPI:
         """Return the device name."""
         return self._host
 
+    def close(self) -> None:
+        """Close the telnet connection."""
+        if self.E4Uclient:
+            self.E4Uclient.close()
+            _LOGGER.debug("Closed telnet client connection")
+
     def check_port(self) -> bool:
         """Check if port is available."""
         sock_timeout = float(3)

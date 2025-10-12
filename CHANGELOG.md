@@ -11,6 +11,31 @@ No unreleased changes at this time.
 
 ---
 
+## [0.2.0-beta.2] - 2025-10-12
+
+🔧 **Hotfix Release** - Fixes integration unload error from v0.2.0-beta.1
+
+### 🐛 Bug Fix
+
+- **Fixed Integration Unload Error** - Added missing `close()` method to `Elios4YouAPI` class to prevent error during integration unload/shutdown
+
+### 📝 Technical Details
+
+- Added `close()` method to `Elios4YouAPI` class that properly delegates to internal telnet client
+- Error message was: `'Elios4YouAPI' object has no attribute 'close'`
+- Now cleanly closes telnet connection during integration unload
+
+**Files Changed:**
+- `custom_components/4noks_elios4you/api.py` - Added close() method
+
+**All improvements from v0.2.0-beta.1 are included in this release.**
+
+**Full Release Notes:** [docs/releases/v0.2.0-beta.2.md](docs/releases/v0.2.0-beta.2.md)
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.1...v0.2.0-beta.2
+
+---
+
 ## [0.2.0-beta.1] - 2025-10-12
 
 ⚠️ **This is a BETA release** - Please test thoroughly before using in production
@@ -77,6 +102,7 @@ Initial release of the 4-noks Elios4you integration.
 
 ---
 
-[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.1...HEAD
+[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.2...HEAD
+[0.2.0-beta.2]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.1...v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.1.0...v0.2.0-beta.1
 [0.1.0]: https://github.com/alexdelprete/ha-4noks-elios4you/releases/tag/v0.1.0
