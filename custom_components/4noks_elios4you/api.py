@@ -48,7 +48,7 @@ class E4Utelnet(Telnet):
 
     if sys.version > "3":
 
-        def read_until(self, separator: str, timeout: int) -> str:
+        def read_until(self, separator, timeout) -> str:
             """Override telnetlib.telnet read_until."""
             separator = bytes(separator, encoding="utf-8")
             received = super().read_until(separator, timeout)
@@ -59,7 +59,7 @@ class E4Utelnet(Telnet):
             received = super().read_all()
             return str(received, encoding="utf-8")
 
-        def write(self, buffer):
+        def write(self, buffer) -> None:
             """Override telnetlib.telnet write."""
             buffer = bytes(buffer + "\n", encoding="utf-8")
             super().write(buffer)

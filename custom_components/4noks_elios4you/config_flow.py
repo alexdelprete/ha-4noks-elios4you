@@ -17,7 +17,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.selector import selector
 
-from .api import Elios4YouAPI, TelnetConnectionError, TelnetCommandError
+from .api import Elios4YouAPI, TelnetCommandError, TelnetConnectionError
 from .const import (
     CONF_HOST,
     CONF_NAME,
@@ -42,7 +42,7 @@ def get_host_from_config(hass: HomeAssistant):
     }
 
 
-class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
+class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore
     """4-noks Elios4You config flow."""
 
     VERSION = 1
