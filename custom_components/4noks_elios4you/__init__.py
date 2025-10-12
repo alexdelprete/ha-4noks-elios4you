@@ -4,12 +4,11 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
 import logging
-from collections.abc import Callable
 from dataclasses import dataclass
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -20,6 +19,7 @@ from .const import (
     STARTUP_MESSAGE,
 )
 from .coordinator import Elios4YouCoordinator
+from .helpers import log_debug, log_error, log_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,23 +34,21 @@ class RuntimeData:
     """Class to hold your data."""
 
     coordinator: DataUpdateCoordinator
-    update_listener: Callable
 
 
 async def async_setup_entry(
     hass: HomeAssistant, config_entry: Elios4YouConfigEntry
 ) -> bool:
-    """Set up integration from a config entry."""
-    if hass.data.get(DOMAIN) is None:
-        hass.data.setdefault(DOMAIN, {})
-        _LOGGER.info(STARTUP_MESSAGE)
-    _LOGGER.debug("Setting up config_entry for %s", DOMAIN)
+    """Set up this integration using UI."""
+    log_info(_LOGGER, "async_setup_entry", STARTUP_MESSAGE)
+    log_debug(_LOGGER, "async_setup_entry", "Setup config_entry", domain=DOMAIN)
 
     # Initialise the coordinator that manages data updates from the API
     coordinator = Elios4YouCoordinator(hass, config_entry)
 
     # If the refresh fails, async_config_entry_first_refresh() will
     # raise ConfigEntryNotReady and setup will try again later
+    # ref.: https://developers.home-assistant.io/docs/integration_setup_failures
     await coordinator.async_config_entry_first_refresh()
 
     # Test to see if api initialised correctly, else raise ConfigNotReady to make HA retry setup
@@ -59,23 +57,26 @@ async def async_setup_entry(
             f"Timeout connecting to {config_entry.data.get(CONF_NAME)}"
         )
 
-    # Initialise a listener for config flow options changes
-    update_listener = config_entry.add_update_listener(async_reload_entry)
-    config_entry.async_on_unload(update_listener)
+    # Store coordinator in runtime_data to make it accessible throughout the integration
+    config_entry.runtime_data = RuntimeData(coordinator)
 
-    # Add the coordinator and update listener to runtime data
-    config_entry.runtime_data = RuntimeData(coordinator, update_listener)
+    # Register an update listener for config flow options changes
+    # Listener is attached when entry loads and automatically detached at unload
+    # ref.: https://developers.home-assistant.io/docs/config_entries_options_flow_handler/#signal-updates
+    config_entry.async_on_unload(config_entry.add_update_listener(async_reload_entry))
 
     # Setup platforms
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     # Register device
-    await async_update_device_registry(hass, config_entry)
+    async_update_device_registry(hass, config_entry)
 
+    # Return true to denote a successful setup
     return True
 
 
-async def async_update_device_registry(
+@callback
+def async_update_device_registry(
     hass: HomeAssistant, config_entry: Elios4YouConfigEntry
 ) -> None:
     """Manual device registration."""
@@ -98,11 +99,12 @@ async def async_update_device_registry(
 async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: ConfigEntry, device_entry
 ) -> bool:
-    """Delete device if selected from UI."""
-    # Adding this function shows the delete device option in the UI.
+    """Delete device if not entities."""
     if DOMAIN in device_entry.identifiers:
-        _LOGGER.error(
-            "Cannot delete the device using device delete. Remove the integration instead."
+        log_error(
+            _LOGGER,
+            "async_remove_config_entry_device",
+            "You cannot delete the device using device delete. Remove the integration instead.",
         )
         return False
     return True
@@ -112,29 +114,58 @@ async def async_unload_entry(
     hass: HomeAssistant, config_entry: Elios4YouConfigEntry
 ) -> bool:
     """Unload a config entry."""
-    _LOGGER.debug("Unloading config entry")
+    log_debug(_LOGGER, "async_unload_entry", "Unload config_entry: started")
 
-    # Unload platforms
-    unload_ok = await hass.config_entries.async_unload_platforms(
+    # Unload platforms - only cleanup runtime_data if successful
+    # ref.: https://developers.home-assistant.io/blog/2025/02/19/new-config-entry-states/
+    if unload_ok := await hass.config_entries.async_unload_platforms(
         config_entry, PLATFORMS
+    ):
+        log_debug(_LOGGER, "async_unload_entry", "Platforms unloaded successfully")
+        # Cleanup per-entry resources only if unload succeeded
+        config_entry.runtime_data.coordinator.api.close()
+        log_debug(_LOGGER, "async_unload_entry", "Closed API connection")
+    else:
+        log_debug(
+            _LOGGER, "async_unload_entry", "Platform unload failed, skipping cleanup"
+        )
+
+    log_debug(
+        _LOGGER,
+        "async_unload_entry",
+        "Unload config_entry: completed",
+        unload_ok=unload_ok,
     )
-
-    if unload_ok:
-        # Close API connection
-        try:
-            coordinator = config_entry.runtime_data.coordinator
-            if coordinator and coordinator.api:
-                coordinator.api.close()
-                _LOGGER.debug("Closed API connection")
-        except Exception as err:
-            _LOGGER.error("Error closing API connection: %s", err)
-
-    _LOGGER.debug("Config entry unload %s", "successful" if unload_ok else "failed")
     return unload_ok
 
 
-async def async_reload_entry(
+@callback
+def async_reload_entry(
     hass: HomeAssistant, config_entry: Elios4YouConfigEntry
 ) -> None:
     """Reload the config entry."""
-    await hass.config_entries.async_reload(config_entry.entry_id)
+    hass.config_entries.async_schedule_reload(config_entry.entry_id)
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Migrate old config entries.
+
+    This function handles migration of config entries when the schema version changes.
+    Currently no migrations are defined, but the infrastructure is in place for future updates.
+    """
+    log_debug(
+        _LOGGER,
+        "async_migrate_entry",
+        "Migrating config entry",
+        version=config_entry.version,
+    )
+
+    # Future migrations will be added here as needed
+    # Example migration pattern:
+    # if config_entry.version == 1:
+    #     new_data = {**config_entry.data}
+    #     # Perform migration logic
+    #     hass.config_entries.async_update_entry(config_entry, data=new_data, version=2)
+    #     log_info(_LOGGER, "async_migrate_entry", "Migration to version 2 complete")
+
+    return True

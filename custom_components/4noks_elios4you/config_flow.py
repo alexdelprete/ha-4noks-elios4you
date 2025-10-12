@@ -3,9 +3,7 @@
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
-import ipaddress
 import logging
-import re
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -30,18 +28,9 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
+from .helpers import host_valid, log_debug, log_error
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def host_valid(host):
-    """Return True if hostname or IP address is valid."""
-    try:
-        if ipaddress.ip_address(host).version == (4 or 6):
-            return True
-    except ValueError:
-        disallowed = re.compile(r"[^a-zA-Z\d\-]")
-        return all(x and not disallowed.search(x) for x in host.split("."))
 
 
 @callback
@@ -73,16 +62,16 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def get_unique_id(self, name: str, host: str, port: int) -> str | bool:
         """Return device serial number if connection is valid."""
-        _LOGGER.debug("Testing connection to %s:%s", host, port)
+        log_debug(_LOGGER, "get_unique_id", "Testing connection", host=host, port=port)
         try:
-            _LOGGER.debug("Creating API Client")
+            log_debug(_LOGGER, "get_unique_id", "Creating API Client")
             self.api = Elios4YouAPI(self.hass, name, host, port)
-            _LOGGER.debug("Fetching device data")
+            log_debug(_LOGGER, "get_unique_id", "Fetching device data")
             await self.api.async_get_data()
-            _LOGGER.debug("Successfully retrieved device data")
+            log_debug(_LOGGER, "get_unique_id", "Successfully retrieved device data")
             return self.api.data["sn"]
         except (TelnetConnectionError, TelnetCommandError) as err:
-            _LOGGER.error("Failed to connect to %s:%s - %s", host, port, err)
+            log_error(_LOGGER, "get_unique_id", "Failed to connect", host=host, port=port, error=err)
             return False
 
     async def async_step_user(self, user_input=None) -> ConfigFlowResult:
@@ -101,7 +90,7 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
             else:
                 uid = await self.get_unique_id(name, host, port)
                 if uid is not False:
-                    _LOGGER.debug(f"Device unique id: {uid}")
+                    log_debug(_LOGGER, "async_step_user", "Device unique ID", uid=uid)
                     # Assign a unique ID to the flow and abort the flow
                     # if another flow with the same unique ID is in progress
                     await self.async_set_unique_id(uid)

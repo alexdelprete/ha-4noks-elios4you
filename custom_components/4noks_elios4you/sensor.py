@@ -18,6 +18,7 @@ from .const import (
     SENSOR_ENTITIES,
 )
 from .coordinator import Elios4YouCoordinator
+from .helpers import log_debug
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,12 +31,17 @@ async def async_setup_entry(
     # This gets the data update coordinator from hass.data as specified in your __init__.py
     coordinator: Elios4YouCoordinator = config_entry.runtime_data.coordinator
 
-    _LOGGER.debug(f"(sensor) Name: {config_entry.data.get(CONF_NAME)}")
-    _LOGGER.debug(f"(sensor) Manufacturer: {coordinator.api.data['manufact']}")
-    _LOGGER.debug(f"(sensor) Model: {coordinator.api.data['model']}")
-    _LOGGER.debug(f"(sensor) HW Version: {coordinator.api.data['hwver']}")
-    _LOGGER.debug(f"(sensor) SW Version: {coordinator.api.data['swver']}")
-    _LOGGER.debug(f"(sensor) Serial#: {coordinator.api.data['sn']}")
+    log_debug(
+        _LOGGER,
+        "async_setup_entry",
+        "Setting up sensors",
+        name=config_entry.data.get(CONF_NAME),
+        manufacturer=coordinator.api.data["manufact"],
+        model=coordinator.api.data["model"],
+        hw_version=coordinator.api.data["hwver"],
+        sw_version=coordinator.api.data["swver"],
+        serial_number=coordinator.api.data["sn"],
+    )
 
     sensors = []
     for sensor in SENSOR_ENTITIES:
@@ -85,8 +91,10 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
         self.async_write_ha_state()
         # write debug log only on first sensor to avoid spamming the log
         if self.name == "RedCap":
-            _LOGGER.debug(
-                "_handle_coordinator_update: sensors state written to state machine"
+            log_debug(
+                _LOGGER,
+                "_handle_coordinator_update",
+                "Sensors state written to state machine",
             )
 
     # when has_entity_name is True, the resulting entity name will be: {device_name}_{self._name}

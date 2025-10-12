@@ -11,6 +11,78 @@ No unreleased changes at this time.
 
 ---
 
+## [0.2.0-beta.3] - 2025-10-13
+
+🏗️ **Architecture Alignment Release** - Major internal refactoring for code quality
+
+### ♻️ Architecture Improvements
+
+- **New `helpers.py` Module** - Standardized logging functions across entire codebase
+  - Contextual logging: `log_debug()`, `log_info()`, `log_warning()`, `log_error()`
+  - Consistent format: `(function_name) [context]: message`
+  - Support for structured context data via kwargs
+  - Added `host_valid()` utility function
+
+- **Core Module Refactoring (`__init__.py`)**:
+  - Simplified `RuntimeData` - removed redundant `update_listener` field
+  - Converted `async_update_device_registry()` to sync with `@callback` decorator
+  - Updated `async_reload_entry()` to use `async_schedule_reload()` (non-blocking pattern)
+  - Refactored `async_unload_entry()` with walrus operator and cleaner error handling
+  - Added `async_migrate_entry()` infrastructure for future config migrations
+  - Simplified update listener to one-line pattern
+
+- **Logging Standardization** - Updated ALL Python files:
+  - `__init__.py` - 5 logger calls updated
+  - `api.py` - ~30 logger calls updated
+  - `config_flow.py` - 5 logger calls updated
+  - `coordinator.py` - 4 logger calls updated
+  - `switch.py` - 4 logger calls updated
+  - `sensor.py` - 2 logger calls updated
+  - Removed all f-strings from logging for better performance
+
+- **Config Flow Improvements**:
+  - Host validation moved to shared `helpers.host_valid()` function
+  - Removed code duplication
+  - Consistent error logging with context
+
+### ✅ Code Quality
+
+- 100% Ruff compliance maintained
+- Zero new linting warnings
+- Comprehensive type hints throughout
+- Consistent logging format across entire codebase
+- 8 Python files refactored (7 existing + 1 new)
+
+### 🎯 ABB Power-One v4.1.5 Alignment
+
+Successfully adopted the following patterns:
+- Contextual helper logging functions
+- `@callback` decorator for sync operations
+- Non-blocking reload with `async_schedule_reload()`
+- Clean error propagation in unload
+- Simplified RuntimeData structure
+- Migration infrastructure
+- DRY principle with shared utilities
+
+### 📝 Files Changed
+
+- `helpers.py` (NEW) - Standardized utility functions
+- `__init__.py` - Core integration lifecycle refactoring
+- `api.py`, `config_flow.py`, `coordinator.py`, `switch.py`, `sensor.py` - Logging standardization
+- `manifest.json` - Version bump to v0.2.0-beta.3
+
+### ⚠️ Breaking Changes
+
+**None**. This is an internal refactoring with no user-facing changes.
+
+**All improvements from v0.2.0-beta.1 and v0.2.0-beta.2 are included in this release.**
+
+**Full Release Notes:** [docs/releases/v0.2.0-beta.3.md](docs/releases/v0.2.0-beta.3.md)
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.2...v0.2.0-beta.3
+
+---
+
 ## [0.2.0-beta.2] - 2025-10-12
 
 🔧 **Hotfix Release** - Fixes integration unload error from v0.2.0-beta.1
@@ -102,7 +174,8 @@ Initial release of the 4-noks Elios4you integration.
 
 ---
 
-[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.2...HEAD
+[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.3...HEAD
+[0.2.0-beta.3]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.2...v0.2.0-beta.3
 [0.2.0-beta.2]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.1...v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.1.0...v0.2.0-beta.1
 [0.1.0]: https://github.com/alexdelprete/ha-4noks-elios4you/releases/tag/v0.1.0

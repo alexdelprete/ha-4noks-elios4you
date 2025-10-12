@@ -14,6 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from . import Elios4YouConfigEntry
 from .const import DOMAIN, SWITCH_ENTITIES
 from .coordinator import Elios4YouCoordinator
+from .helpers import log_debug
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,11 +65,22 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         self._device_sn = self._coordinator.api.data["sn"]
         self._device_swver = self._coordinator.api.data["swver"]
         self._device_hwver = self._coordinator.api.data["hwver"]
-        _LOGGER.debug(f"{self._coordinator.api.name} {self.name} init")
+        log_debug(
+            _LOGGER,
+            "__init__",
+            "Switch initialized",
+            device=self._coordinator.api.name,
+            name=self.name,
+        )
 
     async def async_force_update(self, delay: int = 0):
         """Force Switch State Update."""
-        _LOGGER.debug(f"Coordinator forced update initiated by {self.name}")
+        log_debug(
+            _LOGGER,
+            "async_force_update",
+            "Coordinator forced update initiated",
+            name=self.name,
+        )
         if delay:
             await asyncio.sleep(delay)
         await self._coordinator.async_update_data()
@@ -78,7 +90,12 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         """Handle updated data from the coordinator."""
         self._is_on = self._coordinator.api.data["relay_state"]
         self.async_write_ha_state()
-        _LOGGER.debug(f"{self.name} switch coord. update requested")
+        log_debug(
+            _LOGGER,
+            "_handle_coordinator_update",
+            "Switch coordinator update requested",
+            name=self.name,
+        )
 
     # when has_entity_name is True, the resulting entity name will be: {device_name}_{self._name}
     @property
@@ -123,9 +140,9 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         """Turn the switch on."""
         set_response = await self._coordinator.api.telnet_set_relay("on")
         if set_response:
-            _LOGGER.debug("switch async_turn_on (WARNING): turned on")
+            log_debug(_LOGGER, "async_turn_on", "Switch turned on")
         else:
-            _LOGGER.debug("switch async_turn_on (ERROR): error turning on")
+            log_debug(_LOGGER, "async_turn_on", "Error turning switch on")
         # call coord update for immediate refresh state
         self._handle_coordinator_update()
         return set_response
@@ -134,9 +151,9 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         """Turn the switch off."""
         set_response = await self._coordinator.api.telnet_set_relay("off")
         if set_response:
-            _LOGGER.debug("switch async_turn_off (WARNING): turned off")
+            log_debug(_LOGGER, "async_turn_off", "Switch turned off")
         else:
-            _LOGGER.debug("switch async_turn_off (ERROR): error turning off")
+            log_debug(_LOGGER, "async_turn_off", "Error turning switch off")
         # call coord update for immediate refresh state
         self._handle_coordinator_update()
         return set_response
