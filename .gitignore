@@ -9,6 +9,7 @@ __pycache__
 # misc
 .coverage
 .vscode
+.claude
 coverage.xml
 enforce_branch_protection.sh
 
