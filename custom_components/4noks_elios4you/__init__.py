@@ -140,9 +140,7 @@ async def async_unload_entry(
 
 
 @callback
-def async_reload_entry(
-    hass: HomeAssistant, config_entry: Elios4YouConfigEntry
-) -> None:
+def async_reload_entry(hass: HomeAssistant, config_entry: Elios4YouConfigEntry) -> None:
     """Reload the config entry."""
     hass.config_entries.async_schedule_reload(config_entry.entry_id)
 

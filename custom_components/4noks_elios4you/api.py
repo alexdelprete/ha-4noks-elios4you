@@ -79,7 +79,10 @@ class E4Utelnet(Telnet):
             """Close connection."""
             if self.is_open():
                 log_debug(
-                    _LOGGER, "E4Utelnet.close", "Closing connection", time=datetime.now()
+                    _LOGGER,
+                    "E4Utelnet.close",
+                    "Closing connection",
+                    time=datetime.now(),
                 )
                 super().close()
             else:
@@ -332,7 +335,10 @@ class Elios4YouAPI:
 
         except (TimeoutError, OSError) as err:
             log_debug(
-                _LOGGER, "async_get_data", "Connection or operation timed out", error=err
+                _LOGGER,
+                "async_get_data",
+                "Connection or operation timed out",
+                error=err,
             )
             raise TelnetConnectionError(
                 self._host, self._port, self._timeout, f"Connection error: {err}"
@@ -341,7 +347,12 @@ class Elios4YouAPI:
             # Re-raise our custom exceptions
             raise
         except Exception as err:
-            log_error(_LOGGER, "async_get_data", "Unexpected error during data fetch", error=err)
+            log_error(
+                _LOGGER,
+                "async_get_data",
+                "Unexpected error during data fetch",
+                error=err,
+            )
             raise TelnetCommandError(
                 "async_get_data", f"Unexpected error: {err}"
             ) from err
@@ -394,7 +405,10 @@ class Elios4YouAPI:
                 )
             except TimeoutError:
                 log_debug(
-                    _LOGGER, "telnet_get_data", "read_until timed out", time=datetime.now()
+                    _LOGGER,
+                    "telnet_get_data",
+                    "read_until timed out",
+                    time=datetime.now(),
                 )
             finally:
                 log_debug(
@@ -427,7 +441,9 @@ class Elios4YouAPI:
             else:
                 log_debug(_LOGGER, "telnet_get_data", "Response is None")
         except TimeoutError:
-            log_debug(_LOGGER, "telnet_get_data", "read_until timed out", time=datetime.now())
+            log_debug(
+                _LOGGER, "telnet_get_data", "read_until timed out", time=datetime.now()
+            )
         except Exception as ex:
             log_debug(_LOGGER, "telnet_get_data", "Failed with error", error=ex)
         finally:
@@ -459,7 +475,10 @@ class Elios4YouAPI:
                     for key, value in rel_parsed.items():
                         rel_output[key] = value
                     log_debug(
-                        _LOGGER, "telnet_set_relay", "Relay output", rel_output=rel_output
+                        _LOGGER,
+                        "telnet_set_relay",
+                        "Relay output",
+                        rel_output=rel_output,
                     )
                     out_mode = int(rel_output["rel"])
                     log_debug(
@@ -494,7 +513,9 @@ class Elios4YouAPI:
                 else:
                     log_debug(_LOGGER, "telnet_set_relay", "rel_parsed is None")
             except TimeoutError:
-                log_debug(_LOGGER, "telnet_set_relay", "Connection or operation timed out")
+                log_debug(
+                    _LOGGER, "telnet_set_relay", "Connection or operation timed out"
+                )
                 set_relay = False
             except Exception as ex:
                 log_debug(_LOGGER, "telnet_set_relay", "Failed with error", error=ex)
@@ -513,5 +534,7 @@ class Elios4YouAPI:
             )
             set_relay = False
         # end telnet_set_relay
-        log_debug(_LOGGER, "telnet_set_relay", "End telnet_set_relay", time=datetime.now())
+        log_debug(
+            _LOGGER, "telnet_set_relay", "End telnet_set_relay", time=datetime.now()
+        )
         return set_relay

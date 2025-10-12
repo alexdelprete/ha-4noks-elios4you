@@ -71,7 +71,9 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
             self.conf_port,
         )
 
-        log_debug(_LOGGER, "__init__", "Coordinator config data", data=config_entry.data)
+        log_debug(
+            _LOGGER, "__init__", "Coordinator config data", data=config_entry.data
+        )
         log_debug(
             _LOGGER,
             "__init__",
@@ -83,9 +85,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
 
     async def async_update_data(self):
         """Update data method."""
-        log_debug(
-            _LOGGER, "async_update_data", "Update started", time=datetime.now()
-        )
+        log_debug(_LOGGER, "async_update_data", "Update started", time=datetime.now())
         try:
             self.last_update_status = await self.api.async_get_data()
             self.last_update_time = datetime.now()

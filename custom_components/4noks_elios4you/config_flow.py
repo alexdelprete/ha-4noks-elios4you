@@ -71,7 +71,14 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
             log_debug(_LOGGER, "get_unique_id", "Successfully retrieved device data")
             return self.api.data["sn"]
         except (TelnetConnectionError, TelnetCommandError) as err:
-            log_error(_LOGGER, "get_unique_id", "Failed to connect", host=host, port=port, error=err)
+            log_error(
+                _LOGGER,
+                "get_unique_id",
+                "Failed to connect",
+                host=host,
+                port=port,
+                error=err,
+            )
             return False
 
     async def async_step_user(self, user_input=None) -> ConfigFlowResult:
