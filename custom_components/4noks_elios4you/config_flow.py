@@ -18,9 +18,8 @@ from homeassistant.config_entries import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.selector import selector
-from pymodbus.exceptions import ConnectionException
 
-from .api import Elios4YouAPI
+from .api import Elios4YouAPI, TelnetConnectionError, TelnetCommandError
 from .const import (
     CONF_HOST,
     CONF_NAME,
@@ -72,21 +71,18 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
             return True
         return False
 
-    async def get_unique_id(self, name, host, port):
-        """Return true if credentials is valid."""
-        _LOGGER.debug(f"Test connection to {host}:{port}")
+    async def get_unique_id(self, name: str, host: str, port: int) -> str | bool:
+        """Return device serial number if connection is valid."""
+        _LOGGER.debug("Testing connection to %s:%s", host, port)
         try:
             _LOGGER.debug("Creating API Client")
             self.api = Elios4YouAPI(self.hass, name, host, port)
-            _LOGGER.debug("API Client created: calling get data")
-            self.api_data = await self.api.async_get_data()
-            _LOGGER.debug("API Client: get data")
-            _LOGGER.debug(f"API Client Data: {self.api_data}")
+            _LOGGER.debug("Fetching device data")
+            await self.api.async_get_data()
+            _LOGGER.debug("Successfully retrieved device data")
             return self.api.data["sn"]
-        except ConnectionException as connerr:
-            _LOGGER.error(
-                f"Failed to connect to host: {host}:{port} - Exception: {connerr}"
-            )
+        except (TelnetConnectionError, TelnetCommandError) as err:
+            _LOGGER.error("Failed to connect to %s:%s - %s", host, port, err)
             return False
 
     async def async_step_user(self, user_input=None) -> ConfigFlowResult:

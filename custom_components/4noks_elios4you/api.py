@@ -14,8 +14,28 @@ from .telnetlib import Telnet
 _LOGGER = logging.getLogger(__name__)
 
 
-class ConnectionError(Exception):
-    """Empty Error Class."""
+class TelnetConnectionError(Exception):
+    """Exception raised when telnet connection fails."""
+
+    def __init__(self, host: str, port: int, timeout: int, message: str = "") -> None:
+        """Initialize the exception."""
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.message = (
+            message or f"Failed to connect to {host}:{port} (timeout: {timeout}s)"
+        )
+        super().__init__(self.message)
+
+
+class TelnetCommandError(Exception):
+    """Exception raised when telnet command fails."""
+
+    def __init__(self, command: str, message: str = "") -> None:
+        """Initialize the exception."""
+        self.command = command
+        self.message = message or f"Command '{command}' failed"
+        super().__init__(self.message)
 
 
 class E4Utelnet(Telnet):
@@ -175,108 +195,104 @@ class Elios4YouAPI:
         sock.close()
         return is_open
 
-    async def async_get_data(self):
+    async def async_get_data(self) -> bool:
         """Read Data Function."""
-        get_data_res = False
-        if self.check_port():
-            try:
-                _LOGGER.debug(
-                    f"async_get_data (WARNING): opening telnet session {datetime.now()}"
-                )
-                self.E4Uclient.open(self._host, self._port, self._timeout)
-
-                _LOGGER.debug(
-                    f"async_get_data (WARNING): start telnet_get_data {datetime.now()}"
-                )
-                dat_parsed = self.telnet_get_data("@dat")
-                if dat_parsed is not None:
-                    _LOGGER.debug("async_get_data: parsing @dat data")
-                    for key, value in dat_parsed.items():
-                        # @dat returns only numbers as strings
-                        # power/energy as float all others as int
-                        try:
-                            if ("energy" in key) or ("power" in key):
-                                self.data[key] = round(float(value), 2)
-                            elif key == "utc_time":
-                                pass
-                            else:
-                                self.data[key] = int(value)
-                        except ValueError:
-                            # If the value cannot be converted to int, log it and skip
-                            _LOGGER.debug(
-                                f"async_get_data: Value for {key} could not be parsed to int: {value}"
-                            )
-                            continue  # Skip the invalid value
-                else:
-                    _LOGGER.debug("async_get_data (ERROR): @dat data is None")
-
-                sta_parsed = self.telnet_get_data("@sta")
-                if sta_parsed is not None:
-                    _LOGGER.debug("async_get_data (WARNING): parsing @sta data")
-                    for key, value in sta_parsed.items():
-                        # @sta returns only float numbers as strings
-                        try:
-                            self.data[key] = round(float(value), 2)
-                        except ValueError:
-                            _LOGGER.debug(
-                                f"async_get_data: Value for {key} could not be parsed to float: {value}"
-                            )
-                else:
-                    _LOGGER.debug("async_get_data (ERROR): @sta data is None")
-
-                inf_parsed = self.telnet_get_data("@inf")
-                if inf_parsed is not None:
-                    _LOGGER.debug("async_get_data (WARNING): parsing @inf data")
-                    for key, value in inf_parsed.items():
-                        # @inf returns only strings
-                        self.data[key] = str(value)
-                else:
-                    _LOGGER.debug("async_get_data (ERROR): @inf data is None")
-
-                # Calculated sensor to combine TOP/BOTTOM fw versions
-                self.data["swver"] = f"{self.data['fwtop']} / {self.data['fwbtm']}"
-
-                # Calculated sensors for self-consumption sensors
-                self.data["self_consumed_power"] = round(
-                    (self.data["produced_power"] - self.data["sold_power"]), 2
-                )
-
-                self.data["self_consumed_energy"] = round(
-                    (self.data["produced_energy"] - self.data["sold_energy"]), 2
-                )
-
-                self.data["self_consumed_energy_f1"] = round(
-                    (self.data["produced_energy_f1"] - self.data["sold_energy_f1"]),
-                    2,
-                )
-                self.data["self_consumed_energy_f2"] = round(
-                    (self.data["produced_energy_f2"] - self.data["sold_energy_f2"]),
-                    2,
-                )
-                self.data["self_consumed_energy_f3"] = round(
-                    (self.data["produced_energy_f3"] - self.data["sold_energy_f3"]),
-                    2,
-                )
-                get_data_res = True
-            except TimeoutError:
-                _LOGGER.debug(
-                    "async_get_data (ERROR): Connection or operation timed out"
-                )
-                get_data_res = False
-            except Exception as e:
-                _LOGGER.debug(f"async_get_data (ERROR): An error occurred: {str(e)}")
-                get_data_res = False
-            finally:
-                _LOGGER.debug("async_get_data (WARNING): closing telnet connection")
-                self.E4Uclient.close()
-        else:
-            _LOGGER.debug(
-                "async_get_data (ERROR): device not ready for telnet connection"
+        # Check if device is reachable
+        if not self.check_port():
+            _LOGGER.debug("Device not reachable on %s:%s", self._host, self._port)
+            raise TelnetConnectionError(
+                self._host, self._port, self._timeout, "Device port not reachable"
             )
-            raise ConnectionError(f"device not active on {self._host}:{self._port}")
-        # end async_get_data
-        _LOGGER.debug(f"async_get_data: end async_get_data {datetime.now()}")
-        return get_data_res
+
+        try:
+            _LOGGER.debug("Opening telnet session to %s:%s", self._host, self._port)
+            self.E4Uclient.open(self._host, self._port, self._timeout)
+
+            _LOGGER.debug("Fetching device data")
+            dat_parsed = self.telnet_get_data("@dat")
+            if dat_parsed is None:
+                raise TelnetCommandError("@dat", "Failed to retrieve @dat data")
+
+            _LOGGER.debug("Parsing @dat data")
+            for key, value in dat_parsed.items():
+                # @dat returns only numbers as strings
+                # power/energy as float all others as int
+                try:
+                    if ("energy" in key) or ("power" in key):
+                        self.data[key] = round(float(value), 2)
+                    elif key == "utc_time":
+                        pass
+                    else:
+                        self.data[key] = int(value)
+                except ValueError:
+                    _LOGGER.debug("Value for %s could not be parsed: %s", key, value)
+                    continue
+
+            sta_parsed = self.telnet_get_data("@sta")
+            if sta_parsed is None:
+                raise TelnetCommandError("@sta", "Failed to retrieve @sta data")
+
+            _LOGGER.debug("Parsing @sta data")
+            for key, value in sta_parsed.items():
+                # @sta returns only float numbers as strings
+                try:
+                    self.data[key] = round(float(value), 2)
+                except ValueError:
+                    _LOGGER.debug("Value for %s could not be parsed: %s", key, value)
+
+            inf_parsed = self.telnet_get_data("@inf")
+            if inf_parsed is None:
+                raise TelnetCommandError("@inf", "Failed to retrieve @inf data")
+
+            _LOGGER.debug("Parsing @inf data")
+            for key, value in inf_parsed.items():
+                # @inf returns only strings
+                self.data[key] = str(value)
+
+            # Calculated sensor to combine TOP/BOTTOM fw versions
+            self.data["swver"] = f"{self.data['fwtop']} / {self.data['fwbtm']}"
+
+            # Calculated sensors for self-consumption sensors
+            self.data["self_consumed_power"] = round(
+                (self.data["produced_power"] - self.data["sold_power"]), 2
+            )
+
+            self.data["self_consumed_energy"] = round(
+                (self.data["produced_energy"] - self.data["sold_energy"]), 2
+            )
+
+            self.data["self_consumed_energy_f1"] = round(
+                (self.data["produced_energy_f1"] - self.data["sold_energy_f1"]),
+                2,
+            )
+            self.data["self_consumed_energy_f2"] = round(
+                (self.data["produced_energy_f2"] - self.data["sold_energy_f2"]),
+                2,
+            )
+            self.data["self_consumed_energy_f3"] = round(
+                (self.data["produced_energy_f3"] - self.data["sold_energy_f3"]),
+                2,
+            )
+
+            _LOGGER.debug("Data fetch completed successfully")
+            return True
+
+        except (TimeoutError, OSError) as err:
+            _LOGGER.debug("Connection or operation timed out: %s", err)
+            raise TelnetConnectionError(
+                self._host, self._port, self._timeout, f"Connection error: {err}"
+            ) from err
+        except (TelnetConnectionError, TelnetCommandError):
+            # Re-raise our custom exceptions
+            raise
+        except Exception as err:
+            _LOGGER.error("Unexpected error during data fetch: %s", err)
+            raise TelnetCommandError(
+                "async_get_data", f"Unexpected error: {err}"
+            ) from err
+        finally:
+            _LOGGER.debug("Closing telnet connection")
+            self.E4Uclient.close()
 
     def telnet_get_data(self, cmd: str):
         """Send Telnet Commands and process output."""

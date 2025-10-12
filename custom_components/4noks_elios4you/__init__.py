@@ -37,58 +37,48 @@ class RuntimeData:
     update_listener: Callable
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: Elios4YouConfigEntry):
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: Elios4YouConfigEntry
+) -> bool:
     """Set up integration from a config entry."""
-
     if hass.data.get(DOMAIN) is None:
         hass.data.setdefault(DOMAIN, {})
         _LOGGER.info(STARTUP_MESSAGE)
-    _LOGGER.debug(f"Setup config_entry for {DOMAIN}")
+    _LOGGER.debug("Setting up config_entry for %s", DOMAIN)
 
-    # Initialise the coordinator that manages data updates from your api.
-    # This is defined in coordinator.py
+    # Initialise the coordinator that manages data updates from the API
     coordinator = Elios4YouCoordinator(hass, config_entry)
 
     # If the refresh fails, async_config_entry_first_refresh() will
     # raise ConfigEntryNotReady and setup will try again later
-    # ref.: https://developers.home-assistant.io/docs/integration_setup_failures
     await coordinator.async_config_entry_first_refresh()
 
     # Test to see if api initialised correctly, else raise ConfigNotReady to make HA retry setup
-    # Change this to match how your api will know if connected or successful update
     if not coordinator.api.data["sn"]:
         raise ConfigEntryNotReady(
             f"Timeout connecting to {config_entry.data.get(CONF_NAME)}"
         )
 
-    # Initialise a listener for config flow options changes.
-    # See config_flow for defining an options setting that shows up as configure on the integration.
+    # Initialise a listener for config flow options changes
     update_listener = config_entry.add_update_listener(async_reload_entry)
-
-    # Register an update listener to the config entry that will be called when the entry is updated
-    # ref.: https://developers.home-assistant.io/docs/config_entries_options_flow_handler/#signal-updates
     config_entry.async_on_unload(update_listener)
 
-    # Add the coordinator and update listener to hass data to make
-    # accessible throughout your integration
-    # Note: this will change on HA2024.6 to save on the config entry.
+    # Add the coordinator and update listener to runtime data
     config_entry.runtime_data = RuntimeData(coordinator, update_listener)
 
     # Setup platforms
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
-    # Regiser device
+    # Register device
     await async_update_device_registry(hass, config_entry)
 
-    # Return true to denote a successful setup.
     return True
 
 
 async def async_update_device_registry(
     hass: HomeAssistant, config_entry: Elios4YouConfigEntry
-):
+) -> None:
     """Manual device registration."""
-    # This gets the data update coordinator from hass.data
     coordinator: Elios4YouCoordinator = config_entry.runtime_data.coordinator
     device_registry = dr.async_get(hass)
     device_registry.async_get_or_create(
@@ -106,15 +96,13 @@ async def async_update_device_registry(
 
 
 async def async_remove_config_entry_device(
-    hass: HomeAssistant, config_entry, device_entry
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry
 ) -> bool:
     """Delete device if selected from UI."""
     # Adding this function shows the delete device option in the UI.
-    # Remove this function if you do not want that option.
-    # You may need to do some checks here before allowing devices to be removed.
     if DOMAIN in device_entry.identifiers:
         _LOGGER.error(
-            "You cannot delete the device using device delete. Remove the integration instead."
+            "Cannot delete the device using device delete. Remove the integration instead."
         )
         return False
     return True
@@ -124,66 +112,29 @@ async def async_unload_entry(
     hass: HomeAssistant, config_entry: Elios4YouConfigEntry
 ) -> bool:
     """Unload a config entry."""
-    # This is called when you remove your integration or shutdown HA.
-    # If you have created any custom services, they need to be removed here too.
+    _LOGGER.debug("Unloading config entry")
 
-    _LOGGER.debug("Unload config_entry: started")
-
-    # Unload platforms and cleanup resources
-    if unload_ok := await hass.config_entries.async_unload_platforms(
+    # Unload platforms
+    unload_ok = await hass.config_entries.async_unload_platforms(
         config_entry, PLATFORMS
-    ):
+    )
+
+    if unload_ok:
+        # Close API connection
         try:
-            # Close API connection if exists
-            # coordinator = getattr(config_entry.runtime_data, 'coordinator', None)
             coordinator = config_entry.runtime_data.coordinator
-            if coordinator.api:
+            if coordinator and coordinator.api:
                 coordinator.api.close()
                 _LOGGER.debug("Closed API connection")
+        except Exception as err:
+            _LOGGER.error("Error closing API connection: %s", err)
 
-            # Remove update listener if exists
-            if config_entry.entry_id in hass.data[DOMAIN]:
-                update_listener = config_entry.runtime_data.update_listener
-                if update_listener:
-                    update_listener()
-                _LOGGER.debug("Removed update listener")
-
-                # Remove config entry from hass data
-                hass.data[DOMAIN].pop(config_entry.entry_id)
-                _LOGGER.debug("Removed config entry from hass data")
-        except Exception as ex:
-            _LOGGER.error(f"Error during unload: {str(ex)}")
-            return False
-    else:
-        _LOGGER.debug("Failed to unload platforms")
-
-    _LOGGER.debug("Unload config_entry: completed")
+    _LOGGER.debug("Config entry unload %s", "successful" if unload_ok else "failed")
     return unload_ok
 
 
-async def async_reload_entry(hass: HomeAssistant, config_entry: Elios4YouConfigEntry):
+async def async_reload_entry(
+    hass: HomeAssistant, config_entry: Elios4YouConfigEntry
+) -> None:
     """Reload the config entry."""
-    await hass.config_entries.async_schedule_reload(config_entry.entry_id)
-
-
-# Sample migration code in case it's needed
-# async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
-#     """Migrate an old config_entry."""
-#     version = config_entry.version
-
-#     # 1-> 2: Migration format
-#     if version == 1:
-#         # Get handler to coordinator from config
-#         coordinator = hass.data[DOMAIN][config_entry.entry_id][DATA]
-#         _LOGGER.debug("Migrating from version %s", version)
-#         old_uid = config_entry.unique_id
-#         new_uid = coordinator.api.data["sn"]
-#         if old_uid != new_uid:
-#             hass.config_entries.async_update_entry(
-#                 config_entry, unique_id=new_uid
-#             )
-#             _LOGGER.debug("Migration to version %s complete: OLD_UID: %s - NEW_UID: %s", config_entry.version, old_uid, new_uid)
-#         if config_entry.unique_id == new_uid:
-#             config_entry.version = 2
-#             _LOGGER.debug("Migration to version %s complete: NEW_UID: %s", config_entry.version, config_entry.unique_id)
-#     return True
+    await hass.config_entries.async_reload(config_entry.entry_id)
