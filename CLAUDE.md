@@ -1,5 +1,203 @@
 # Claude AI-Assisted Development Documentation
 
+## v0.2.0 - Official Stable Release
+
+**Date:** October 15, 2025
+**Claude Model:** Sonnet 4.5 (claude-sonnet-4-5-20250929)
+**Development Tool:** Claude Code (VSCode Extension)
+
+---
+
+### Overview
+
+This is the **official stable release** of v0.2.0, marking the successful completion of the beta testing cycle. This release includes all improvements from beta.1, beta.2, and beta.3, plus dependency updates to ensure compatibility with Home Assistant 2025.10.x and Python 3.13.
+
+### What Was Accomplished
+
+All changes from the beta cycle are now production-ready:
+
+- ✅ **From beta.1:** Critical bug fixes (sensor availability, unload errors, async/await), custom exceptions, type hints, code quality (100% ruff compliance)
+- ✅ **From beta.2:** Hotfix for integration unload (added `close()` method)
+- ✅ **From beta.3:** Architecture alignment (logging system, helpers.py, core refactoring)
+- ✅ **New in v0.2.0:** Updated dependencies for HA 2025.10.x and Python 3.13 compatibility
+
+### Syncing with ABB Power-One Repository
+
+This release includes updates synced from today's commits (Oct 15, 2025) in the reference ABB Power-One PVI SunSpec repository:
+
+**Commits Applied:**
+1. **1668962** - "Fix lint workflow: upgrade to Python 3.13 for HA 2025.10.2 compatibility"
+   - Updated `.github/workflows/lint.yml` to use Python 3.13
+   - Reason: HA 2025.10.2 requires Python >=3.13.2
+
+2. **274e876** - "Update dependencies to latest versions"
+   - Updated `requirements.txt`: homeassistant 2025.10.2, pip constraint <25.3
+   - Updated `hacs.json`: homeassistant requirement 2025.10.0+
+   - Note: Kept telnetlib3>=2.0.4 (no updates needed, different from pymodbus)
+
+**Process:**
+1. Cloned ABB repository and reviewed recent commits
+2. Identified applicable changes (dependency updates, Python version)
+3. Adapted changes for Elios4you integration (telnet vs modbus differences)
+4. Updated all relevant files following the same patterns
+5. Created comprehensive release documentation
+
+### Release Notes Best Practices
+
+**Important Documentation Standard Established:**
+
+When creating release notes, we follow this pattern:
+
+1. **Official/Stable Releases (e.g., v0.2.0):**
+   - Document ALL changes since the LAST STABLE release (not just since last beta)
+   - Example: v0.2.0 includes everything from v0.1.0 → v0.2.0
+   - Provides complete upgrade path for users who skip beta versions
+   - Ensures users upgrading from stable-to-stable see the full picture
+
+2. **Beta Releases (e.g., v0.2.0-beta.1, v0.2.0-beta.2):**
+   - Document INCREMENTAL changes from the previous beta
+   - Example: beta.2 only documents what changed since beta.1
+   - Helps beta testers understand what's new in each iteration
+   - Detailed, focused release notes for testing validation
+
+3. **File Structure:**
+   - Each release gets its own file: `docs/releases/vX.Y.Z.md`
+   - CHANGELOG.md contains summaries with links to detailed release notes
+   - Maintain consistency between CHANGELOG and detailed release notes
+
+**Why This Matters:**
+- Users on stable versions (v0.1.0) need to see everything that changed when upgrading to v0.2.0
+- Beta testers need incremental notes to validate specific changes
+- Clear documentation prevents confusion and missed features/fixes
+- Provides historical record of project evolution
+
+**This Practice Was Applied:**
+- `docs/releases/v0.2.0.md` includes ALL changes from v0.1.0 → v0.2.0
+- `docs/releases/v0.2.0-beta.X.md` files contain incremental changes
+- CHANGELOG.md follows the same pattern
+- Both stable and beta users have appropriate documentation
+
+### Files Modified Summary
+
+**Code Changes:**
+1. `.github/workflows/lint.yml` - Python 3.13 update
+2. `requirements.txt` - Dependency updates
+3. `hacs.json` - HA requirement update
+4. `custom_components/4noks_elios4you/manifest.json` - Version 0.2.0
+5. `custom_components/4noks_elios4you/const.py` - VERSION constant 0.2.0
+
+**Documentation Changes:**
+1. `docs/releases/v0.2.0.md` - Comprehensive official release notes (NEW)
+2. `CHANGELOG.md` - v0.2.0 summary with all changes since v0.1.0
+3. `CLAUDE.md` - This section documenting the release process
+4. `docs/releases/README.md` - Updated with best practices
+
+### Version Number Management
+
+**CRITICAL: When releasing any version, you MUST update version numbers in THREE places:**
+
+1. **`custom_components/4noks_elios4you/manifest.json`** - `"version"` field
+2. **`custom_components/4noks_elios4you/const.py`** - `VERSION` constant (line 13)
+3. **Git tag** - When pushing the release
+
+**Why This Matters:**
+- `manifest.json` - Used by Home Assistant and HACS for version tracking
+- `const.py` VERSION - Displayed in logs and startup message for debugging
+- Git tag - Marks the release in version control and triggers GitHub release
+
+**Example for v0.2.0:**
+```python
+# In manifest.json
+"version": "0.2.0"
+
+# In const.py (line 13)
+VERSION = "0.2.0"
+
+# Git tag
+git tag -a v0.2.0 -m "Release v0.2.0"
+```
+
+**Release Checklist:**
+- [ ] Updated manifest.json version
+- [ ] Updated const.py VERSION constant
+- [ ] Created comprehensive release notes in docs/releases/
+- [ ] Updated CHANGELOG.md
+- [ ] Run ruff checks (must pass 100%)
+- [ ] Commit all changes with descriptive message
+- [ ] Create annotated git tag
+- [ ] Push commit and tag to GitHub
+- [ ] Verify GitHub release is created automatically
+
+### Development Approach
+
+**Analysis Phase:**
+- Monitored ABB Power-One repository for updates
+- Identified today's commits (Oct 15, 2025)
+- Analyzed applicability to Elios4you integration
+- Planned comprehensive release documentation
+
+**Implementation Phase:**
+1. Updated GitHub workflow for Python 3.13
+2. Updated development dependencies
+3. Updated HACS configuration
+4. Bumped version to 0.2.0 (stable)
+5. Created comprehensive release documentation
+
+**Documentation Phase:**
+1. Created `docs/releases/v0.2.0.md` with ALL changes since v0.1.0
+2. Updated CHANGELOG.md with complete summary
+3. Updated CLAUDE.md with release process and best practices
+4. Updated `docs/releases/README.md` with documentation standards
+
+**Quality Assurance:**
+- Ruff validation (100% compliance maintained)
+- Documentation consistency verified
+- Version numbers updated everywhere
+- Release notes cross-referenced correctly
+
+### Lessons Learned
+
+**What Worked Exceptionally Well:**
+
+1. **Beta Testing Cycle**
+   - Three beta releases allowed thorough validation
+   - Each beta focused on specific improvements
+   - Community feedback informed stable release
+   - No surprises in stable release
+
+2. **Reference Implementation Pattern**
+   - Continuing to sync with ABB integration ensures best practices
+   - Easy to identify and apply relevant updates
+   - Both integrations benefit from shared knowledge
+
+3. **Comprehensive Documentation**
+   - Release notes best practices now documented
+   - Clear distinction between stable and beta notes
+   - Users have complete upgrade information
+   - Future releases can follow this template
+
+4. **AI-Assisted Development**
+   - Claude Code effectively managed complex release process
+   - Maintained consistency across multiple documentation files
+   - Caught details that might be missed manually
+   - Human oversight ensured quality and accuracy
+
+### Future Considerations
+
+**Staying Aligned with ABB Power-One:**
+- Monitor ABB repository regularly for updates
+- Apply relevant patterns and fixes promptly
+- Maintain documentation of what's been synced
+- Continue benefiting from battle-tested improvements
+
+**Ongoing Maintenance:**
+- Watch for Home Assistant core updates
+- Keep dependencies current
+- Monitor community feedback
+- Address issues promptly
+
+---
+
 ## v0.2.0-beta.3 - Architecture Alignment and Logging Standardization
 
 **Date:** October 13, 2025

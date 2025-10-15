@@ -1,6 +1,6 @@
 {
   "name": "4-noks Elios4you",
-  "homeassistant": "2025.1.0",
+  "homeassistant": "2025.10.0",
   "content_in_root": false,
   "hide_default_branch": false,
   "render_readme": true,

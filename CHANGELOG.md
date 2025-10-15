@@ -11,6 +11,107 @@ No unreleased changes at this time.
 
 ---
 
+## [0.2.0] - 2025-10-15
+
+🎉 **Official Stable Release** - Comprehensive code quality improvements and bug fixes
+
+This is the official stable release that includes ALL improvements from the beta cycle (beta.1, beta.2, beta.3) plus dependency updates for Home Assistant 2025.10.x compatibility.
+
+### 🐛 Critical Bug Fixes
+
+- **Fixed Sensor Availability** ⭐ MOST IMPORTANT - Sensors now properly show "unavailable" when device is offline instead of displaying stale data
+- **Fixed Integration Unload KeyError** - Simplified unload logic to prevent crashes during integration removal
+- **Fixed Missing Await** - Corrected async/await pattern in reload function
+- **Fixed API Close Method** - Added missing `close()` method to properly cleanup telnet connections
+- **Removed Pymodbus Dependency** - Eliminated incorrect import of unused pymodbus library
+
+### ♻️ Architecture Improvements
+
+- **New `helpers.py` Module** - Standardized logging functions across entire codebase
+  - Contextual logging: `log_debug()`, `log_info()`, `log_warning()`, `log_error()`
+  - Consistent format: `(function_name) [context]: message`
+  - Support for structured context data via kwargs
+  - Added `host_valid()` utility function
+
+- **Core Module Refactoring (`__init__.py`)**:
+  - Simplified `RuntimeData` - removed redundant `update_listener` field
+  - Converted `async_update_device_registry()` to sync with `@callback` decorator
+  - Updated `async_reload_entry()` to use `async_schedule_reload()` (non-blocking pattern)
+  - Refactored `async_unload_entry()` with walrus operator and cleaner error handling
+  - Added `async_migrate_entry()` infrastructure for future config migrations
+  - Simplified update listener to one-line pattern
+
+- **Logging Standardization** - Updated ALL Python files:
+  - `__init__.py` - 5 logger calls updated
+  - `api.py` - ~30 logger calls updated
+  - `config_flow.py` - 5 logger calls updated
+  - `coordinator.py` - 4 logger calls updated
+  - `switch.py` - 4 logger calls updated
+  - `sensor.py` - 2 logger calls updated
+  - Removed all f-strings from logging for better performance
+
+- **Config Flow Improvements**:
+  - Host validation moved to shared `helpers.host_valid()` function
+  - Removed code duplication
+  - Consistent error logging with context
+
+### ✨ Code Quality Improvements
+
+- Added custom exception classes: `TelnetConnectionError` and `TelnetCommandError`
+- Enhanced error handling with proper exception propagation and context
+- Added comprehensive type hints throughout codebase
+- Improved logging patterns (structured logging with % formatting)
+- Achieved 100% ruff compliance
+- Code formatting and cleanup
+- 8 Python files refactored (7 existing + 1 new)
+
+### 📦 Dependencies & Compatibility
+
+- **Updated for Home Assistant 2025.10.x:**
+  - Home Assistant requirement: `2025.10.0+` (was `2025.1.0`)
+  - Python requirement: `3.13+` (was `3.11`)
+  - Development dependencies: `homeassistant==2025.10.2`, `pip>=21.0,<25.3`
+  - Telnet library: `telnetlib3>=2.0.4` (unchanged)
+  - Code quality: `ruff==0.14.0`
+
+- **CI/CD Updates:**
+  - GitHub Actions lint workflow now uses Python 3.13
+  - Ensures compatibility with latest Home Assistant core
+
+### 🎯 ABB Power-One v4.1.5 Alignment
+
+Successfully adopted the following patterns:
+- Contextual helper logging functions
+- Custom exception classes with context
+- `@callback` decorator for sync operations
+- Non-blocking reload with `async_schedule_reload()`
+- Clean error propagation in unload
+- Simplified RuntimeData structure
+- Migration infrastructure
+- DRY principle with shared utilities
+
+### ⚠️ Breaking Changes
+
+**None** for existing users. This is a code quality and bug fix release with full backward compatibility.
+
+**For new installations:**
+- Requires Home Assistant 2025.10.0 or newer
+- Requires Python 3.13 or newer
+
+### 📝 Beta Testing Cycle
+
+This stable release is the result of thorough beta testing:
+- v0.2.0-beta.1 (2025-10-12) - Critical bug fixes and code quality
+- v0.2.0-beta.2 (2025-10-12) - Hotfix for unload error
+- v0.2.0-beta.3 (2025-10-13) - Architecture alignment
+- v0.2.0 (2025-10-15) - Official stable with dependency updates
+
+**Full Release Notes:** [docs/releases/v0.2.0.md](docs/releases/v0.2.0.md)
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.1.0...v0.2.0
+
+---
+
 ## [0.2.0-beta.3] - 2025-10-13
 
 🏗️ **Architecture Alignment Release** - Major internal refactoring for code quality
@@ -182,7 +283,8 @@ Initial release of the 4-noks Elios4you integration.
 
 ---
 
-[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.3...HEAD
+[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.1.0...v0.2.0
 [0.2.0-beta.3]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.2...v0.2.0-beta.3
 [0.2.0-beta.2]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.1...v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.1.0...v0.2.0-beta.1
