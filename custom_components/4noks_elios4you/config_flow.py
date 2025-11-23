@@ -79,7 +79,7 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore
                 port=port,
                 error=err,
             )
-            return False
+            return True
 
     async def async_step_user(self, user_input=None) -> ConfigFlowResult:
         """Handle the initial step."""
