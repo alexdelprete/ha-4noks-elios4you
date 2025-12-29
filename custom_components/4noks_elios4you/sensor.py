@@ -4,7 +4,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.core import HomeAssistant, callback
@@ -44,7 +44,7 @@ async def async_setup_entry(
 
     sensors = []
     for sensor in SENSOR_ENTITIES:
-        sensor_def: dict[str, Any] = sensor
+        sensor_def = cast(dict[str, Any], sensor)
         if coordinator.api.data[sensor_def["key"]] is not None:
             sensors.append(
                 Elios4YouSensor(

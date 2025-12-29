@@ -119,7 +119,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def device_class(self) -> SwitchDeviceClass:
         """Return the switch device_class."""
-        return self._device_class
+        return self._device_class  # type: ignore[return-value]
 
     @property
     def entity_category(self) -> EntityCategory | None:
