@@ -106,7 +106,7 @@
       "message": "Verbindung zum Elios4You-Gerat unter {host}:{port} fehlgeschlagen (Zeitlimit: {timeout}s)"
     },
     "telnet_command_error": {
-      "message": "Telnet-Befehl '{command}' konnte nicht ausgefuhrt werden"
+      "message": "Telnet-Befehl {command} konnte nicht ausgefuhrt werden"
     }
   }
 }

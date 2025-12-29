@@ -106,7 +106,7 @@
       "message": "Connessione al dispositivo Elios4You su {host}:{port} fallita (timeout: {timeout}s)"
     },
     "telnet_command_error": {
-      "message": "Il comando Telnet '{command}' non e stato eseguito"
+      "message": "Il comando Telnet {command} non e stato eseguito"
     }
   }
 }

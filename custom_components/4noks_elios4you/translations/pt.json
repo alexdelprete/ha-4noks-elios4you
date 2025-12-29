@@ -106,7 +106,7 @@
       "message": "Falha ao ligar ao dispositivo Elios4You em {host}:{port} (tempo limite: {timeout}s)"
     },
     "telnet_command_error": {
-      "message": "O comando Telnet '{command}' falhou ao executar"
+      "message": "O comando Telnet {command} falhou ao executar"
     }
   }
 }

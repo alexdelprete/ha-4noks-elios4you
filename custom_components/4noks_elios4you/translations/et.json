@@ -106,7 +106,7 @@
       "message": "Elios4You seadmega uhenduse loomine ebaonnestus aadressil {host}:{port} (ajalopt: {timeout}s)"
     },
     "telnet_command_error": {
-      "message": "Telnet kasku '{command}' ei saanud taita"
+      "message": "Telnet kasku {command} ei saanud taita"
     }
   }
 }

@@ -106,7 +106,7 @@
       "message": "Tilkobling til Elios4You-enhet pa {host}:{port} mislyktes (tidsavbrudd: {timeout}s)"
     },
     "telnet_command_error": {
-      "message": "Telnet-kommando '{command}' kunne ikke utfores"
+      "message": "Telnet-kommando {command} kunne ikke utfores"
     }
   }
 }

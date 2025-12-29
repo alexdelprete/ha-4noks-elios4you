@@ -106,7 +106,7 @@
       "message": "Yhteys Elios4You-laitteeseen osoitteessa {host}:{port} epaonnistui (aikakatkaisu: {timeout}s)"
     },
     "telnet_command_error": {
-      "message": "Telnet-komento '{command}' epaonnistui"
+      "message": "Telnet-komento {command} epaonnistui"
     }
   }
 }
