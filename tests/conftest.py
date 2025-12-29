@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from homeassistant.core import HomeAssistant
 
 # Import module with numeric prefix using importlib
 _elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
@@ -28,6 +29,15 @@ TEST_NAME = "Test Elios4you"
 TEST_PORT = 5001
 TEST_SCAN_INTERVAL = 60
 TEST_SERIAL_NUMBER = "E4U123456789"
+
+
+@pytest.fixture
+def hass() -> HomeAssistant:
+    """Create a Home Assistant instance for testing."""
+    hass = MagicMock(spec=HomeAssistant)
+    hass.config_entries = MagicMock()
+    hass.config_entries.async_entries = MagicMock(return_value=[])
+    return hass
 
 
 @pytest.fixture
