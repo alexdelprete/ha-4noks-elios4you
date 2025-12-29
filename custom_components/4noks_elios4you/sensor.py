@@ -6,9 +6,11 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import Elios4YouConfigEntry
@@ -20,12 +22,13 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, config_entry: Elios4YouConfigEntry, async_add_entities
-):
+    hass: HomeAssistant,
+    config_entry: Elios4YouConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Sensor Platform setup."""
-
     # This gets the data update coordinator from hass.data as specified in your __init__.py
-    coordinator: Elios4YouCoordinator = config_entry.runtime_data.coordinator
+    coordinator = config_entry.runtime_data.coordinator
 
     log_debug(
         _LOGGER,
@@ -57,25 +60,23 @@ async def async_setup_entry(
 
     async_add_entities(sensors)
 
-    return True
 
-
-class Elios4YouSensor(CoordinatorEntity, SensorEntity):
+class Elios4YouSensor(CoordinatorEntity[Elios4YouCoordinator], SensorEntity):
     """Representation of an Elios4You sensor."""
 
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator,
-        name,
-        key,
-        icon,
-        device_class,
-        state_class,
-        unit,
+        coordinator: Elios4YouCoordinator,
+        name: str,
+        key: str,
+        icon: str,
+        device_class: SensorDeviceClass | None,
+        state_class: SensorStateClass | None,
+        unit: str | None,
         enabled_default: bool,
-    ):
+    ) -> None:
         """Class Initializitation."""
         super().__init__(coordinator)
         self._coordinator = coordinator
@@ -84,13 +85,13 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
         self._device_class = device_class
         self._state_class = state_class
         self._unit_of_measurement = unit
-        self._device_name = self._coordinator.api.name
-        self._device_host = self._coordinator.api.host
-        self._device_model = self._coordinator.api.data["model"]
-        self._device_manufact = self._coordinator.api.data["manufact"]
-        self._device_sn = self._coordinator.api.data["sn"]
-        self._device_swver = self._coordinator.api.data["swver"]
-        self._device_hwver = self._coordinator.api.data["hwver"]
+        self._device_name: str = self._coordinator.api.name
+        self._device_host: str = self._coordinator.api.host
+        self._device_model: str = str(self._coordinator.api.data.get("model", ""))
+        self._device_manufact: str = str(self._coordinator.api.data.get("manufact", ""))
+        self._device_sn: str = str(self._coordinator.api.data.get("sn", ""))
+        self._device_swver: str = str(self._coordinator.api.data.get("swver", ""))
+        self._device_hwver: str = str(self._coordinator.api.data.get("hwver", ""))
         # Use translation key for entity name (translations in translations/*.json)
         self._attr_translation_key = key
         # Entity registry enabled default (False = disabled by default in UI)
@@ -110,42 +111,42 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
             )
 
     @property
-    def native_unit_of_measurement(self):
+    def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement."""
         return self._unit_of_measurement
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         """Return the sensor icon."""
         return self._icon
 
     @property
-    def device_class(self):
+    def device_class(self) -> SensorDeviceClass | None:
         """Return the sensor device_class."""
         return self._device_class
 
     @property
-    def state_class(self):
+    def state_class(self) -> SensorStateClass | None:
         """Return the sensor state_class."""
         return self._state_class
 
     @property
-    def entity_category(self):
+    def entity_category(self) -> EntityCategory | None:
         """Return the sensor entity_category."""
         if self._state_class is None:
             return EntityCategory.DIAGNOSTIC
         return None
 
     @property
-    def native_value(self):
+    def native_value(self) -> int | float | str | None:
         """Return the state of the sensor."""
         if self._key in self._coordinator.api.data:
             return self._coordinator.api.data[self._key]
         return None
 
     @property
-    def state_attributes(self) -> dict[str, Any] | None:
-        """Return the attributes."""
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return the extra state attributes."""
         return None
 
     @property
@@ -154,21 +155,21 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
         return False
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return a unique ID to use for this entity."""
         return f"{DOMAIN}_{self._device_sn}_{self._key}"
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return device specific attributes."""
-        return {
-            "configuration_url": None,
-            "hw_version": self._device_hwver,
-            "identifiers": {(DOMAIN, self._device_sn)},
-            "manufacturer": self._device_manufact,
-            "model": self._device_model,
-            "name": self._device_name,
-            "serial_number": self._device_sn,
-            "sw_version": self._device_swver,
-            "via_device": None,
-        }
+        return DeviceInfo(
+            configuration_url=None,
+            hw_version=self._device_hwver,
+            identifiers={(DOMAIN, self._device_sn)},
+            manufacturer=self._device_manufact,
+            model=self._device_model,
+            name=self._device_name,
+            serial_number=self._device_sn,
+            sw_version=self._device_swver,
+            via_device=None,
+        )

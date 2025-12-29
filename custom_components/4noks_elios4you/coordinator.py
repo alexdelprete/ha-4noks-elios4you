@@ -35,7 +35,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
         # get parameters from user config
         self.conf_name = config_entry.data.get(CONF_NAME)
         self.conf_host = config_entry.data.get(CONF_HOST)
-        self.conf_port = int(config_entry.data.get(CONF_PORT))
+        self.conf_port = int(config_entry.data.get(CONF_PORT, 5001))
         # Read from options first (v2), fall back to data for migration compatibility (v1)
         self.scan_interval = config_entry.options.get(
             CONF_SCAN_INTERVAL,
@@ -43,14 +43,14 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
         )
         # enforce scan_interval lower bound
         self.scan_interval = max(self.scan_interval, MIN_SCAN_INTERVAL)
-        # set coordinator update interval
-        self.update_interval = timedelta(seconds=self.scan_interval)
+        # calculate update interval for coordinator
+        update_interval = timedelta(seconds=self.scan_interval)
         log_debug(
             _LOGGER,
             "__init__",
             "Scan interval configured",
             scan_interval=self.scan_interval,
-            update_interval=self.update_interval,
+            update_interval=update_interval,
         )
 
         # set update method and interval for coordinator
@@ -59,7 +59,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
             _LOGGER,
             name=f"{DOMAIN} ({config_entry.unique_id})",
             update_method=self.async_update_data,
-            update_interval=self.update_interval,
+            update_interval=update_interval,
         )
 
         self.last_update_time = datetime.now()
@@ -82,7 +82,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
             scan_interval=self.scan_interval,
         )
 
-    async def async_update_data(self):
+    async def async_update_data(self) -> bool:
         """Update data method."""
         log_debug(_LOGGER, "async_update_data", "Update started", time=datetime.now())
         try:

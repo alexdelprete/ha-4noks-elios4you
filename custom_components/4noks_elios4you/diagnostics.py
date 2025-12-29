@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant
 
 from . import Elios4YouConfigEntry
 from .const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL, DOMAIN, VERSION
+from .coordinator import Elios4YouCoordinator
 
 # Keys to redact from diagnostics output
 TO_REDACT = {
@@ -24,7 +25,7 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, config_entry: Elios4YouConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    coordinator = config_entry.runtime_data.coordinator
+    coordinator: Elios4YouCoordinator = config_entry.runtime_data.coordinator
 
     # Gather configuration data
     config_data = {
@@ -56,7 +57,7 @@ async def async_get_config_entry_diagnostics(
     }
 
     # Gather sensor data (redact sensitive values)
-    sensor_data = {}
+    sensor_data: dict[str, int | float | str] = {}
     if coordinator.api.data:
         for key, value in coordinator.api.data.items():
             if key in TO_REDACT:

@@ -47,7 +47,7 @@ def get_host_from_config(hass: HomeAssistant) -> set[str | None]:
     }
 
 
-class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
+class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
     """4-noks Elios4You config flow."""
 
     VERSION = 2
@@ -69,8 +69,8 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
         host: str,
         port: int,
         scan_interval: int,
-    ) -> str | bool:
-        """Test connection and return serial number or False on failure."""
+    ) -> str | None:
+        """Test connection and return serial number or None on failure."""
         log_debug(_LOGGER, "_test_connection", "Testing connection", host=host, port=port)
         try:
             log_debug(_LOGGER, "_test_connection", "Creating API Client")
@@ -78,7 +78,7 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
             log_debug(_LOGGER, "_test_connection", "Fetching device data")
             await api.async_get_data()
             log_debug(_LOGGER, "_test_connection", "Successfully retrieved device data")
-            return api.data["sn"]
+            return str(api.data["sn"])
         except (TelnetConnectionError, TelnetCommandError) as err:
             log_error(
                 _LOGGER,
@@ -88,7 +88,7 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
                 port=port,
                 error=err,
             )
-            return False
+            return None
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial step."""
@@ -106,7 +106,7 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
                 errors[CONF_HOST] = "invalid_host"
             else:
                 uid = await self._test_connection(name, host, port, scan_interval)
-                if uid is not False:
+                if uid is not None:
                     log_debug(_LOGGER, "async_step_user", "Device unique ID", uid=uid)
                     await self.async_set_unique_id(uid)
                     self._abort_if_unique_id_configured()
@@ -184,7 +184,7 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
                 )
 
                 uid = await self._test_connection(name, host, port, scan_interval)
-                if uid is not False:
+                if uid is not None:
                     # Verify unique ID matches before updating
                     await self.async_set_unique_id(uid)
                     self._abort_if_unique_id_mismatch()

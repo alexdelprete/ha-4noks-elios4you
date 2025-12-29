@@ -5,10 +5,12 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 import asyncio
 import logging
+from typing import Any
 
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import Elios4YouConfigEntry
@@ -20,12 +22,14 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, config_entry: Elios4YouConfigEntry, async_add_entities
-):
+    hass: HomeAssistant,
+    config_entry: Elios4YouConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> bool:
     """Switch Platform setup."""
 
     # This gets the data update coordinator from hass.data as specified in your __init__.py
-    coordinator: Elios4YouCoordinator = config_entry.runtime_data.coordinator
+    coordinator = config_entry.runtime_data.coordinator
 
     # Add defined switches
     switches = []
@@ -51,7 +55,14 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator, name, key, icon, device_class) -> None:
+    def __init__(
+        self,
+        coordinator: Elios4YouCoordinator,
+        name: str,
+        key: str,
+        icon: str,
+        device_class: SwitchDeviceClass,
+    ) -> None:
         """Initialize the switch."""
         super().__init__(coordinator)
         self._coordinator = coordinator
@@ -76,7 +87,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
             key=self._key,
         )
 
-    async def async_force_update(self, delay: int = 0):
+    async def async_force_update(self, delay: int = 0) -> None:
         """Force Switch State Update."""
         log_debug(
             _LOGGER,
@@ -101,33 +112,33 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         )
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         """Return icon."""
         return self._icon
 
     @property
-    def device_class(self):
+    def device_class(self) -> SwitchDeviceClass:
         """Return the switch device_class."""
         return self._device_class
 
     @property
-    def entity_category(self):
+    def entity_category(self) -> EntityCategory | None:
         """Return the switch entity_category."""
         if self._device_class is SwitchDeviceClass.SWITCH:
             return EntityCategory.CONFIG
         return None
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return a unique ID to use for this entity."""
         return f"{DOMAIN}_{self._device_sn}_{self._key}"
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         """Return true if switch is on."""
         return True if self._is_on == 1 else False
 
-    async def async_turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
         set_response = await self._coordinator.api.telnet_set_relay("on")
         if set_response:
@@ -136,9 +147,8 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
             log_debug(_LOGGER, "async_turn_on", "Error turning switch on")
         # call coord update for immediate refresh state
         self._handle_coordinator_update()
-        return set_response
 
-    async def async_turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
         set_response = await self._coordinator.api.telnet_set_relay("off")
         if set_response:
@@ -147,19 +157,18 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
             log_debug(_LOGGER, "async_turn_off", "Error turning switch off")
         # call coord update for immediate refresh state
         self._handle_coordinator_update()
-        return set_response
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return device specific attributes."""
-        return {
-            "configuration_url": None,
-            "hw_version": self._device_hwver,
-            "identifiers": {(DOMAIN, self._device_sn)},
-            "manufacturer": self._device_manufact,
-            "model": self._device_model,
-            "name": self._device_name,
-            "serial_number": self._device_sn,
-            "sw_version": self._device_swver,
-            "via_device": None,
-        }
+        return DeviceInfo(
+            configuration_url=None,
+            hw_version=self._device_hwver,
+            identifiers={(DOMAIN, self._device_sn)},
+            manufacturer=self._device_manufact,
+            model=self._device_model,
+            name=self._device_name,
+            serial_number=self._device_sn,
+            sw_version=self._device_swver,
+            via_device=None,
+        )

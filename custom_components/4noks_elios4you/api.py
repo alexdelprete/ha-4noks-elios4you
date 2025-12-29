@@ -9,8 +9,9 @@ import logging
 import socket
 import time
 
-import telnetlib3
+import telnetlib3  # type: ignore[import-not-found]
 
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
@@ -69,15 +70,15 @@ class Elios4YouAPI:
     # Connection reuse timeout in seconds - reuse connection if last activity within this window
     CONNECTION_REUSE_TIMEOUT: float = 25.0
 
-    def __init__(self, hass, name, host, port):
+    def __init__(self, hass: HomeAssistant, name: str, host: str, port: int) -> None:
         """Initialize the Elios4You API Client."""
         self._hass = hass
         self._name = name
         self._host = host
         self._port = port
         self._timeout = CONN_TIMEOUT
-        self._sensors = []
-        self.data = {}
+        self._sensors: list[str] = []
+        self.data: dict[str, int | float | str] = {}
 
         # Async telnetlib3 reader/writer streams
         # Note: telnetlib3 returns TelnetReaderUnicode/TelnetWriterUnicode
@@ -142,12 +143,12 @@ class Elios4YouAPI:
         self.data["model"] = MODEL
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the device name."""
         return self._name
 
     @property
-    def host(self):
+    def host(self) -> str:
         """Return the device name."""
         return self._host
 
@@ -302,6 +303,7 @@ class Elios4YouAPI:
                 return buffer  # Timeout - return partial
 
             try:
+                assert self._reader is not None  # Ensured by caller
                 chunk = await asyncio.wait_for(
                     self._reader.read(1024),
                     timeout=remaining,
@@ -346,6 +348,7 @@ class Elios4YouAPI:
             log_debug(_LOGGER, "_async_send_command", "Sending command", cmd=cmd)
 
             # Send command with newline (telnetlib3 expects strings, not bytes)
+            assert self._writer is not None  # Ensured by caller via _ensure_connected
             self._writer.write(cmd.lower() + "\n")
             await self._writer.drain()
 
@@ -575,23 +578,25 @@ class Elios4YouAPI:
 
                 # Calculated sensors for self-consumption sensors
                 self.data["self_consumed_power"] = round(
-                    (self.data["produced_power"] - self.data["sold_power"]), 2
+                    float(self.data["produced_power"]) - float(self.data["sold_power"]),
+                    2,
                 )
 
                 self.data["self_consumed_energy"] = round(
-                    (self.data["produced_energy"] - self.data["sold_energy"]), 2
+                    float(self.data["produced_energy"]) - float(self.data["sold_energy"]),
+                    2,
                 )
 
                 self.data["self_consumed_energy_f1"] = round(
-                    (self.data["produced_energy_f1"] - self.data["sold_energy_f1"]),
+                    float(self.data["produced_energy_f1"]) - float(self.data["sold_energy_f1"]),
                     2,
                 )
                 self.data["self_consumed_energy_f2"] = round(
-                    (self.data["produced_energy_f2"] - self.data["sold_energy_f2"]),
+                    float(self.data["produced_energy_f2"]) - float(self.data["sold_energy_f2"]),
                     2,
                 )
                 self.data["self_consumed_energy_f3"] = round(
-                    (self.data["produced_energy_f3"] - self.data["sold_energy_f3"]),
+                    float(self.data["produced_energy_f3"]) - float(self.data["sold_energy_f3"]),
                     2,
                 )
 
@@ -646,7 +651,7 @@ class Elios4YouAPI:
                 )
                 raise TelnetCommandError("async_get_data", f"Unexpected error: {err}") from err
 
-    async def telnet_set_relay(self, state) -> bool:
+    async def telnet_set_relay(self, state: str) -> bool:
         """Send Telnet Commands and process output.
 
         Uses connection pooling to prevent socket exhaustion on embedded device.
@@ -656,10 +661,11 @@ class Elios4YouAPI:
         """
         set_relay = False
 
+        to_state: int
         if state.lower() == "on":
-            to_state: int = 1
+            to_state = 1
         elif state.lower() == "off":
-            to_state: int = 0
+            to_state = 0
         else:
             return set_relay
 

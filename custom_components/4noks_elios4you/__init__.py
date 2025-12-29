@@ -11,7 +11,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.device_registry import DeviceEntry
 
 from .const import CONF_NAME, CONF_SCAN_INTERVAL, DOMAIN, STARTUP_MESSAGE
 from .coordinator import Elios4YouCoordinator
@@ -29,7 +29,7 @@ type Elios4YouConfigEntry = ConfigEntry[RuntimeData]
 class RuntimeData:
     """Class to hold your data."""
 
-    coordinator: DataUpdateCoordinator
+    coordinator: Elios4YouCoordinator
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: Elios4YouConfigEntry) -> bool:
@@ -67,24 +67,24 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: Elios4YouConfigEn
 @callback
 def async_update_device_registry(hass: HomeAssistant, config_entry: Elios4YouConfigEntry) -> None:
     """Manual device registration."""
-    coordinator: Elios4YouCoordinator = config_entry.runtime_data.coordinator
+    coordinator = config_entry.runtime_data.coordinator
     device_registry = dr.async_get(hass)
     device_registry.async_get_or_create(
         config_entry_id=config_entry.entry_id,
-        hw_version=coordinator.api.data["hwver"],
-        identifiers={(DOMAIN, coordinator.api.data["sn"])},
-        manufacturer=coordinator.api.data["manufact"],
-        model=coordinator.api.data["model"],
+        hw_version=str(coordinator.api.data.get("hwver", "")),
+        identifiers={(DOMAIN, str(coordinator.api.data.get("sn", "")))},
+        manufacturer=str(coordinator.api.data.get("manufact", "")),
+        model=str(coordinator.api.data.get("model", "")),
         name=config_entry.data.get(CONF_NAME),
-        serial_number=coordinator.api.data["sn"],
-        sw_version=coordinator.api.data["swver"],
+        serial_number=str(coordinator.api.data.get("sn", "")),
+        sw_version=str(coordinator.api.data.get("swver", "")),
         configuration_url=None,
         via_device=None,
     )
 
 
 async def async_remove_config_entry_device(
-    hass: HomeAssistant, config_entry: ConfigEntry, device_entry
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
 ) -> bool:
     """Delete device if not entities."""
     if DOMAIN in device_entry.identifiers:
