@@ -14,8 +14,11 @@ import pytest
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 
-# Import module with numeric prefix using importlib
+# Import modules with numeric prefix using importlib
 _elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
+_elios4you_api = importlib.import_module("custom_components.4noks_elios4you.api")
+_elios4you_config_flow = importlib.import_module("custom_components.4noks_elios4you.config_flow")
+_elios4you_init = importlib.import_module("custom_components.4noks_elios4you")
 
 CONF_SCAN_INTERVAL = _elios4you_const.CONF_SCAN_INTERVAL
 DEFAULT_NAME = _elios4you_const.DEFAULT_NAME
@@ -94,7 +97,7 @@ def mock_api_data() -> dict:
 @pytest.fixture
 def mock_elios4you_api(mock_api_data: dict) -> Generator[MagicMock]:
     """Mock Elios4YouAPI for testing."""
-    with patch("custom_components.4noks_elios4you.api.Elios4YouAPI", autospec=True) as mock_api:
+    with patch.object(_elios4you_api, "Elios4YouAPI", autospec=True) as mock_api:
         api_instance = mock_api.return_value
         api_instance.data = mock_api_data
         api_instance.async_get_data = AsyncMock(return_value=True)
@@ -108,9 +111,7 @@ def mock_elios4you_api_config_flow(
     mock_api_data: dict,
 ) -> Generator[MagicMock]:
     """Mock Elios4YouAPI for config flow testing."""
-    with patch(
-        "custom_components.4noks_elios4you.config_flow.Elios4YouAPI", autospec=True
-    ) as mock_api:
+    with patch.object(_elios4you_config_flow, "Elios4YouAPI", autospec=True) as mock_api:
         api_instance = mock_api.return_value
         api_instance.data = mock_api_data
         api_instance.async_get_data = AsyncMock(return_value=True)
@@ -121,8 +122,9 @@ def mock_elios4you_api_config_flow(
 @pytest.fixture
 def mock_setup_entry() -> Generator[AsyncMock]:
     """Mock async_setup_entry."""
-    with patch(
-        "custom_components.4noks_elios4you.async_setup_entry",
+    with patch.object(
+        _elios4you_init,
+        "async_setup_entry",
         return_value=True,
     ) as mock_setup:
         yield mock_setup

@@ -14,6 +14,7 @@ from homeassistant.core import HomeAssistant
 # Import modules with numeric prefix using importlib
 _elios4you_init = importlib.import_module("custom_components.4noks_elios4you")
 _elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
+_elios4you_coordinator = importlib.import_module("custom_components.4noks_elios4you.coordinator")
 
 async_migrate_entry = _elios4you_init.async_migrate_entry
 async_setup_entry = _elios4you_init.async_setup_entry
@@ -46,8 +47,9 @@ async def test_async_setup_entry_success(
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.4noks_elios4you.coordinator.Elios4YouAPI",
+    with patch.object(
+        _elios4you_coordinator,
+        "Elios4YouAPI",
         return_value=mock_elios4you_api.return_value,
     ):
         result = await async_setup_entry(hass, entry)
@@ -74,8 +76,9 @@ async def test_async_unload_entry(
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.4noks_elios4you.coordinator.Elios4YouAPI",
+    with patch.object(
+        _elios4you_coordinator,
+        "Elios4YouAPI",
         return_value=mock_elios4you_api.return_value,
     ):
         await async_setup_entry(hass, entry)

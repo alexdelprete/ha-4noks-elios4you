@@ -77,7 +77,7 @@ class TestSensorSetup:
 
         entities = []
 
-        async def async_add_entities(new_entities):
+        def async_add_entities(new_entities):
             entities.extend(new_entities)
 
         result = await async_setup_entry(hass, entry, async_add_entities)
@@ -114,7 +114,7 @@ class TestSensorSetup:
 
         entities = []
 
-        async def async_add_entities(new_entities):
+        def async_add_entities(new_entities):
             entities.extend(new_entities)
 
         await async_setup_entry(hass, entry, async_add_entities)
