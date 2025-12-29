@@ -5,6 +5,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from __future__ import annotations
 
+import asyncio
 import importlib
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -150,6 +151,19 @@ class TestConnectionValidation:
         api._writer = mock_writer
         api._last_activity = time.time()  # Just now
         assert api._is_connection_valid() is True
+
+    def test_is_connection_valid_exception_during_check(self, mock_hass) -> None:
+        """Test connection is invalid when exception occurs during check.
+
+        Covers lines 177-179: Exception handling when checking connection state.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_writer = MagicMock()
+        # Make is_closing raise an exception
+        mock_writer.is_closing.side_effect = Exception("Unexpected error during check")
+        api._writer = mock_writer
+        # Should return False and not raise
+        assert api._is_connection_valid() is False
 
 
 class TestSafeClose:
@@ -313,6 +327,54 @@ class TestAsyncReadUntil:
 
         assert result == ""
 
+    @pytest.mark.asyncio
+    async def test_async_read_until_remaining_time_exhausted(self, mock_hass) -> None:
+        """Test read until returns partial when remaining time <= 0.
+
+        Covers lines 297-303: Timeout path when remaining time is exhausted.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_reader = AsyncMock()
+        call_count = 0
+
+        async def slow_read(size):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                # First read returns partial data
+                await asyncio.sleep(0.05)
+                return "partial data "
+            # Second read - simulate delay that exhausts timeout
+            await asyncio.sleep(0.1)
+            return "more"
+
+        mock_reader.read = slow_read
+        api._reader = mock_reader
+
+        # Very short timeout to trigger remaining <= 0 path
+        result = await api._async_read_until("ready...", 0.08)
+
+        # Should return partial buffer without separator
+        assert "partial data" in result
+        assert "ready..." not in result
+
+    @pytest.mark.asyncio
+    async def test_async_read_until_multiple_chunks(self, mock_hass) -> None:
+        """Test read until with multiple chunks before separator."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_reader = AsyncMock()
+        # Simulate receiving data in multiple chunks
+        chunks = ["first ", "second ", "ready..."]
+        chunk_iter = iter(chunks)
+        mock_reader.read = AsyncMock(side_effect=lambda size: next(chunk_iter))
+        api._reader = mock_reader
+
+        result = await api._async_read_until("ready...", 5.0)
+
+        assert "first " in result
+        assert "second " in result
+        assert "ready..." in result
+
 
 class TestAsyncSendCommand:
     """Tests for async send command functionality."""
@@ -385,6 +447,77 @@ class TestAsyncSendCommand:
         assert result is not None
         assert "sn" in result
         assert result["sn"] == "ABC123"
+
+    @pytest.mark.asyncio
+    async def test_async_send_command_with_leading_linefeed(self, mock_hass) -> None:
+        """Test command parsing when response has leading linefeed.
+
+        Covers line 386: lines_start = 2 when first line is not the command.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_writer = MagicMock()
+        mock_writer.write = MagicMock()
+        mock_writer.drain = AsyncMock()
+        api._writer = mock_writer
+
+        # Response with leading empty/garbage line (not @dat)
+        response = "\n@dat\n0;produced_power;1.5\n0;consumed_power;2.0\n\nready..."
+        api._async_read_until = AsyncMock(return_value=response)
+
+        result = await api._async_send_command("@dat")
+
+        assert result is not None
+        assert "produced_power" in result
+
+    @pytest.mark.asyncio
+    async def test_async_send_command_timeout_error(self, mock_hass) -> None:
+        """Test command handles TimeoutError during operation.
+
+        Covers lines 410-412: TimeoutError exception handling.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_writer = MagicMock()
+        mock_writer.write = MagicMock()
+        mock_writer.drain = AsyncMock(side_effect=TimeoutError("Operation timed out"))
+        api._writer = mock_writer
+
+        result = await api._async_send_command("@dat")
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_async_send_command_generic_exception(self, mock_hass) -> None:
+        """Test command handles generic exceptions.
+
+        Covers lines 413-415: Generic exception handling.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_writer = MagicMock()
+        mock_writer.write = MagicMock()
+        mock_writer.drain = AsyncMock(side_effect=ValueError("Unexpected parsing error"))
+        api._writer = mock_writer
+
+        result = await api._async_send_command("@dat")
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_async_send_command_parsing_error(self, mock_hass) -> None:
+        """Test command handles parsing errors in response data."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_writer = MagicMock()
+        mock_writer.write = MagicMock()
+        mock_writer.drain = AsyncMock()
+        api._writer = mock_writer
+
+        # Malformed response that will cause parsing error
+        response = "@dat\nmalformed_line_without_separator\n\nready..."
+        api._async_read_until = AsyncMock(return_value=response)
+
+        result = await api._async_send_command("@dat")
+
+        # Should return None due to parsing failure
+        assert result is None
 
 
 class TestGetDataWithRetry:
@@ -569,6 +702,156 @@ class TestAsyncGetData:
         await api.async_get_data()
         assert not api._connection_lock.locked()
 
+    @pytest.mark.asyncio
+    async def test_async_get_data_value_error_in_dat_parsing(self, mock_hass) -> None:
+        """Test data retrieval handles ValueError in @dat parsing.
+
+        Covers lines 537-545: ValueError handling in dat data parsing.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api._ensure_connected = AsyncMock()
+        api._safe_close = AsyncMock()
+
+        # Mock data with unparseable values that will trigger ValueError
+        dat_data = {
+            "produced_power": "not_a_number",  # Will fail float()
+            "consumed_power": "1.8",
+            "sold_power": "0.7",
+            "produced_energy": "100",
+            "sold_energy": "30",
+            "produced_energy_f1": "50",
+            "produced_energy_f2": "30",
+            "produced_energy_f3": "20",
+            "sold_energy_f1": "15",
+            "sold_energy_f2": "10",
+            "sold_energy_f3": "5",
+            "alarm_1": "invalid",  # Will fail int()
+        }
+        sta_data = {"daily_peak": "3.2", "monthly_peak": "4.5"}
+        inf_data = {"sn": TEST_SERIAL_NUMBER, "fwtop": "1.0", "fwbtm": "2.0", "hwver": "3.0"}
+
+        api._get_data_with_retry = AsyncMock(side_effect=[dat_data, sta_data, inf_data])
+
+        # Should complete without exception - bad values are skipped
+        result = await api.async_get_data()
+
+        assert result is True
+        # Valid values should be parsed
+        assert api.data["consumed_power"] == 1.8
+        assert api.data["sn"] == TEST_SERIAL_NUMBER
+
+    @pytest.mark.asyncio
+    async def test_async_get_data_value_error_in_sta_parsing(self, mock_hass) -> None:
+        """Test data retrieval handles ValueError in @sta parsing.
+
+        Covers lines 557-558: ValueError handling in sta data parsing.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api._ensure_connected = AsyncMock()
+        api._safe_close = AsyncMock()
+
+        dat_data = {
+            "produced_power": "2.5",
+            "consumed_power": "1.8",
+            "sold_power": "0.7",
+            "produced_energy": "100",
+            "sold_energy": "30",
+            "produced_energy_f1": "50",
+            "produced_energy_f2": "30",
+            "produced_energy_f3": "20",
+            "sold_energy_f1": "15",
+            "sold_energy_f2": "10",
+            "sold_energy_f3": "5",
+        }
+        # Mock sta data with unparseable values
+        sta_data = {
+            "daily_peak": "not_a_float",  # Will fail float()
+            "monthly_peak": "4.5",
+        }
+        inf_data = {"sn": TEST_SERIAL_NUMBER, "fwtop": "1.0", "fwbtm": "2.0", "hwver": "3.0"}
+
+        api._get_data_with_retry = AsyncMock(side_effect=[dat_data, sta_data, inf_data])
+
+        # Should complete without exception - bad values are skipped
+        result = await api.async_get_data()
+
+        assert result is True
+        # Valid values should be parsed
+        assert api.data["monthly_peak"] == 4.5
+
+    @pytest.mark.asyncio
+    async def test_async_get_data_utc_time_skipped(self, mock_hass) -> None:
+        """Test that utc_time field is skipped during parsing.
+
+        Covers lines 533-534: utc_time special case handling.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api._ensure_connected = AsyncMock()
+        api._safe_close = AsyncMock()
+
+        dat_data = {
+            "produced_power": "2.5",
+            "consumed_power": "1.8",
+            "sold_power": "0.7",
+            "produced_energy": "100",
+            "sold_energy": "30",
+            "produced_energy_f1": "50",
+            "produced_energy_f2": "30",
+            "produced_energy_f3": "20",
+            "sold_energy_f1": "15",
+            "sold_energy_f2": "10",
+            "sold_energy_f3": "5",
+            "utc_time": "2025-01-01T12:00:00",  # Should be skipped
+        }
+        sta_data = {"daily_peak": "3.2", "monthly_peak": "4.5"}
+        inf_data = {"sn": TEST_SERIAL_NUMBER, "fwtop": "1.0", "fwbtm": "2.0", "hwver": "3.0"}
+
+        api._get_data_with_retry = AsyncMock(side_effect=[dat_data, sta_data, inf_data])
+
+        result = await api.async_get_data()
+
+        assert result is True
+        # utc_time should remain as initialized (empty string), not updated
+        assert api.data["utc_time"] == ""
+
+    @pytest.mark.asyncio
+    async def test_async_get_data_unexpected_exception(self, mock_hass) -> None:
+        """Test data retrieval handles unexpected exceptions.
+
+        Covers lines 638-652: Unexpected exception handling.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api._ensure_connected = AsyncMock()
+        api._safe_close = AsyncMock()
+
+        # Simulate an unexpected exception during data retrieval
+        api._get_data_with_retry = AsyncMock(side_effect=RuntimeError("Unexpected internal error"))
+
+        with pytest.raises(TelnetCommandError) as exc_info:
+            await api.async_get_data()
+
+        assert "Unexpected error" in str(exc_info.value)
+        api._safe_close.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_async_get_data_os_error(self, mock_hass) -> None:
+        """Test data retrieval handles OSError.
+
+        Covers lines 612-628: OSError exception path.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api._ensure_connected = AsyncMock()
+        api._safe_close = AsyncMock()
+
+        # Simulate OSError during data retrieval
+        api._get_data_with_retry = AsyncMock(side_effect=OSError("Network error"))
+
+        with pytest.raises(TelnetConnectionError) as exc_info:
+            await api.async_get_data()
+
+        assert exc_info.value.host == TEST_HOST
+        api._safe_close.assert_called()
+
 
 class TestTelnetSetRelay:
     """Tests for telnet_set_relay functionality."""
@@ -686,3 +969,205 @@ class TestTelnetSetRelay:
         result = await api.telnet_set_relay("on")
 
         assert result is False
+
+
+class TestCancelledErrorHandling:
+    """Tests for asyncio.CancelledError handling."""
+
+    @pytest.mark.asyncio
+    async def test_async_read_until_cancelled(self, mock_hass) -> None:
+        """Test read until handles CancelledError properly."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_reader = AsyncMock()
+        mock_reader.read = AsyncMock(side_effect=asyncio.CancelledError())
+        api._reader = mock_reader
+
+        # CancelledError should propagate (not be caught)
+        with pytest.raises(asyncio.CancelledError):
+            await api._async_read_until("ready...", 5.0)
+
+    @pytest.mark.asyncio
+    async def test_async_send_command_cancelled(self, mock_hass) -> None:
+        """Test send command handles CancelledError properly."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_writer = MagicMock()
+        mock_writer.write = MagicMock()
+        mock_writer.drain = AsyncMock(side_effect=asyncio.CancelledError())
+        api._writer = mock_writer
+
+        # CancelledError should propagate (not be caught)
+        with pytest.raises(asyncio.CancelledError):
+            await api._async_send_command("@dat")
+
+
+class TestEdgeCases:
+    """Tests for additional edge cases."""
+
+    @pytest.mark.asyncio
+    async def test_async_get_data_telnet_command_error_reraise(self, mock_hass) -> None:
+        """Test that TelnetCommandError is reraised properly.
+
+        Covers lines 629-637: TelnetCommandError reraise path.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api._ensure_connected = AsyncMock()
+        api._safe_close = AsyncMock()
+
+        # First call succeeds, second raises TelnetCommandError
+        api._get_data_with_retry = AsyncMock(
+            side_effect=[{"produced_power": "1"}, TelnetCommandError("@sta", "Command failed")]
+        )
+
+        with pytest.raises(TelnetCommandError) as exc_info:
+            await api.async_get_data()
+
+        assert exc_info.value.command == "@sta"
+        api._safe_close.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_async_get_data_telnet_connection_error_reraise(self, mock_hass) -> None:
+        """Test that TelnetConnectionError is reraised properly."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api._ensure_connected = AsyncMock()
+        api._safe_close = AsyncMock()
+
+        # Raise TelnetConnectionError during data retrieval
+        api._get_data_with_retry = AsyncMock(
+            side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, CONN_TIMEOUT, "Test error")
+        )
+
+        with pytest.raises(TelnetConnectionError):
+            await api.async_get_data()
+
+        api._safe_close.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_ensure_connected_closes_stale_before_new(self, mock_hass) -> None:
+        """Test that stale connections are closed before opening new ones."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_reader = MagicMock()
+        mock_writer = MagicMock()
+
+        # Set up an expired connection
+        old_writer = MagicMock()
+        old_writer.is_closing.return_value = False
+        old_writer.get_extra_info.return_value = None
+        api._writer = old_writer
+        api._last_activity = 0.0  # Expired
+
+        with patch(
+            "telnetlib3.open_connection",
+            new_callable=AsyncMock,
+            return_value=(mock_reader, mock_writer),
+        ):
+            await api._ensure_connected()
+
+        # Old writer should be None (closed) and new writer should be set
+        assert api._writer == mock_writer
+
+    @pytest.mark.asyncio
+    async def test_get_data_with_retry_exception_during_retry(self, mock_hass) -> None:
+        """Test retry logic handles exceptions during reconnection."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+
+        call_count = 0
+
+        async def mock_send_command(cmd):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return None  # First attempt fails
+            return {"key": "value"}  # Second attempt succeeds
+
+        api._async_send_command = mock_send_command
+        api._safe_close = AsyncMock()
+        api._ensure_connected = AsyncMock()
+
+        result = await api._get_data_with_retry("@dat", max_retries=2)
+
+        assert result == {"key": "value"}
+        assert call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_relay_value_error_during_parsing(self, mock_hass) -> None:
+        """Test relay handles ValueError when parsing relay state."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api._ensure_connected = AsyncMock()
+        api._safe_close = AsyncMock()
+
+        # rel value is not a valid integer
+        api._get_data_with_retry = AsyncMock(side_effect=[{"status": "ok"}, {"rel": "not_an_int"}])
+
+        result = await api.telnet_set_relay("on")
+
+        # Should return False due to ValueError when parsing rel
+        assert result is False
+
+    def test_check_port_exception_handling(self, mock_hass) -> None:
+        """Test check_port handles socket exceptions."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+
+        with patch("socket.socket") as mock_socket_class:
+            mock_socket = MagicMock()
+            mock_socket.connect_ex.side_effect = OSError("Socket error")
+            mock_socket_class.return_value = mock_socket
+
+            # Should handle exception and still close socket
+            with pytest.raises(OSError):
+                api.check_port()
+
+            mock_socket.close.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_async_send_command_rel_format(self, mock_hass) -> None:
+        """Test @rel command uses = separator."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_writer = MagicMock()
+        mock_writer.write = MagicMock()
+        mock_writer.drain = AsyncMock()
+        api._writer = mock_writer
+
+        # @rel format uses = separator
+        response = "@rel\nrel=1\nmode=0\n\nready..."
+        api._async_read_until = AsyncMock(return_value=response)
+
+        result = await api._async_send_command("@rel")
+
+        assert result is not None
+        assert "rel" in result
+        assert result["rel"] == "1"
+
+    @pytest.mark.asyncio
+    async def test_async_send_command_hwr_format(self, mock_hass) -> None:
+        """Test @hwr command uses = separator."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_writer = MagicMock()
+        mock_writer.write = MagicMock()
+        mock_writer.drain = AsyncMock()
+        api._writer = mock_writer
+
+        # @hwr format uses = separator
+        response = "@hwr\nhwver=1.0\nbtver=2.0\n\nready..."
+        api._async_read_until = AsyncMock(return_value=response)
+
+        result = await api._async_send_command("@hwr")
+
+        assert result is not None
+        assert "hwver" in result
+        assert result["hwver"] == "1.0"
+
+    @pytest.mark.asyncio
+    async def test_safe_close_wait_closed_exception(self, mock_hass) -> None:
+        """Test safe close handles exception during wait_closed."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        mock_writer = MagicMock()
+        mock_writer.close = MagicMock()
+        mock_writer.wait_closed = AsyncMock(side_effect=Exception("Wait closed failed"))
+        api._writer = mock_writer
+        api._reader = MagicMock()
+
+        # Should not raise
+        await api._safe_close()
+
+        assert api._writer is None
+        assert api._reader is None

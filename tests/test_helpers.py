@@ -69,6 +69,16 @@ class TestLoggingHelpers:
         assert "(test_func)" in caplog.text
         assert "Info message" in caplog.text
 
+    def test_log_info_with_kwargs(self, caplog) -> None:
+        """Test log_info formats correctly with kwargs."""
+        logger = logging.getLogger("test")
+        with caplog.at_level(logging.INFO):
+            log_info(logger, "test_func", "Info message", version="1.0.0")
+
+        assert "(test_func)" in caplog.text
+        assert "Info message" in caplog.text
+        assert "version=1.0.0" in caplog.text
+
     def test_log_warning(self, caplog) -> None:
         """Test log_warning formats correctly."""
         logger = logging.getLogger("test")
@@ -87,6 +97,16 @@ class TestLoggingHelpers:
 
         assert "(test_func)" in caplog.text
         assert "Error message" in caplog.text
+
+    def test_log_error_with_kwargs(self, caplog) -> None:
+        """Test log_error formats correctly with kwargs."""
+        logger = logging.getLogger("test")
+        with caplog.at_level(logging.ERROR):
+            log_error(logger, "test_func", "Error message", host="192.168.1.1")
+
+        assert "(test_func)" in caplog.text
+        assert "Error message" in caplog.text
+        assert "host=192.168.1.1" in caplog.text
 
     def test_log_without_kwargs(self, caplog) -> None:
         """Test logging without extra kwargs."""
