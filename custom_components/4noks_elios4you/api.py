@@ -59,8 +59,10 @@ class Elios4YouAPI:
         self.data = {}
 
         # Async telnetlib3 reader/writer streams
-        self._reader: asyncio.StreamReader | None = None
-        self._writer: asyncio.StreamWriter | None = None
+        # Note: telnetlib3 returns TelnetReaderUnicode/TelnetWriterUnicode
+        # which extend asyncio.StreamReader/StreamWriter with telnet protocol handling
+        self._reader: telnetlib3.TelnetReaderUnicode | None = None
+        self._writer: telnetlib3.TelnetWriterUnicode | None = None
 
         # Connection pooling: prevent socket exhaustion on embedded device
         self._connection_lock = asyncio.Lock()
@@ -136,11 +138,24 @@ class Elios4YouAPI:
         """Check if existing connection can be reused.
 
         Returns True if:
-        - Writer stream is open
+        - Writer stream exists and is open
         - Last activity was within CONNECTION_REUSE_TIMEOUT seconds
         """
-        if self._writer is None or self._writer.is_closing():
+        if self._writer is None:
             return False
+        # Check if connection is closing - telnetlib3 writer may or may not have is_closing()
+        # Fall back to checking the underlying transport
+        try:
+            if hasattr(self._writer, "is_closing") and self._writer.is_closing():
+                return False
+            # Also check transport if available
+            transport = self._writer.get_extra_info("transport")
+            if transport is not None and transport.is_closing():
+                return False
+        except Exception:
+            # If we can't determine state, assume connection is invalid
+            return False
+
         if time.time() - self._last_activity > self.CONNECTION_REUSE_TIMEOUT:
             log_debug(
                 _LOGGER,
@@ -200,8 +215,21 @@ class Elios4YouAPI:
                 host=self._host,
                 port=self._port,
             )
+            # telnetlib3.open_connection parameters:
+            # - encoding: 'utf-8' for unicode string handling (default is 'utf8')
+            # - encoding_errors: 'replace' to handle invalid chars gracefully
+            # - connect_minwait: Minimum wait for telnet option negotiation (default 2.0s)
+            # - connect_maxwait: Maximum wait for negotiation (default 3.0s)
+            # We set low values since Elios4You doesn't use telnet option negotiation
             self._reader, self._writer = await asyncio.wait_for(
-                telnetlib3.open_connection(self._host, self._port),
+                telnetlib3.open_connection(
+                    host=self._host,
+                    port=self._port,
+                    encoding="utf-8",
+                    encoding_errors="replace",
+                    connect_minwait=0.1,  # Don't wait for telnet negotiation
+                    connect_maxwait=0.5,  # Quick timeout on negotiation
+                ),
                 timeout=self._timeout,
             )
             self._last_activity = time.time()
