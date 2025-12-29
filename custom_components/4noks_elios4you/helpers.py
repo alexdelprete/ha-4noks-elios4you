@@ -13,7 +13,7 @@ import re
 from typing import Any
 
 
-def host_valid(host: str) -> bool:
+def host_valid(host: str | None) -> bool:
     """Validate if hostname or IP address is valid.
 
     Checks if the provided string is a valid IPv4/IPv6 address or a valid hostname
@@ -29,15 +29,26 @@ def host_valid(host: str) -> bool:
         host_valid("192.168.1.1")  # True
         host_valid("example.com")  # True
         host_valid("invalid host!")  # False
+        host_valid("192.168.1.256")  # False (invalid IP octet)
+        host_valid(None)  # False
 
     """
+    if host is None:
+        return False
+
     try:
         # Check if it's a valid IP address (IPv4 or IPv6)
         return ipaddress.ip_address(host).version in (4, 6)
     except ValueError:
         # Not a valid IP address, validate as hostname
+        # First, check if it looks like an IP address (all numeric parts)
+        # If so, it's invalid since ip_address() already rejected it
+        parts = host.split(".")
+        if all(part.isdigit() for part in parts):
+            return False
+        # Validate as hostname - only alphanumeric and hyphens allowed in labels
         disallowed = re.compile(r"[^a-zA-Z\d\-]")
-        return all(x and not disallowed.search(x) for x in host.split("."))
+        return all(x and not disallowed.search(x) for x in parts)
 
 
 def log_debug(logger: logging.Logger, context: str, message: str, **kwargs: Any) -> None:

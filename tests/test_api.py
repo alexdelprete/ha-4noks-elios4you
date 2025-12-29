@@ -228,7 +228,7 @@ class TestEnsureConnected:
         mock_writer = MagicMock()
 
         with patch(
-            "custom_components.4noks_elios4you.api.telnetlib3.open_connection",
+            "telnetlib3.open_connection",
             new_callable=AsyncMock,
             return_value=(mock_reader, mock_writer),
         ):
@@ -245,7 +245,7 @@ class TestEnsureConnected:
 
         with (
             patch(
-                "custom_components.4noks_elios4you.api.telnetlib3.open_connection",
+                "telnetlib3.open_connection",
                 new_callable=AsyncMock,
                 side_effect=TimeoutError("Connection timed out"),
             ),
@@ -263,7 +263,7 @@ class TestEnsureConnected:
 
         with (
             patch(
-                "custom_components.4noks_elios4you.api.telnetlib3.open_connection",
+                "telnetlib3.open_connection",
                 new_callable=AsyncMock,
                 side_effect=OSError("Network unreachable"),
             ),

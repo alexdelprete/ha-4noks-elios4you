@@ -209,6 +209,7 @@ class MockConfigEntry(config_entries.ConfigEntry):
             pref_disable_new_entities=False,
             pref_disable_polling=False,
             source=config_entries.SOURCE_USER,
+            subentries_data={},  # Required for HA 2025.10+
             title=data.get(CONF_NAME, "Test"),
             unique_id=unique_id or TEST_SERIAL_NUMBER,
             version=version,
