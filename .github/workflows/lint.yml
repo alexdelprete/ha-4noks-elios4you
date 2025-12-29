@@ -34,12 +34,13 @@ jobs:
       - name: Run Ruff check
         run: ruff check . --fix
 
-      # Note: mypy is skipped because '4noks_elios4you' starts with a number
-      # which is not a valid Python package name. Python/mypy cannot import
-      # or validate packages with numeric prefixes. Home Assistant loads
-      # custom components dynamically, bypassing this limitation at runtime.
-      # - name: Run mypy
-      #   run: mypy custom_components/
+      # Create symlink with valid Python name for mypy validation
+      # (4noks_elios4you starts with a digit, which is invalid for Python imports)
+      - name: Create symlink for mypy
+        run: ln -s 4noks_elios4you custom_components/fournoks_elios4you
+
+      - name: Run mypy
+        run: mypy custom_components/fournoks_elios4you
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5

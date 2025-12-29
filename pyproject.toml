@@ -87,9 +87,9 @@ relative_files = true
 [tool.coverage.report]
 show_missing = true
 
-# Note: mypy cannot validate this integration because '4noks_elios4you' starts
-# with a number, which is not a valid Python package name. Configuration is
-# kept for reference and for consistency with other similar integrations.
+# Note: mypy validation uses a symlink workaround in CI since '4noks_elios4you'
+# starts with a number (not valid Python package name). The workflow creates
+# 'fournoks_elios4you' symlink pointing to '4noks_elios4you' for mypy to work.
 [tool.mypy]
 python_version = "3.13"
 platform = "linux"

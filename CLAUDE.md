@@ -102,9 +102,27 @@ Before pushing any commits, run these checks:
 # Python formatting and linting
 ruff format .
 ruff check . --fix
+```
 
-# Type checking
-mypy custom_components/
+#### Running mypy locally
+
+The module name `4noks_elios4you` starts with a number, which is invalid for Python imports.
+To run mypy locally, create a temporary junction, run mypy, then remove it:
+
+**Windows (CMD):**
+
+```cmd
+mklink /J custom_components\fournoks_elios4you custom_components\4noks_elios4you
+mypy custom_components/fournoks_elios4you
+rmdir custom_components\fournoks_elios4you
+```
+
+**Linux/macOS:**
+
+```bash
+ln -s 4noks_elios4you custom_components/fournoks_elios4you
+mypy custom_components/fournoks_elios4you
+rm custom_components/fournoks_elios4you
 ```
 
 All commands must pass without errors before committing.
