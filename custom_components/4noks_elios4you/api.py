@@ -374,6 +374,11 @@ class Elios4YouAPI:
         """
         # Use lock to prevent race conditions between polling and switch commands
         async with self._connection_lock:
+            log_debug(
+                _LOGGER,
+                "async_get_data",
+                "========== READ CYCLE START ==========",
+            )
             try:
                 # Use connection pooling - reuse existing connection if valid
                 self._ensure_connected()
@@ -462,7 +467,11 @@ class Elios4YouAPI:
 
                 # Update last activity time for connection reuse
                 self._last_activity = time.time()
-                log_debug(_LOGGER, "async_get_data", "Data fetch completed successfully")
+                log_debug(
+                    _LOGGER,
+                    "async_get_data",
+                    "========== READ CYCLE END (success) ==========",
+                )
                 return True
 
             except (TimeoutError, OSError) as err:
@@ -474,12 +483,22 @@ class Elios4YouAPI:
                     "Connection or operation timed out",
                     error=err,
                 )
+                log_debug(
+                    _LOGGER,
+                    "async_get_data",
+                    "========== READ CYCLE END (timeout) ==========",
+                )
                 raise TelnetConnectionError(
                     self._host, self._port, self._timeout, f"Connection error: {err}"
                 ) from err
             except (TelnetConnectionError, TelnetCommandError):
                 # Close on error to force fresh connection next time
                 self._safe_close()
+                log_debug(
+                    _LOGGER,
+                    "async_get_data",
+                    "========== READ CYCLE END (command error) ==========",
+                )
                 raise
             except Exception as err:
                 # Close on any error
@@ -489,6 +508,11 @@ class Elios4YouAPI:
                     "async_get_data",
                     "Unexpected error during data fetch",
                     error=err,
+                )
+                log_debug(
+                    _LOGGER,
+                    "async_get_data",
+                    "========== READ CYCLE END (unexpected error) ==========",
                 )
                 raise TelnetCommandError("async_get_data", f"Unexpected error: {err}") from err
 
