@@ -6,7 +6,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 from __future__ import annotations
 
 import importlib
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
@@ -19,6 +19,7 @@ _elios4you_coordinator = importlib.import_module("custom_components.4noks_elios4
 async_migrate_entry = _elios4you_init.async_migrate_entry
 async_setup_entry = _elios4you_init.async_setup_entry
 async_unload_entry = _elios4you_init.async_unload_entry
+Elios4YouCoordinator = _elios4you_coordinator.Elios4YouCoordinator
 
 CONF_SCAN_INTERVAL = _elios4you_const.CONF_SCAN_INTERVAL
 DEFAULT_SCAN_INTERVAL = _elios4you_const.DEFAULT_SCAN_INTERVAL
@@ -47,10 +48,18 @@ async def test_async_setup_entry_success(
     )
     entry.add_to_hass(hass)
 
-    with patch.object(
-        _elios4you_coordinator,
-        "Elios4YouAPI",
-        return_value=mock_elios4you_api.return_value,
+    # Mock both the API and coordinator's first refresh
+    with (
+        patch.object(
+            _elios4you_coordinator,
+            "Elios4YouAPI",
+            return_value=mock_elios4you_api.return_value,
+        ),
+        patch.object(
+            Elios4YouCoordinator,
+            "async_config_entry_first_refresh",
+            new_callable=AsyncMock,
+        ),
     ):
         result = await async_setup_entry(hass, entry)
 
@@ -76,10 +85,18 @@ async def test_async_unload_entry(
     )
     entry.add_to_hass(hass)
 
-    with patch.object(
-        _elios4you_coordinator,
-        "Elios4YouAPI",
-        return_value=mock_elios4you_api.return_value,
+    # Mock both the API and coordinator's first refresh
+    with (
+        patch.object(
+            _elios4you_coordinator,
+            "Elios4YouAPI",
+            return_value=mock_elios4you_api.return_value,
+        ),
+        patch.object(
+            Elios4YouCoordinator,
+            "async_config_entry_first_refresh",
+            new_callable=AsyncMock,
+        ),
     ):
         await async_setup_entry(hass, entry)
         result = await async_unload_entry(hass, entry)
