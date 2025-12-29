@@ -106,7 +106,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: Elios4YouConfigE
     if unload_ok := await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS):
         log_debug(_LOGGER, "async_unload_entry", "Platforms unloaded successfully")
         # Cleanup per-entry resources only if unload succeeded
-        config_entry.runtime_data.coordinator.api.close()
+        await config_entry.runtime_data.coordinator.api.close()
         log_debug(_LOGGER, "async_unload_entry", "Closed API connection")
     else:
         log_debug(_LOGGER, "async_unload_entry", "Platform unload failed, skipping cleanup")

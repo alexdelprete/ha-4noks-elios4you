@@ -5,15 +5,14 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 import asyncio
 from contextlib import suppress
-from datetime import datetime
 import logging
 import socket
-import sys
 import time
+
+import telnetlib3
 
 from .const import COMMAND_RETRY_COUNT, COMMAND_RETRY_DELAY, CONN_TIMEOUT, MANUFACTURER, MODEL
 from .helpers import log_debug, log_error
-from .telnetlib import Telnet
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,78 +39,11 @@ class TelnetCommandError(Exception):
         super().__init__(self.message)
 
 
-class E4Utelnet(Telnet):
-    """Python2/3 compatibility.
-
-    Override telnetlib methods: bytes vs str
-    ref: https://stackoverflow.com/a/26101026
-    """
-
-    if sys.version > "3":
-
-        def read_until(self, separator, timeout) -> str:
-            """Override telnetlib.telnet read_until."""
-            separator = bytes(separator, encoding="utf-8")
-            received = super().read_until(separator, timeout)
-            return str(received, encoding="utf-8")
-
-        def read_all(self) -> str:
-            """Override telnetlib.telnet read_all."""
-            received = super().read_all()
-            return str(received, encoding="utf-8")
-
-        def write(self, buffer) -> None:
-            """Override telnetlib.telnet write."""
-            buffer = bytes(buffer + "\n", encoding="utf-8")
-            super().write(buffer)
-
-        def expect(self, list, timeout=None):
-            """Override telnetlib.telnet expect."""
-            for index, item in enumerate(list):
-                list[index] = bytes(item, encoding="utf-8")
-            match_index, match_object, match_text = super().expect(list, timeout)
-            return match_index, match_object, str(match_text, encoding="utf-8")
-
-        def is_open(self) -> bool:
-            """Return state of connection."""
-            return False if super().get_socket() is None else True
-
-        def close(self) -> bool:
-            """Close connection."""
-            if self.is_open():
-                log_debug(
-                    _LOGGER,
-                    "E4Utelnet.close",
-                    "Closing connection",
-                    time=datetime.now(),
-                )
-                super().close()
-            else:
-                log_debug(
-                    _LOGGER,
-                    "E4Utelnet.close",
-                    "Connection already closed",
-                    time=datetime.now(),
-                )
-            return True
-
-        def open(self, host: str, port: int, timeout: int) -> bool:
-            """Open connection."""
-            self.close()
-            super().open(host=host, port=port, timeout=timeout)
-            log_debug(
-                _LOGGER,
-                "E4Utelnet.open",
-                "Opened connection",
-                host=host,
-                port=port,
-                time=datetime.now(),
-            )
-            return True
-
-
 class Elios4YouAPI:
-    """Wrapper class."""
+    """Wrapper class for Elios4You telnet communication.
+
+    Uses telnetlib3 for fully async I/O to avoid blocking the Home Assistant event loop.
+    """
 
     # Connection reuse timeout in seconds - reuse connection if last activity within this window
     CONNECTION_REUSE_TIMEOUT: float = 25.0
@@ -124,12 +56,16 @@ class Elios4YouAPI:
         self._port = port
         self._timeout = CONN_TIMEOUT
         self._sensors = []
-        self.E4Uclient = E4Utelnet()
         self.data = {}
+
+        # Async telnetlib3 reader/writer streams
+        self._reader: asyncio.StreamReader | None = None
+        self._writer: asyncio.StreamWriter | None = None
 
         # Connection pooling: prevent socket exhaustion on embedded device
         self._connection_lock = asyncio.Lock()
         self._last_activity: float = 0.0
+
         # Initialize Elios4You data structure before first read
         self.data["produced_power"] = 1
         self.data["consumed_power"] = 1
@@ -192,18 +128,18 @@ class Elios4YouAPI:
         """Return the device name."""
         return self._host
 
-    def close(self) -> None:
+    async def close(self) -> None:
         """Close the telnet connection."""
-        self._safe_close()
+        await self._safe_close()
 
     def _is_connection_valid(self) -> bool:
         """Check if existing connection can be reused.
 
         Returns True if:
-        - Socket is open
+        - Writer stream is open
         - Last activity was within CONNECTION_REUSE_TIMEOUT seconds
         """
-        if not self.E4Uclient.is_open():
+        if self._writer is None or self._writer.is_closing():
             return False
         if time.time() - self._last_activity > self.CONNECTION_REUSE_TIMEOUT:
             log_debug(
@@ -215,31 +151,26 @@ class Elios4YouAPI:
             return False
         return True
 
-    def _safe_close(self) -> None:
+    async def _safe_close(self) -> None:
         """Safely close connection with proper cleanup.
 
         This method:
-        - Drains any pending data from buffers
-        - Performs graceful TCP shutdown
+        - Closes the writer stream gracefully
+        - Waits for connection to fully close
         - Resets connection state
         """
-        if self.E4Uclient.sock is not None:
+        if self._writer is not None:
             with suppress(Exception):
-                # Set short timeout for drain operation
-                self.E4Uclient.sock.settimeout(0.5)
-                # Drain any pending data to prevent stale data in next connection
-                with suppress(Exception):
-                    self.E4Uclient.read_very_eager()
-                # Graceful TCP shutdown before close
-                with suppress(Exception):
-                    self.E4Uclient.sock.shutdown(socket.SHUT_RDWR)
-            self.E4Uclient.close()
+                self._writer.close()
+                await self._writer.wait_closed()
+            self._writer = None
+            self._reader = None
             self._last_activity = 0.0
             log_debug(_LOGGER, "_safe_close", "Connection closed and cleaned up")
         else:
             log_debug(_LOGGER, "_safe_close", "No connection to close")
 
-    def _ensure_connected(self) -> None:
+    async def _ensure_connected(self) -> None:
         """Open connection only if needed, reusing existing connection if valid.
 
         This method implements connection pooling to prevent socket exhaustion
@@ -259,7 +190,7 @@ class Elios4YouAPI:
             return
 
         # Close any stale connection before opening new one
-        self._safe_close()
+        await self._safe_close()
 
         try:
             log_debug(
@@ -269,7 +200,10 @@ class Elios4YouAPI:
                 host=self._host,
                 port=self._port,
             )
-            self.E4Uclient.open(self._host, self._port, self._timeout)
+            self._reader, self._writer = await asyncio.wait_for(
+                telnetlib3.open_connection(self._host, self._port),
+                timeout=self._timeout,
+            )
             self._last_activity = time.time()
             log_debug(_LOGGER, "_ensure_connected", "Connection established")
         except (TimeoutError, OSError) as err:
@@ -282,6 +216,150 @@ class Elios4YouAPI:
             raise TelnetConnectionError(
                 self._host, self._port, self._timeout, f"Connection failed: {err}"
             ) from err
+
+    async def _async_read_until(
+        self,
+        separator: bytes,
+        timeout: float,
+    ) -> bytes:
+        """Async read until separator found or timeout.
+
+        telnetlib3 provides stream-based I/O without built-in read_until,
+        so we implement our own async version.
+
+        Args:
+            separator: Bytes sequence to wait for (e.g., b"ready...")
+            timeout: Maximum seconds to wait
+
+        Returns:
+            Buffer containing data up to and including separator,
+            or partial data if timeout/EOF occurs.
+        """
+        buffer = b""
+        loop = asyncio.get_event_loop()
+        end_time = loop.time() + timeout
+
+        while separator not in buffer:
+            remaining = end_time - loop.time()
+            if remaining <= 0:
+                log_debug(
+                    _LOGGER,
+                    "_async_read_until",
+                    "Timeout waiting for separator",
+                    buffer_len=len(buffer),
+                )
+                return buffer  # Timeout - return partial
+
+            try:
+                chunk = await asyncio.wait_for(
+                    self._reader.read(1024),
+                    timeout=remaining,
+                )
+                if not chunk:
+                    log_debug(
+                        _LOGGER,
+                        "_async_read_until",
+                        "EOF received",
+                        buffer_len=len(buffer),
+                    )
+                    return buffer  # EOF
+                buffer += chunk
+            except TimeoutError:
+                log_debug(
+                    _LOGGER,
+                    "_async_read_until",
+                    "asyncio.TimeoutError during read",
+                    buffer_len=len(buffer),
+                )
+                return buffer
+
+        return buffer
+
+    async def _async_send_command(self, cmd: str) -> dict | None:
+        """Send command and read response asynchronously.
+
+        This replaces the synchronous telnet_get_data() method.
+
+        Args:
+            cmd: Command to send (e.g., "@dat", "@sta", "@inf", "@rel")
+
+        Returns:
+            Parsed response dict or None if failed
+        """
+        try:
+            cmd_main = cmd[0:4].lower()
+            separator = b"ready..."
+
+            log_debug(_LOGGER, "_async_send_command", "Sending command", cmd=cmd)
+
+            # Send command with newline
+            cmd_bytes = (cmd.lower() + "\n").encode("utf-8")
+            self._writer.write(cmd_bytes)
+            await self._writer.drain()
+
+            # Read until separator
+            log_debug(_LOGGER, "_async_send_command", "Waiting for response")
+            response_bytes = await self._async_read_until(separator, self._timeout)
+
+            # Decode response
+            response = response_bytes.decode("utf-8", errors="replace")
+            log_debug(
+                _LOGGER,
+                "_async_send_command",
+                "Response received",
+                response_len=len(response),
+            )
+
+            # Check for silent timeout - incomplete response without separator
+            if not response or "ready..." not in response:
+                log_debug(
+                    _LOGGER,
+                    "_async_send_command",
+                    "Silent timeout - incomplete response",
+                    has_response=bool(response),
+                    has_separator="ready..." in response if response else False,
+                )
+                return None
+
+            # Valid response - process data
+            output = {}
+            lines = response.splitlines()
+
+            # Sometimes the first line is not the command but a line-feed
+            if lines[0].lower() in ["@dat", "@sta", "@inf", "@rel", "@hwr"]:
+                lines_start = 1
+            else:
+                # Skip the possible LF in first line
+                lines_start = 2
+
+            # Skip last two lines (line-feed and read_until separator)
+            lines_end = -2
+
+            # Parse key-value pairs
+            for line in lines[lines_start:lines_end]:
+                if cmd_main in ["@inf", "@rel", "@hwr"]:
+                    # @inf data uses a different separator
+                    key, value = line.split("=")
+                else:
+                    # @dat and @sta share the same data format
+                    key, value = line.split(";")[1:3]
+                # Lower case and replace space with underscore
+                output[key.lower().replace(" ", "_")] = value.strip()
+
+            log_debug(
+                _LOGGER,
+                "_async_send_command",
+                "Success",
+                output_keys=list(output.keys()),
+            )
+            return output
+
+        except TimeoutError:
+            log_debug(_LOGGER, "_async_send_command", "Operation timed out")
+            return None
+        except Exception as ex:
+            log_debug(_LOGGER, "_async_send_command", "Failed with error", error=ex)
+            return None
 
     async def _get_data_with_retry(
         self,
@@ -301,7 +379,7 @@ class Elios4YouAPI:
             Parsed response dict or None if all attempts fail
         """
         for attempt in range(max_retries + 1):
-            result = self.telnet_get_data(cmd)
+            result = await self._async_send_command(cmd)
             if result is not None:
                 return result
 
@@ -316,8 +394,8 @@ class Elios4YouAPI:
                 )
                 await asyncio.sleep(COMMAND_RETRY_DELAY)
                 # Close stale connection and reconnect for retry
-                self._safe_close()
-                self._ensure_connected()
+                await self._safe_close()
+                await self._ensure_connected()
 
         return None
 
@@ -371,6 +449,8 @@ class Elios4YouAPI:
 
         Uses connection pooling to prevent socket exhaustion on embedded device.
         Connection is reused if last activity was within CONNECTION_REUSE_TIMEOUT.
+
+        All I/O operations are fully async - no event loop blocking.
         """
         # Use lock to prevent race conditions between polling and switch commands
         async with self._connection_lock:
@@ -381,13 +461,13 @@ class Elios4YouAPI:
             )
             try:
                 # Use connection pooling - reuse existing connection if valid
-                self._ensure_connected()
+                await self._ensure_connected()
 
                 log_debug(_LOGGER, "async_get_data", "Fetching device data")
                 dat_parsed = await self._get_data_with_retry("@dat")
                 if dat_parsed is None:
                     # Force reconnect on next attempt
-                    self._safe_close()
+                    await self._safe_close()
                     raise TelnetCommandError("@dat", "Failed to retrieve @dat data")
 
                 log_debug(_LOGGER, "async_get_data", "Parsing @dat data")
@@ -413,7 +493,7 @@ class Elios4YouAPI:
 
                 sta_parsed = await self._get_data_with_retry("@sta")
                 if sta_parsed is None:
-                    self._safe_close()
+                    await self._safe_close()
                     raise TelnetCommandError("@sta", "Failed to retrieve @sta data")
 
                 log_debug(_LOGGER, "async_get_data", "Parsing @sta data")
@@ -432,7 +512,7 @@ class Elios4YouAPI:
 
                 inf_parsed = await self._get_data_with_retry("@inf")
                 if inf_parsed is None:
-                    self._safe_close()
+                    await self._safe_close()
                     raise TelnetCommandError("@inf", "Failed to retrieve @inf data")
 
                 log_debug(_LOGGER, "async_get_data", "Parsing @inf data")
@@ -476,7 +556,7 @@ class Elios4YouAPI:
 
             except (TimeoutError, OSError) as err:
                 # Connection error - close and force reconnect on next attempt
-                self._safe_close()
+                await self._safe_close()
                 log_debug(
                     _LOGGER,
                     "async_get_data",
@@ -493,7 +573,7 @@ class Elios4YouAPI:
                 ) from err
             except (TelnetConnectionError, TelnetCommandError):
                 # Close on error to force fresh connection next time
-                self._safe_close()
+                await self._safe_close()
                 log_debug(
                     _LOGGER,
                     "async_get_data",
@@ -502,7 +582,7 @@ class Elios4YouAPI:
                 raise
             except Exception as err:
                 # Close on any error
-                self._safe_close()
+                await self._safe_close()
                 log_error(
                     _LOGGER,
                     "async_get_data",
@@ -516,101 +596,13 @@ class Elios4YouAPI:
                 )
                 raise TelnetCommandError("async_get_data", f"Unexpected error: {err}") from err
 
-    def telnet_get_data(self, cmd: str):
-        """Send Telnet Commands and process output.
-
-        Detects silent timeouts from read_until() which returns partial data
-        instead of raising an exception.
-        """
-        try:
-            cmd_main = cmd[0:4].lower()
-            cmd_send = cmd.lower()
-            output = {}
-            response = None
-            separator = "ready..."
-
-            log_debug(
-                _LOGGER,
-                "telnet_get_data",
-                "Sending command",
-                cmd=cmd,
-            )
-
-            # send the command
-            self.E4Uclient.write(cmd_send)
-
-            try:
-                response = ""
-                log_debug(
-                    _LOGGER,
-                    "telnet_get_data",
-                    "read_until started",
-                    conn=self.E4Uclient.is_open(),
-                )
-                # read stream up to the "ready..." string (end of response)
-                response = self.E4Uclient.read_until(separator, self._timeout)
-                log_debug(
-                    _LOGGER,
-                    "telnet_get_data",
-                    "read_until ended",
-                    response_len=len(response) if response else 0,
-                )
-            except TimeoutError:
-                log_debug(
-                    _LOGGER,
-                    "telnet_get_data",
-                    "read_until raised TimeoutError",
-                )
-                return None
-
-            # Check for silent timeout - read_until() may return partial data
-            # without raising an exception if timeout occurs
-            if not response or separator not in response:
-                log_debug(
-                    _LOGGER,
-                    "telnet_get_data",
-                    "Silent timeout detected - incomplete response",
-                    has_response=bool(response),
-                    has_separator=separator in response if response else False,
-                )
-                return None
-
-            # Valid response - process data
-            # decode bytes to string using utf-8 and split each line as a list member
-            lines = response.splitlines()
-            # sometimes the first line is not the command but a line-feed
-            if lines[0].lower() in ["@dat", "@sta", "@inf", "@rel", "@hwr"]:
-                lines_start = 1
-            else:
-                # skip the possible LF in first line
-                lines_start = 2
-            # skip last two lines (line-feed and read_until separator)
-            lines_end = -2
-            # exclude first X and last Y lines
-            for line in lines[lines_start:lines_end]:
-                if cmd_main in ["@inf", "@rel", "@hwr"]:
-                    # @inf data uses a different separator
-                    key, value = line.split("=")
-                else:
-                    # @dat and @sta share the same data format
-                    key, value = line.split(";")[1:3]
-                # lower case and replace space with underscore
-                output[key.lower().replace(" ", "_")] = value.strip()
-            log_debug(_LOGGER, "telnet_get_data", "Success", output_keys=list(output.keys()))
-            return output
-
-        except TimeoutError:
-            log_debug(_LOGGER, "telnet_get_data", "Operation timed out")
-            return None
-        except Exception as ex:
-            log_debug(_LOGGER, "telnet_get_data", "Failed with error", error=ex)
-            return None
-
     async def telnet_set_relay(self, state) -> bool:
         """Send Telnet Commands and process output.
 
         Uses connection pooling to prevent socket exhaustion on embedded device.
         Uses same lock as async_get_data() to prevent race conditions.
+
+        All I/O operations are fully async - no event loop blocking.
         """
         set_relay = False
 
@@ -625,7 +617,7 @@ class Elios4YouAPI:
         async with self._connection_lock:
             try:
                 # Use connection pooling - reuse existing connection if valid
-                self._ensure_connected()
+                await self._ensure_connected()
 
                 log_debug(
                     _LOGGER,
@@ -642,7 +634,7 @@ class Elios4YouAPI:
                         "telnet_set_relay",
                         "Set relay command failed after retries",
                     )
-                    self._safe_close()
+                    await self._safe_close()
                     return set_relay
 
                 # Read relay state with retry
@@ -692,13 +684,13 @@ class Elios4YouAPI:
                 else:
                     log_debug(_LOGGER, "telnet_set_relay", "rel_parsed is None")
                     # Force reconnect on next attempt
-                    self._safe_close()
+                    await self._safe_close()
 
                 # Update last activity time for connection reuse
                 self._last_activity = time.time()
 
             except TimeoutError:
-                self._safe_close()
+                await self._safe_close()
                 log_debug(_LOGGER, "telnet_set_relay", "Connection or operation timed out")
                 set_relay = False
             except TelnetConnectionError:
@@ -706,7 +698,7 @@ class Elios4YouAPI:
                 log_debug(_LOGGER, "telnet_set_relay", "Connection failed")
                 set_relay = False
             except Exception as ex:
-                self._safe_close()
+                await self._safe_close()
                 log_debug(_LOGGER, "telnet_set_relay", "Failed with error", error=ex)
                 set_relay = False
 
