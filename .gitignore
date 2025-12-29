@@ -17,3 +17,6 @@ enforce_branch_protection.sh
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
+
+# mypy workaround junction (symlink to 4noks_elios4you for type checking)
+custom_components/fournoks_elios4you
