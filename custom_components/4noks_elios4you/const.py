@@ -10,7 +10,7 @@ from homeassistant.const import UnitOfEnergy, UnitOfPower
 # Base component constants
 NAME = "4-noks Elios4you integration"
 DOMAIN = "4noks_elios4you"
-VERSION = "0.3.0-beta.1"
+VERSION = "0.3.0-beta.2"
 ATTRIBUTION = "by @alexdelprete"
 ISSUE_URL = "https://github.com/alexdelprete/ha-4noks-elios4you/issues"
 
@@ -27,6 +27,9 @@ MAX_SCAN_INTERVAL = 600
 MIN_PORT = 1
 MAX_PORT = 65535
 CONN_TIMEOUT = 5
+# Retry configuration for transient failures
+COMMAND_RETRY_COUNT: int = 2  # Retry each command up to 2 times
+COMMAND_RETRY_DELAY: float = 0.1  # 100ms delay between retries
 MANUFACTURER = "4-noks"
 MODEL = "Elios4you"
 STARTUP_MESSAGE = f"""

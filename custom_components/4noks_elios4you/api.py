@@ -11,7 +11,7 @@ import socket
 import sys
 import time
 
-from .const import CONN_TIMEOUT, MANUFACTURER, MODEL
+from .const import COMMAND_RETRY_COUNT, COMMAND_RETRY_DELAY, CONN_TIMEOUT, MANUFACTURER, MODEL
 from .helpers import log_debug, log_error
 from .telnetlib import Telnet
 
@@ -283,6 +283,44 @@ class Elios4YouAPI:
                 self._host, self._port, self._timeout, f"Connection failed: {err}"
             ) from err
 
+    async def _get_data_with_retry(
+        self,
+        cmd: str,
+        max_retries: int = COMMAND_RETRY_COUNT,
+    ) -> dict | None:
+        """Execute telnet command with retry logic for transient failures.
+
+        If command fails (returns None due to silent timeout or error),
+        closes connection, reconnects, and retries up to max_retries times.
+
+        Args:
+            cmd: Telnet command to execute (@dat, @sta, @inf, @rel)
+            max_retries: Maximum number of retry attempts
+
+        Returns:
+            Parsed response dict or None if all attempts fail
+        """
+        for attempt in range(max_retries + 1):
+            result = self.telnet_get_data(cmd)
+            if result is not None:
+                return result
+
+            if attempt < max_retries:
+                log_debug(
+                    _LOGGER,
+                    "_get_data_with_retry",
+                    "Command failed, retrying",
+                    cmd=cmd,
+                    attempt=attempt + 1,
+                    max_retries=max_retries,
+                )
+                await asyncio.sleep(COMMAND_RETRY_DELAY)
+                # Close stale connection and reconnect for retry
+                self._safe_close()
+                self._ensure_connected()
+
+        return None
+
     def check_port(self) -> bool:
         """Check if port is available.
 
@@ -341,7 +379,7 @@ class Elios4YouAPI:
                 self._ensure_connected()
 
                 log_debug(_LOGGER, "async_get_data", "Fetching device data")
-                dat_parsed = self.telnet_get_data("@dat")
+                dat_parsed = await self._get_data_with_retry("@dat")
                 if dat_parsed is None:
                     # Force reconnect on next attempt
                     self._safe_close()
@@ -368,7 +406,7 @@ class Elios4YouAPI:
                         )
                         continue
 
-                sta_parsed = self.telnet_get_data("@sta")
+                sta_parsed = await self._get_data_with_retry("@sta")
                 if sta_parsed is None:
                     self._safe_close()
                     raise TelnetCommandError("@sta", "Failed to retrieve @sta data")
@@ -387,7 +425,7 @@ class Elios4YouAPI:
                             value=value,
                         )
 
-                inf_parsed = self.telnet_get_data("@inf")
+                inf_parsed = await self._get_data_with_retry("@inf")
                 if inf_parsed is None:
                     self._safe_close()
                     raise TelnetCommandError("@inf", "Failed to retrieve @inf data")
@@ -572,8 +610,19 @@ class Elios4YouAPI:
                     to_state=to_state,
                 )
 
-                rel_parsed = self.telnet_get_data(f"@rel 0 {to_state}")
-                rel_parsed = self.telnet_get_data("@rel")
+                # Send set relay command with retry
+                set_result = await self._get_data_with_retry(f"@rel 0 {to_state}")
+                if set_result is None:
+                    log_debug(
+                        _LOGGER,
+                        "telnet_set_relay",
+                        "Set relay command failed after retries",
+                    )
+                    self._safe_close()
+                    return set_relay
+
+                # Read relay state with retry
+                rel_parsed = await self._get_data_with_retry("@rel")
 
                 # if we had a valid response we process data
                 if rel_parsed:
