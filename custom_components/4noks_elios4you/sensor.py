@@ -51,6 +51,7 @@ async def async_setup_entry(
                     sensor["device_class"],
                     sensor["state_class"],
                     sensor["unit"],
+                    sensor["enabled_default"],
                 )
             )
 
@@ -64,7 +65,17 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator, name, key, icon, device_class, state_class, unit):
+    def __init__(
+        self,
+        coordinator,
+        name,
+        key,
+        icon,
+        device_class,
+        state_class,
+        unit,
+        enabled_default: bool,
+    ):
         """Class Initializitation."""
         super().__init__(coordinator)
         self._coordinator = coordinator
@@ -82,6 +93,8 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
         self._device_hwver = self._coordinator.api.data["hwver"]
         # Use translation key for entity name (translations in translations/*.json)
         self._attr_translation_key = key
+        # Entity registry enabled default (False = disabled by default in UI)
+        self._attr_entity_registry_enabled_default = enabled_default
 
     @callback
     def _handle_coordinator_update(self) -> None:

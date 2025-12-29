@@ -72,6 +72,108 @@ Configuration is done via config flow right after adding the integration. After 
 # Sensor view
 <img style="border: 5px solid #767676;border-radius: 10px;max-width: 500px;width: 75%;box-sizing: border-box;" src="https://raw.githubusercontent.com/alexdelprete/ha-4noks-elios4you/master/gfxfiles/elios4you_sensors.gif" alt="Config">
 
+# Automation Examples
+
+Here are some practical automation examples using the Elios4you sensors.
+
+### Solar Production Alert
+
+Get notified when your solar panels start producing energy in the morning:
+
+```yaml
+automation:
+  - alias: "Solar Production Started"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.elios4you_produced_power
+        above: 0.1
+    condition:
+      - condition: sun
+        after: sunrise
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "Solar Production"
+          message: "Solar panels are now producing {{ states('sensor.elios4you_produced_power') }} kW"
+```
+
+### High Power Consumption Warning
+
+Alert when power consumption exceeds a threshold:
+
+```yaml
+automation:
+  - alias: "High Power Consumption Alert"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.elios4you_consumed_power
+        above: 5.0
+        for:
+          minutes: 5
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "High Power Usage"
+          message: "Power consumption is {{ states('sensor.elios4you_consumed_power') }} kW for 5 minutes"
+```
+
+### Energy Dashboard Integration
+
+Add sensors to the Home Assistant Energy Dashboard:
+
+1. Go to **Settings > Dashboards > Energy**
+2. Under "Solar Panels", add `sensor.elios4you_produced_energy`
+3. Under "Grid consumption", add `sensor.elios4you_bought_energy`
+4. Under "Return to grid", add `sensor.elios4you_sold_energy`
+
+### Daily Energy Summary
+
+Send a daily summary of energy production and consumption:
+
+```yaml
+automation:
+  - alias: "Daily Energy Summary"
+    trigger:
+      - platform: time
+        at: "21:00:00"
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "Daily Energy Report"
+          message: >
+            Today's peak: {{ states('sensor.elios4you_daily_peak') }} kW
+            Self-consumption: {{ states('sensor.elios4you_self_consumed_power') }} kW
+```
+
+### Relay Control Based on Production
+
+Automatically enable the relay when solar production exceeds consumption:
+
+```yaml
+automation:
+  - alias: "Enable Relay on Excess Solar"
+    trigger:
+      - platform: template
+        value_template: >
+          {{ states('sensor.elios4you_produced_power') | float >
+             states('sensor.elios4you_consumed_power') | float + 1.0 }}
+    action:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.elios4you_relay
+
+  - alias: "Disable Relay on Low Solar"
+    trigger:
+      - platform: template
+        value_template: >
+          {{ states('sensor.elios4you_produced_power') | float <
+             states('sensor.elios4you_consumed_power') | float }}
+    action:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.elios4you_relay
+```
+
 # Coffee
 
 _If you like this integration, I'll gladly accept some quality coffee, but please don't feel obliged._ :)

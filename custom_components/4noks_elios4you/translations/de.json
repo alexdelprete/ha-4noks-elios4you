@@ -100,5 +100,13 @@
       "title": "Verbindung zu {device_name} nicht moglich",
       "description": "Die Integration kann keine Verbindung zu Ihrem Elios4You-Gerat unter {host}:{port} herstellen.\n\n**Mogliche Ursachen:**\n- Das Gerat ist ausgeschaltet oder nicht mit dem Netzwerk verbunden\n- Die IP-Adresse hat sich geandert\n- Eine Firewall blockiert die Verbindung\n- Der Telnet-Port ist nicht zuganglich\n\n**Zur Losung:**\n1. Prufen Sie, ob das Gerat eingeschaltet und mit Ihrem Netzwerk verbunden ist\n2. Uberprufen Sie die IP-Adresse in der DHCP-Tabelle Ihres Routers\n3. Wenn sich die IP geandert hat, konfigurieren Sie die Integration mit der neuen Adresse neu"
     }
+  },
+  "exceptions": {
+    "telnet_connection_error": {
+      "message": "Verbindung zum Elios4You-Gerat unter {host}:{port} fehlgeschlagen (Zeitlimit: {timeout}s)"
+    },
+    "telnet_command_error": {
+      "message": "Telnet-Befehl '{command}' konnte nicht ausgefuhrt werden"
+    }
   }
 }

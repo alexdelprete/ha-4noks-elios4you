@@ -100,5 +100,13 @@
       "title": "Kan inte ansluta till {device_name}",
       "description": "Integrationen kan inte ansluta till din Elios4You-enhet pa {host}:{port}.\n\n**Mojliga orsaker:**\n- Enheten ar avstangd eller inte ansluten till natverket\n- IP-adressen har andrats\n- En brandvagg blockerar anslutningen\n- Telnet-porten ar inte atkomlig\n\n**For att losa:**\n1. Kontrollera att enheten ar paslagan och ansluten till ditt natverk\n2. Verifiera IP-adressen i din routers DHCP-tabell\n3. Om IP har andrats, konfigurera om integrationen med den nya adressen"
     }
+  },
+  "exceptions": {
+    "telnet_connection_error": {
+      "message": "Anslutning till Elios4You-enhet pa {host}:{port} misslyckades (timeout: {timeout}s)"
+    },
+    "telnet_command_error": {
+      "message": "Telnet-kommando '{command}' kunde inte koras"
+    }
   }
 }

@@ -100,5 +100,13 @@
       "title": "Nao foi possivel ligar a {device_name}",
       "description": "A integracao nao consegue ligar ao dispositivo Elios4You em {host}:{port}.\n\n**Possiveis causas:**\n- O dispositivo esta desligado ou nao ligado a rede\n- O endereco IP mudou\n- Uma firewall esta a bloquear a ligacao\n- A porta Telnet nao esta acessivel\n\n**Para resolver:**\n1. Verifique se o dispositivo esta ligado e conectado a sua rede\n2. Verifique o endereco IP na tabela DHCP do seu router\n3. Se o IP mudou, reconfigure a integracao com o novo endereco"
     }
+  },
+  "exceptions": {
+    "telnet_connection_error": {
+      "message": "Falha ao ligar ao dispositivo Elios4You em {host}:{port} (tempo limite: {timeout}s)"
+    },
+    "telnet_command_error": {
+      "message": "O comando Telnet '{command}' falhou ao executar"
+    }
   }
 }

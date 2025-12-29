@@ -100,5 +100,13 @@
       "title": "Yhteyden muodostaminen laitteeseen {device_name} ei onnistu",
       "description": "Integraatio ei voi muodostaa yhteytta Elios4You-laitteeseesi osoitteessa {host}:{port}.\n\n**Mahdolliset syyt:**\n- Laite on pois paalta tai ei ole yhdistetty verkkoon\n- IP-osoite on muuttunut\n- Palomuuri estaa yhteyden\n- Telnet-portti ei ole kaytettavissa\n\n**Ratkaisemiseksi:**\n1. Tarkista, etta laite on paalla ja yhdistetty verkkoon\n2. Tarkista IP-osoite reitittimesi DHCP-taulukosta\n3. Jos IP on muuttunut, maarita integraatio uudelleen uudella osoitteella"
     }
+  },
+  "exceptions": {
+    "telnet_connection_error": {
+      "message": "Yhteys Elios4You-laitteeseen osoitteessa {host}:{port} epaonnistui (aikakatkaisu: {timeout}s)"
+    },
+    "telnet_command_error": {
+      "message": "Telnet-komento '{command}' epaonnistui"
+    }
   }
 }

@@ -32,12 +32,17 @@ TEST_SERIAL_NUMBER = "E4U123456789"
 
 
 @pytest.fixture
-def hass() -> HomeAssistant:
-    """Create a Home Assistant instance for testing."""
-    hass = MagicMock(spec=HomeAssistant)
-    hass.config_entries = MagicMock()
-    hass.config_entries.async_entries = MagicMock(return_value=[])
-    return hass
+def mock_hass() -> MagicMock:
+    """Create a mock Home Assistant instance for unit tests that don't need real HA.
+
+    Note: For integration tests, use the built-in `hass` fixture from
+    pytest_homeassistant_custom_component instead.
+    """
+    mock = MagicMock(spec=HomeAssistant)
+    mock.config_entries = MagicMock()
+    mock.config_entries.async_entries = MagicMock(return_value=[])
+    mock.data = {}  # Required for enable_custom_integrations fixture
+    return mock
 
 
 @pytest.fixture

@@ -12,7 +12,6 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 # Import modules with numeric prefix using importlib
@@ -35,7 +34,7 @@ from .test_config_flow import MockConfigEntry
 class TestCoordinatorInit:
     """Tests for coordinator initialization."""
 
-    def test_coordinator_init_from_options(self, hass: HomeAssistant) -> None:
+    def test_coordinator_init_from_options(self, mock_hass) -> None:
         """Test coordinator initialization reads from options."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -48,10 +47,9 @@ class TestCoordinatorInit:
                 CONF_SCAN_INTERVAL: 120,
             },
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI"):
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         assert coordinator.conf_name == TEST_NAME
         assert coordinator.conf_host == TEST_HOST
@@ -59,7 +57,7 @@ class TestCoordinatorInit:
         assert coordinator.scan_interval == 120
         assert coordinator.update_interval == timedelta(seconds=120)
 
-    def test_coordinator_init_from_data_fallback(self, hass: HomeAssistant) -> None:
+    def test_coordinator_init_from_data_fallback(self, mock_hass) -> None:
         """Test coordinator falls back to data when options empty."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -71,14 +69,13 @@ class TestCoordinatorInit:
             },
             options={},
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI"):
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         assert coordinator.scan_interval == 90
 
-    def test_coordinator_init_enforces_min_interval(self, hass: HomeAssistant) -> None:
+    def test_coordinator_init_enforces_min_interval(self, mock_hass) -> None:
         """Test coordinator enforces minimum scan interval."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -91,14 +88,13 @@ class TestCoordinatorInit:
                 CONF_SCAN_INTERVAL: 10,  # Below minimum
             },
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI"):
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         assert coordinator.scan_interval == MIN_SCAN_INTERVAL
 
-    def test_coordinator_init_default_interval(self, hass: HomeAssistant) -> None:
+    def test_coordinator_init_default_interval(self, mock_hass) -> None:
         """Test coordinator uses default interval when not specified."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -109,14 +105,13 @@ class TestCoordinatorInit:
             },
             options={},
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI"):
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         assert coordinator.scan_interval == DEFAULT_SCAN_INTERVAL
 
-    def test_coordinator_creates_api(self, hass: HomeAssistant) -> None:
+    def test_coordinator_creates_api(self, mock_hass) -> None:
         """Test coordinator creates API instance."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -129,13 +124,12 @@ class TestCoordinatorInit:
                 CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
             },
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         mock_api_class.assert_called_once_with(
-            hass,
+            mock_hass,
             TEST_NAME,
             TEST_HOST,
             TEST_PORT,
@@ -147,7 +141,7 @@ class TestCoordinatorUpdate:
     """Tests for coordinator update functionality."""
 
     @pytest.mark.asyncio
-    async def test_async_update_data_success(self, hass: HomeAssistant) -> None:
+    async def test_async_update_data_success(self, mock_hass) -> None:
         """Test successful data update."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -160,13 +154,12 @@ class TestCoordinatorUpdate:
                 CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
             },
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(return_value=True)
 
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
             result = await coordinator.async_update_data()
 
         assert result is True
@@ -174,7 +167,7 @@ class TestCoordinatorUpdate:
         mock_api.async_get_data.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_async_update_data_failure(self, hass: HomeAssistant) -> None:
+    async def test_async_update_data_failure(self, mock_hass) -> None:
         """Test data update failure raises UpdateFailed."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -187,7 +180,6 @@ class TestCoordinatorUpdate:
                 CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
             },
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
@@ -195,7 +187,7 @@ class TestCoordinatorUpdate:
                 side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
             )
 
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
 
             with pytest.raises(UpdateFailed):
                 await coordinator.async_update_data()
@@ -203,7 +195,7 @@ class TestCoordinatorUpdate:
         assert coordinator.last_update_status is False
 
     @pytest.mark.asyncio
-    async def test_async_update_data_command_error(self, hass: HomeAssistant) -> None:
+    async def test_async_update_data_command_error(self, mock_hass) -> None:
         """Test data update with command error raises UpdateFailed."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -216,19 +208,18 @@ class TestCoordinatorUpdate:
                 CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
             },
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(side_effect=TelnetCommandError("@dat"))
 
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
 
             with pytest.raises(UpdateFailed):
                 await coordinator.async_update_data()
 
     @pytest.mark.asyncio
-    async def test_async_update_data_generic_exception(self, hass: HomeAssistant) -> None:
+    async def test_async_update_data_generic_exception(self, mock_hass) -> None:
         """Test data update with generic exception raises UpdateFailed."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -241,19 +232,18 @@ class TestCoordinatorUpdate:
                 CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
             },
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(side_effect=Exception("Unknown error"))
 
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
 
             with pytest.raises(UpdateFailed):
                 await coordinator.async_update_data()
 
     @pytest.mark.asyncio
-    async def test_async_update_data_updates_timestamp(self, hass: HomeAssistant) -> None:
+    async def test_async_update_data_updates_timestamp(self, mock_hass) -> None:
         """Test data update updates last_update_time."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -266,13 +256,12 @@ class TestCoordinatorUpdate:
                 CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
             },
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(return_value=True)
 
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
             initial_time = coordinator.last_update_time
 
             await coordinator.async_update_data()
@@ -283,7 +272,7 @@ class TestCoordinatorUpdate:
 class TestCoordinatorName:
     """Tests for coordinator naming."""
 
-    def test_coordinator_name_includes_unique_id(self, hass: HomeAssistant) -> None:
+    def test_coordinator_name_includes_unique_id(self, mock_hass) -> None:
         """Test coordinator name includes unique_id."""
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -297,10 +286,9 @@ class TestCoordinatorName:
             },
             unique_id=TEST_SERIAL_NUMBER,
         )
-        entry.add_to_hass(hass)
 
         with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI"):
-            coordinator = Elios4YouCoordinator(hass, entry)
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         assert DOMAIN in coordinator.name
         assert TEST_SERIAL_NUMBER in coordinator.name

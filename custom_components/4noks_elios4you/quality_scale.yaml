@@ -131,9 +131,7 @@ rules:
   docs-data-update: done  # README explains polling via Telnet
 
   # Rule: The documentation provides automation examples
-  docs-examples:
-    status: todo
-    comment: Automation examples to be added to README.
+  docs-examples: done  # README includes 5 automation examples
 
   # Rule: The documentation describes known limitations
   docs-known-limitations: done  # README documents limitations
@@ -162,17 +160,13 @@ rules:
   entity-device-class: done  # Uses POWER, ENERGY device classes
 
   # Rule: Integration disables less popular (or noisy) entities
-  entity-disabled-by-default:
-    status: todo
-    comment: Consider disabling less popular sensors by default.
+  entity-disabled-by-default: done  # F1/F2/F3 variants and diagnostic sensors disabled by default
 
   # Rule: Entities have translated names
   entity-translations: done  # 6 languages: de, en, es, fr, it, pt
 
   # Rule: Exception messages are translatable
-  exception-translations:
-    status: todo
-    comment: Exception messages not yet translatable.
+  exception-translations: done  # TelnetConnectionError and TelnetCommandError use HomeAssistantError translations
 
   # Rule: Entities implement icon translations
   icon-translations: done  # icons.json defines icons for entities

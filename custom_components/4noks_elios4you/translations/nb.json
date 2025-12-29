@@ -100,5 +100,13 @@
       "title": "Kan ikke koble til {device_name}",
       "description": "Integrasjonen kan ikke koble til Elios4You-enheten din pa {host}:{port}.\n\n**Mulige arsaker:**\n- Enheten er slatt av eller ikke koblet til nettverket\n- IP-adressen har endret seg\n- En brannmur blokkerer tilkoblingen\n- Telnet-porten er ikke tilgjengelig\n\n**For a lose:**\n1. Sjekk at enheten er slatt pa og koblet til nettverket\n2. Verifiser IP-adressen i ruterens DHCP-tabell\n3. Hvis IP har endret seg, rekonfigurer integrasjonen med den nye adressen"
     }
+  },
+  "exceptions": {
+    "telnet_connection_error": {
+      "message": "Tilkobling til Elios4You-enhet pa {host}:{port} mislyktes (tidsavbrudd: {timeout}s)"
+    },
+    "telnet_command_error": {
+      "message": "Telnet-kommando '{command}' kunne ikke utfores"
+    }
   }
 }

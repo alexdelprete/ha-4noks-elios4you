@@ -11,13 +11,22 @@ import time
 
 import telnetlib3
 
-from .const import COMMAND_RETRY_COUNT, COMMAND_RETRY_DELAY, CONN_TIMEOUT, MANUFACTURER, MODEL
+from homeassistant.exceptions import HomeAssistantError
+
+from .const import (
+    COMMAND_RETRY_COUNT,
+    COMMAND_RETRY_DELAY,
+    CONN_TIMEOUT,
+    DOMAIN,
+    MANUFACTURER,
+    MODEL,
+)
 from .helpers import log_debug, log_error
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class TelnetConnectionError(Exception):
+class TelnetConnectionError(HomeAssistantError):
     """Exception raised when telnet connection fails."""
 
     def __init__(self, host: str, port: int, timeout: int, message: str = "") -> None:
@@ -27,9 +36,16 @@ class TelnetConnectionError(Exception):
         self.timeout = timeout
         self.message = message or f"Failed to connect to {host}:{port} (timeout: {timeout}s)"
         super().__init__(self.message)
+        self.translation_domain = DOMAIN
+        self.translation_key = "telnet_connection_error"
+        self.translation_placeholders = {
+            "host": host,
+            "port": str(port),
+            "timeout": str(timeout),
+        }
 
 
-class TelnetCommandError(Exception):
+class TelnetCommandError(HomeAssistantError):
     """Exception raised when telnet command fails."""
 
     def __init__(self, command: str, message: str = "") -> None:
@@ -37,6 +53,11 @@ class TelnetCommandError(Exception):
         self.command = command
         self.message = message or f"Command '{command}' failed"
         super().__init__(self.message)
+        self.translation_domain = DOMAIN
+        self.translation_key = "telnet_command_error"
+        self.translation_placeholders = {
+            "command": command,
+        }
 
 
 class Elios4YouAPI:

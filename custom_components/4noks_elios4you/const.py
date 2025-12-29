@@ -54,6 +54,8 @@ SWITCH_ENTITIES = [
 ]
 
 # Sensor definitions
+# enabled_default: True = enabled by default, False = disabled by default (user can enable manually)
+# F1/F2/F3 time-of-use variants and diagnostic sensors are disabled by default to reduce clutter
 SENSOR_ENTITIES = [
     {
         "name": "Produced Power",
@@ -62,6 +64,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.KILO_WATT,
+        "enabled_default": True,
     },
     {
         "name": "Consumed Power",
@@ -70,6 +73,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.KILO_WATT,
+        "enabled_default": True,
     },
     {
         "name": "Self Consumed Power",
@@ -78,6 +82,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.KILO_WATT,
+        "enabled_default": True,
     },
     {
         "name": "Bought Power",
@@ -86,6 +91,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.KILO_WATT,
+        "enabled_default": True,
     },
     {
         "name": "Sold Power",
@@ -94,6 +100,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.KILO_WATT,
+        "enabled_default": True,
     },
     {
         "name": "Daily Peak",
@@ -102,6 +109,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.KILO_WATT,
+        "enabled_default": True,
     },
     {
         "name": "Monthly Peak",
@@ -110,6 +118,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.POWER,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": UnitOfPower.KILO_WATT,
+        "enabled_default": True,
     },
     {
         "name": "Produced Energy",
@@ -118,6 +127,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": True,
     },
     {
         "name": "Produced Energy F1",
@@ -126,6 +136,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Produced Energy F2",
@@ -134,6 +145,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Produced Energy F3",
@@ -142,6 +154,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Consumed Energy",
@@ -150,6 +163,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": True,
     },
     {
         "name": "Consumed Energy F1",
@@ -158,6 +172,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Consumed Energy F2",
@@ -166,6 +181,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Consumed Energy F3",
@@ -174,6 +190,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Self Consumed Energy",
@@ -182,6 +199,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": True,
     },
     {
         "name": "Self Consumed Energy F1",
@@ -190,6 +208,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Self Consumed Energy F2",
@@ -198,6 +217,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Self Consumed Energy F3",
@@ -206,6 +226,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Bought Energy",
@@ -214,6 +235,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": True,
     },
     {
         "name": "Bought Energy F1",
@@ -222,6 +244,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Bought Energy F2",
@@ -230,6 +253,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Bought Energy F3",
@@ -238,6 +262,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Sold Energy",
@@ -246,6 +271,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": True,
     },
     {
         "name": "Sold Energy F1",
@@ -254,6 +280,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Sold Energy F2",
@@ -262,6 +289,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Sold Energy F3",
@@ -270,6 +298,7 @@ SENSOR_ENTITIES = [
         "device_class": SensorDeviceClass.ENERGY,
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "unit": UnitOfEnergy.KILO_WATT_HOUR,
+        "enabled_default": False,
     },
     {
         "name": "Alarm 1",
@@ -278,6 +307,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Alarm 2",
@@ -286,6 +316,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Power Alarm",
@@ -294,6 +325,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "PWM Mode",
@@ -302,6 +334,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Power Reducer Ssv",
@@ -310,6 +343,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Relay Ssv",
@@ -318,6 +352,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Relay Mode",
@@ -326,6 +361,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Relay Warning",
@@ -334,6 +370,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "RedCap",
@@ -342,6 +379,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Firmware TOP Version",
@@ -350,6 +388,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Firmware BOTTOM Version",
@@ -358,6 +397,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Serial Number",
@@ -366,6 +406,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Hardware Version",
@@ -374,6 +415,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "BT Version",
@@ -382,6 +424,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Wifi HW Version",
@@ -390,6 +433,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Wifi App Version",
@@ -398,6 +442,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Wifi Geps Version",
@@ -406,6 +451,7 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
     {
         "name": "Wifi Wlan Version",
@@ -414,5 +460,6 @@ SENSOR_ENTITIES = [
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
     },
 ]

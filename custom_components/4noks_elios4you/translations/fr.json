@@ -100,5 +100,13 @@
       "title": "Impossible de se connecter a {device_name}",
       "description": "L'integration ne peut pas se connecter a votre appareil Elios4You sur {host}:{port}.\n\n**Causes possibles:**\n- L'appareil est eteint ou non connecte au reseau\n- L'adresse IP a change\n- Un pare-feu bloque la connexion\n- Le port Telnet n'est pas accessible\n\n**Pour resoudre:**\n1. Verifiez que l'appareil est allume et connecte a votre reseau\n2. Verifiez l'adresse IP dans la table DHCP de votre routeur\n3. Si l'IP a change, reconfigurez l'integration avec la nouvelle adresse"
     }
+  },
+  "exceptions": {
+    "telnet_connection_error": {
+      "message": "Echec de la connexion a l'appareil Elios4You sur {host}:{port} (delai: {timeout}s)"
+    },
+    "telnet_command_error": {
+      "message": "La commande Telnet '{command}' n'a pas pu etre executee"
+    }
   }
 }

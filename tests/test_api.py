@@ -62,9 +62,9 @@ class TestTelnetExceptions:
 class TestElios4YouAPIInit:
     """Tests for Elios4YouAPI initialization."""
 
-    def test_api_init(self, hass) -> None:
+    def test_api_init(self, mock_hass) -> None:
         """Test API initialization with default values."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
 
         assert api.name == TEST_NAME
         assert api.host == TEST_HOST
@@ -76,9 +76,9 @@ class TestElios4YouAPIInit:
         assert api.data["manufact"] == MANUFACTURER
         assert api.data["model"] == MODEL
 
-    def test_api_data_structure_initialized(self, hass) -> None:
+    def test_api_data_structure_initialized(self, mock_hass) -> None:
         """Test that all expected data keys are initialized."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
 
         # Check power/energy keys
         assert "produced_power" in api.data
@@ -106,22 +106,22 @@ class TestElios4YouAPIInit:
 class TestConnectionValidation:
     """Tests for connection validation."""
 
-    def test_is_connection_valid_no_writer(self, hass) -> None:
+    def test_is_connection_valid_no_writer(self, mock_hass) -> None:
         """Test connection is invalid when writer is None."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         assert api._is_connection_valid() is False
 
-    def test_is_connection_valid_writer_closing(self, hass) -> None:
+    def test_is_connection_valid_writer_closing(self, mock_hass) -> None:
         """Test connection is invalid when writer is closing."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_writer = MagicMock()
         mock_writer.is_closing.return_value = True
         api._writer = mock_writer
         assert api._is_connection_valid() is False
 
-    def test_is_connection_valid_transport_closing(self, hass) -> None:
+    def test_is_connection_valid_transport_closing(self, mock_hass) -> None:
         """Test connection is invalid when transport is closing."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_transport = MagicMock()
         mock_transport.is_closing.return_value = True
         mock_writer = MagicMock()
@@ -130,9 +130,9 @@ class TestConnectionValidation:
         api._writer = mock_writer
         assert api._is_connection_valid() is False
 
-    def test_is_connection_valid_expired(self, hass) -> None:
+    def test_is_connection_valid_expired(self, mock_hass) -> None:
         """Test connection is invalid when expired."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_writer = MagicMock()
         mock_writer.is_closing.return_value = False
         mock_writer.get_extra_info.return_value = None
@@ -140,10 +140,10 @@ class TestConnectionValidation:
         api._last_activity = 0.0  # Very old
         assert api._is_connection_valid() is False
 
-    def test_is_connection_valid_active(self, hass) -> None:
+    def test_is_connection_valid_active(self, mock_hass) -> None:
         """Test connection is valid when active."""
 
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_writer = MagicMock()
         mock_writer.is_closing.return_value = False
         mock_writer.get_extra_info.return_value = None
@@ -156,9 +156,9 @@ class TestSafeClose:
     """Tests for safe close functionality."""
 
     @pytest.mark.asyncio
-    async def test_safe_close_with_writer(self, hass) -> None:
+    async def test_safe_close_with_writer(self, mock_hass) -> None:
         """Test safe close when writer exists."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_writer = AsyncMock()
         mock_writer.close = MagicMock()
         mock_writer.wait_closed = AsyncMock()
@@ -175,17 +175,17 @@ class TestSafeClose:
         assert api._last_activity == 0.0
 
     @pytest.mark.asyncio
-    async def test_safe_close_without_writer(self, hass) -> None:
+    async def test_safe_close_without_writer(self, mock_hass) -> None:
         """Test safe close when no writer exists."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         # Should not raise
         await api._safe_close()
         assert api._writer is None
 
     @pytest.mark.asyncio
-    async def test_safe_close_handles_exception(self, hass) -> None:
+    async def test_safe_close_handles_exception(self, mock_hass) -> None:
         """Test safe close handles exceptions gracefully."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_writer = MagicMock()
         mock_writer.close.side_effect = Exception("Close failed")
         api._writer = mock_writer
@@ -195,9 +195,9 @@ class TestSafeClose:
         assert api._writer is None
 
     @pytest.mark.asyncio
-    async def test_close_calls_safe_close(self, hass) -> None:
+    async def test_close_calls_safe_close(self, mock_hass) -> None:
         """Test public close method calls _safe_close."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._safe_close = AsyncMock()
 
         await api.close()
@@ -209,9 +209,9 @@ class TestEnsureConnected:
     """Tests for ensure connected functionality."""
 
     @pytest.mark.asyncio
-    async def test_ensure_connected_reuses_valid(self, hass) -> None:
+    async def test_ensure_connected_reuses_valid(self, mock_hass) -> None:
         """Test ensure connected reuses valid connection."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._is_connection_valid = MagicMock(return_value=True)
         initial_activity = api._last_activity
 
@@ -221,9 +221,9 @@ class TestEnsureConnected:
         assert api._last_activity >= initial_activity
 
     @pytest.mark.asyncio
-    async def test_ensure_connected_opens_new(self, hass) -> None:
+    async def test_ensure_connected_opens_new(self, mock_hass) -> None:
         """Test ensure connected opens new connection when needed."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_reader = MagicMock()
         mock_writer = MagicMock()
 
@@ -239,9 +239,9 @@ class TestEnsureConnected:
         assert api._last_activity > 0
 
     @pytest.mark.asyncio
-    async def test_ensure_connected_timeout_error(self, hass) -> None:
+    async def test_ensure_connected_timeout_error(self, mock_hass) -> None:
         """Test ensure connected raises on timeout."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
 
         with (
             patch(
@@ -257,9 +257,9 @@ class TestEnsureConnected:
         assert exc_info.value.port == TEST_PORT
 
     @pytest.mark.asyncio
-    async def test_ensure_connected_os_error(self, hass) -> None:
+    async def test_ensure_connected_os_error(self, mock_hass) -> None:
         """Test ensure connected raises on OS error."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
 
         with (
             patch(
@@ -276,9 +276,9 @@ class TestAsyncReadUntil:
     """Tests for async read until functionality."""
 
     @pytest.mark.asyncio
-    async def test_async_read_until_success(self, hass) -> None:
+    async def test_async_read_until_success(self, mock_hass) -> None:
         """Test successful read until separator."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_reader = AsyncMock()
         mock_reader.read = AsyncMock(return_value="data\nready...")
         api._reader = mock_reader
@@ -289,9 +289,9 @@ class TestAsyncReadUntil:
         assert "data" in result
 
     @pytest.mark.asyncio
-    async def test_async_read_until_timeout(self, hass) -> None:
+    async def test_async_read_until_timeout(self, mock_hass) -> None:
         """Test read until returns partial on timeout."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_reader = AsyncMock()
         mock_reader.read = AsyncMock(side_effect=TimeoutError())
         api._reader = mock_reader
@@ -302,9 +302,9 @@ class TestAsyncReadUntil:
         assert "ready..." not in result
 
     @pytest.mark.asyncio
-    async def test_async_read_until_eof(self, hass) -> None:
+    async def test_async_read_until_eof(self, mock_hass) -> None:
         """Test read until returns on EOF."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_reader = AsyncMock()
         mock_reader.read = AsyncMock(return_value="")  # EOF
         api._reader = mock_reader
@@ -318,9 +318,9 @@ class TestAsyncSendCommand:
     """Tests for async send command functionality."""
 
     @pytest.mark.asyncio
-    async def test_async_send_command_success(self, hass) -> None:
+    async def test_async_send_command_success(self, mock_hass) -> None:
         """Test successful command send and parse."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_writer = MagicMock()
         mock_writer.write = MagicMock()
         mock_writer.drain = AsyncMock()
@@ -337,9 +337,9 @@ class TestAsyncSendCommand:
         mock_writer.write.assert_called()
 
     @pytest.mark.asyncio
-    async def test_async_send_command_silent_timeout(self, hass) -> None:
+    async def test_async_send_command_silent_timeout(self, mock_hass) -> None:
         """Test command returns None on silent timeout."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_writer = MagicMock()
         mock_writer.write = MagicMock()
         mock_writer.drain = AsyncMock()
@@ -353,9 +353,9 @@ class TestAsyncSendCommand:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_async_send_command_empty_response(self, hass) -> None:
+    async def test_async_send_command_empty_response(self, mock_hass) -> None:
         """Test command returns None on empty response."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_writer = MagicMock()
         mock_writer.write = MagicMock()
         mock_writer.drain = AsyncMock()
@@ -368,9 +368,9 @@ class TestAsyncSendCommand:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_async_send_command_inf_format(self, hass) -> None:
+    async def test_async_send_command_inf_format(self, mock_hass) -> None:
         """Test @inf command uses = separator."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_writer = MagicMock()
         mock_writer.write = MagicMock()
         mock_writer.drain = AsyncMock()
@@ -391,9 +391,9 @@ class TestGetDataWithRetry:
     """Tests for retry logic."""
 
     @pytest.mark.asyncio
-    async def test_get_data_with_retry_success_first(self, hass) -> None:
+    async def test_get_data_with_retry_success_first(self, mock_hass) -> None:
         """Test retry returns on first success."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._async_send_command = AsyncMock(return_value={"key": "value"})
 
         result = await api._get_data_with_retry("@dat")
@@ -402,9 +402,9 @@ class TestGetDataWithRetry:
         assert api._async_send_command.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_get_data_with_retry_success_after_retry(self, hass) -> None:
+    async def test_get_data_with_retry_success_after_retry(self, mock_hass) -> None:
         """Test retry succeeds after initial failure."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._async_send_command = AsyncMock(side_effect=[None, {"key": "value"}])
         api._safe_close = AsyncMock()
         api._ensure_connected = AsyncMock()
@@ -417,9 +417,9 @@ class TestGetDataWithRetry:
         api._ensure_connected.assert_called()
 
     @pytest.mark.asyncio
-    async def test_get_data_with_retry_all_fail(self, hass) -> None:
+    async def test_get_data_with_retry_all_fail(self, mock_hass) -> None:
         """Test retry returns None when all attempts fail."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._async_send_command = AsyncMock(return_value=None)
         api._safe_close = AsyncMock()
         api._ensure_connected = AsyncMock()
@@ -433,9 +433,9 @@ class TestGetDataWithRetry:
 class TestCheckPort:
     """Tests for check_port functionality."""
 
-    def test_check_port_open(self, hass) -> None:
+    def test_check_port_open(self, mock_hass) -> None:
         """Test check_port returns True when port is open."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
 
         with patch("socket.socket") as mock_socket_class:
             mock_socket = MagicMock()
@@ -448,9 +448,9 @@ class TestCheckPort:
         mock_socket.settimeout.assert_called()
         mock_socket.close.assert_called()
 
-    def test_check_port_closed(self, hass) -> None:
+    def test_check_port_closed(self, mock_hass) -> None:
         """Test check_port returns False when port is closed."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
 
         with patch("socket.socket") as mock_socket_class:
             mock_socket = MagicMock()
@@ -466,9 +466,9 @@ class TestAsyncGetData:
     """Tests for async_get_data functionality."""
 
     @pytest.mark.asyncio
-    async def test_async_get_data_success(self, hass) -> None:
+    async def test_async_get_data_success(self, mock_hass) -> None:
         """Test successful data retrieval."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
 
@@ -502,9 +502,9 @@ class TestAsyncGetData:
         assert api.data["self_consumed_power"] == 1.8  # 2.5 - 0.7
 
     @pytest.mark.asyncio
-    async def test_async_get_data_dat_fails(self, hass) -> None:
+    async def test_async_get_data_dat_fails(self, mock_hass) -> None:
         """Test data retrieval fails when @dat fails."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
         api._get_data_with_retry = AsyncMock(return_value=None)
@@ -515,9 +515,9 @@ class TestAsyncGetData:
         assert "@dat" in exc_info.value.command
 
     @pytest.mark.asyncio
-    async def test_async_get_data_sta_fails(self, hass) -> None:
+    async def test_async_get_data_sta_fails(self, mock_hass) -> None:
         """Test data retrieval fails when @sta fails."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
         api._get_data_with_retry = AsyncMock(side_effect=[{"key": "1"}, None])
@@ -528,9 +528,9 @@ class TestAsyncGetData:
         assert "@sta" in exc_info.value.command
 
     @pytest.mark.asyncio
-    async def test_async_get_data_inf_fails(self, hass) -> None:
+    async def test_async_get_data_inf_fails(self, mock_hass) -> None:
         """Test data retrieval fails when @inf fails."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
         api._get_data_with_retry = AsyncMock(side_effect=[{"key": "1"}, {"key": "2"}, None])
@@ -541,9 +541,9 @@ class TestAsyncGetData:
         assert "@inf" in exc_info.value.command
 
     @pytest.mark.asyncio
-    async def test_async_get_data_connection_error(self, hass) -> None:
+    async def test_async_get_data_connection_error(self, mock_hass) -> None:
         """Test data retrieval fails on connection error."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock(side_effect=TimeoutError("Connection failed"))
         api._safe_close = AsyncMock()
 
@@ -551,9 +551,9 @@ class TestAsyncGetData:
             await api.async_get_data()
 
     @pytest.mark.asyncio
-    async def test_async_get_data_uses_lock(self, hass) -> None:
+    async def test_async_get_data_uses_lock(self, mock_hass) -> None:
         """Test that async_get_data uses connection lock."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
         api._get_data_with_retry = AsyncMock(
@@ -574,9 +574,9 @@ class TestTelnetSetRelay:
     """Tests for telnet_set_relay functionality."""
 
     @pytest.mark.asyncio
-    async def test_set_relay_on_success(self, hass) -> None:
+    async def test_set_relay_on_success(self, mock_hass) -> None:
         """Test successful relay ON."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
         api._get_data_with_retry = AsyncMock(
@@ -589,9 +589,9 @@ class TestTelnetSetRelay:
         assert api.data["relay_state"] == 1
 
     @pytest.mark.asyncio
-    async def test_set_relay_off_success(self, hass) -> None:
+    async def test_set_relay_off_success(self, mock_hass) -> None:
         """Test successful relay OFF."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
         api._get_data_with_retry = AsyncMock(side_effect=[{"status": "ok"}, {"rel": "0"}])
@@ -602,18 +602,18 @@ class TestTelnetSetRelay:
         assert api.data["relay_state"] == 0
 
     @pytest.mark.asyncio
-    async def test_set_relay_invalid_state(self, hass) -> None:
+    async def test_set_relay_invalid_state(self, mock_hass) -> None:
         """Test relay with invalid state returns False."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
 
         result = await api.telnet_set_relay("invalid")
 
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_set_relay_command_fails(self, hass) -> None:
+    async def test_set_relay_command_fails(self, mock_hass) -> None:
         """Test relay returns False when command fails."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
         api._get_data_with_retry = AsyncMock(return_value=None)
@@ -623,9 +623,9 @@ class TestTelnetSetRelay:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_set_relay_read_fails(self, hass) -> None:
+    async def test_set_relay_read_fails(self, mock_hass) -> None:
         """Test relay handles read failure."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
         api._get_data_with_retry = AsyncMock(
@@ -637,9 +637,9 @@ class TestTelnetSetRelay:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_set_relay_state_mismatch(self, hass) -> None:
+    async def test_set_relay_state_mismatch(self, mock_hass) -> None:
         """Test relay returns False when state doesn't match."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
         api._get_data_with_retry = AsyncMock(
@@ -651,9 +651,9 @@ class TestTelnetSetRelay:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_set_relay_connection_error(self, hass) -> None:
+    async def test_set_relay_connection_error(self, mock_hass) -> None:
         """Test relay handles connection error."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock(
             side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, CONN_TIMEOUT)
         )
@@ -664,9 +664,9 @@ class TestTelnetSetRelay:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_set_relay_timeout_error(self, hass) -> None:
+    async def test_set_relay_timeout_error(self, mock_hass) -> None:
         """Test relay handles timeout error."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._get_data_with_retry = AsyncMock(side_effect=TimeoutError("Timed out"))
         api._safe_close = AsyncMock()
@@ -676,9 +676,9 @@ class TestTelnetSetRelay:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_set_relay_generic_exception(self, hass) -> None:
+    async def test_set_relay_generic_exception(self, mock_hass) -> None:
         """Test relay handles generic exception."""
-        api = Elios4YouAPI(hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._get_data_with_retry = AsyncMock(side_effect=Exception("Unexpected error"))
         api._safe_close = AsyncMock()
