@@ -1,10 +1,12 @@
 # HA Custom Component for 4-noks Elios4you energy monitoring device
 
 [![GitHub Release][releases-shield]][releases]
-[![Tests][tests-shield]][tests]
-[![Code Coverage][coverage-shield]][coverage]
 [![BuyMeCoffee][buymecoffee-shield]][buymecoffee]
 [![Community Forum][forum-shield]][forum]
+
+[![Tests][tests-shield]][tests]
+[![Code Coverage][coverage-shield]][coverage]
+[![Downloads][downloads-shield]][downloads]
 
 _This project is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by 4-noks / Astrel Group_
 
@@ -219,3 +221,5 @@ _If you like this integration, I'll gladly accept some quality coffee, but pleas
 [tests]: https://github.com/alexdelprete/ha-4noks-elios4you/actions/workflows/test.yml
 [coverage-shield]: https://img.shields.io/codecov/c/github/alexdelprete/ha-4noks-elios4you?style=for-the-badge
 [coverage]: https://codecov.io/gh/alexdelprete/ha-4noks-elios4you
+[downloads-shield]: https://img.shields.io/github/downloads/alexdelprete/ha-4noks-elios4you/total?style=for-the-badge
+[downloads]: https://github.com/alexdelprete/ha-4noks-elios4you/releases
