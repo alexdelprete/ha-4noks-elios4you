@@ -136,6 +136,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         assert sensor._key == "produced_power"
@@ -156,6 +157,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         expected_id = f"{DOMAIN}_{TEST_SERIAL_NUMBER}_produced_power"
@@ -173,6 +175,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         assert sensor.native_value == 2.5
@@ -190,6 +193,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         assert sensor.native_value is None
@@ -204,6 +208,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         assert sensor.native_unit_of_measurement == UnitOfPower.KILO_WATT
@@ -218,6 +223,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         assert sensor.icon == "mdi:solar-power-variant-outline"
@@ -232,6 +238,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         assert sensor.device_class == SensorDeviceClass.POWER
@@ -246,6 +253,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         assert sensor.state_class == SensorStateClass.MEASUREMENT
@@ -260,6 +268,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         assert sensor.entity_category is None
@@ -274,6 +283,7 @@ class TestSensorEntity:
             None,  # No device_class
             None,  # No state_class
             None,  # No unit
+            True,  # enabled_default
         )
 
         assert sensor.entity_category == EntityCategory.DIAGNOSTIC
@@ -288,6 +298,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         assert sensor.should_poll is False
@@ -302,6 +313,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         assert sensor.state_attributes is None
@@ -316,6 +328,7 @@ class TestSensorEntity:
             SensorDeviceClass.POWER,
             SensorStateClass.MEASUREMENT,
             UnitOfPower.KILO_WATT,
+            True,  # enabled_default
         )
 
         device_info = sensor.device_info
@@ -340,6 +353,7 @@ class TestSensorEntity:
             None,
             None,
             None,
+            True,  # enabled_default
         )
         sensor.async_write_ha_state = MagicMock()
 
@@ -364,6 +378,7 @@ class TestSensorTypes:
             sensor_def["device_class"],
             sensor_def["state_class"],
             sensor_def["unit"],
+            sensor_def.get("enabled_default", True),
         )
 
         assert sensor.device_class == SensorDeviceClass.POWER
@@ -382,6 +397,7 @@ class TestSensorTypes:
             sensor_def["device_class"],
             sensor_def["state_class"],
             sensor_def["unit"],
+            sensor_def.get("enabled_default", True),
         )
 
         assert sensor.device_class == SensorDeviceClass.ENERGY
@@ -400,6 +416,7 @@ class TestSensorTypes:
             sensor_def["device_class"],
             sensor_def["state_class"],
             sensor_def["unit"],
+            sensor_def.get("enabled_default", True),
         )
 
         assert sensor.device_class is None

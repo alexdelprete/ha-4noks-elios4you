@@ -48,7 +48,7 @@ class TestCoordinatorInit:
             },
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI"):
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI"):
             coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         assert coordinator.conf_name == TEST_NAME
@@ -70,7 +70,7 @@ class TestCoordinatorInit:
             options={},
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI"):
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI"):
             coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         assert coordinator.scan_interval == 90
@@ -89,7 +89,7 @@ class TestCoordinatorInit:
             },
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI"):
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI"):
             coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         assert coordinator.scan_interval == MIN_SCAN_INTERVAL
@@ -106,7 +106,7 @@ class TestCoordinatorInit:
             options={},
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI"):
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI"):
             coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         assert coordinator.scan_interval == DEFAULT_SCAN_INTERVAL
@@ -125,7 +125,7 @@ class TestCoordinatorInit:
             },
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
             coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         mock_api_class.assert_called_once_with(
@@ -155,7 +155,7 @@ class TestCoordinatorUpdate:
             },
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(return_value=True)
 
@@ -181,7 +181,7 @@ class TestCoordinatorUpdate:
             },
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(
                 side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
@@ -209,7 +209,7 @@ class TestCoordinatorUpdate:
             },
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(side_effect=TelnetCommandError("@dat"))
 
@@ -233,7 +233,7 @@ class TestCoordinatorUpdate:
             },
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(side_effect=Exception("Unknown error"))
 
@@ -257,7 +257,7 @@ class TestCoordinatorUpdate:
             },
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI") as mock_api_class:
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(return_value=True)
 
@@ -287,7 +287,7 @@ class TestCoordinatorName:
             unique_id=TEST_SERIAL_NUMBER,
         )
 
-        with patch("custom_components.4noks_elios4you.coordinator.Elios4YouAPI"):
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI"):
             coordinator = Elios4YouCoordinator(mock_hass, entry)
 
         assert DOMAIN in coordinator.name

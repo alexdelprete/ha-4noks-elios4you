@@ -214,3 +214,21 @@ class MockConfigEntry(config_entries.ConfigEntry):
             unique_id=unique_id or TEST_SERIAL_NUMBER,
             version=version,
         )
+        self._hass = None
+
+    def add_to_hass(self, hass) -> None:
+        """Add config entry to Home Assistant."""
+        self._hass = hass
+        hass.config_entries._entries[self.entry_id] = self
+        if self.domain not in hass.data:
+            hass.data[self.domain] = {}
+
+    @property
+    def runtime_data(self):
+        """Return runtime data."""
+        return getattr(self, "_runtime_data", None)
+
+    @runtime_data.setter
+    def runtime_data(self, value):
+        """Set runtime data."""
+        self._runtime_data = value
