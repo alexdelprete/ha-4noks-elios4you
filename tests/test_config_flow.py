@@ -6,7 +6,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 from __future__ import annotations
 
 import importlib
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 
@@ -474,6 +474,9 @@ class TestAsyncStepUserDirect:
         flow = Elios4YouConfigFlow()
         flow.hass = mock_hass
         flow.context = {"source": config_entries.SOURCE_USER}
+        # Mock unique_id methods to prevent AbortFlow
+        flow.async_set_unique_id = AsyncMock()
+        flow._abort_if_unique_id_configured = MagicMock()
 
         with patch.object(_elios4you_config_flow, "Elios4YouAPI", autospec=True) as mock_api_class:
             mock_api = mock_api_class.return_value
@@ -678,9 +681,11 @@ class TestOptionsFlowDirect:
         mock_entry = self._create_mock_config_entry()
 
         flow = Elios4YouOptionsFlow()
-        flow.config_entry = mock_entry
-
-        result = await flow.async_step_init(None)
+        # Use PropertyMock to mock the read-only config_entry property
+        with patch.object(
+            type(flow), "config_entry", new_callable=PropertyMock, return_value=mock_entry
+        ):
+            result = await flow.async_step_init(None)
 
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "init"
@@ -690,14 +695,15 @@ class TestOptionsFlowDirect:
         mock_entry = self._create_mock_config_entry()
 
         flow = Elios4YouOptionsFlow()
-        flow.config_entry = mock_entry
-
-        new_scan_interval = 120
-        result = await flow.async_step_init(
-            {
-                CONF_SCAN_INTERVAL: new_scan_interval,
-            }
-        )
+        with patch.object(
+            type(flow), "config_entry", new_callable=PropertyMock, return_value=mock_entry
+        ):
+            new_scan_interval = 120
+            result = await flow.async_step_init(
+                {
+                    CONF_SCAN_INTERVAL: new_scan_interval,
+                }
+            )
 
         assert result["type"] == FlowResultType.CREATE_ENTRY
         assert result["data"] == {
@@ -715,9 +721,10 @@ class TestOptionsFlowDirect:
         mock_entry.options = {}  # No options set
 
         flow = Elios4YouOptionsFlow()
-        flow.config_entry = mock_entry
-
-        result = await flow.async_step_init(None)
+        with patch.object(
+            type(flow), "config_entry", new_callable=PropertyMock, return_value=mock_entry
+        ):
+            result = await flow.async_step_init(None)
 
         assert result["type"] == FlowResultType.FORM
         # Default value should be used in form schema
@@ -727,9 +734,10 @@ class TestOptionsFlowDirect:
         mock_entry = self._create_mock_config_entry()
 
         flow = Elios4YouOptionsFlow()
-        flow.config_entry = mock_entry
-
-        result = await flow.async_step_init(None)
+        with patch.object(
+            type(flow), "config_entry", new_callable=PropertyMock, return_value=mock_entry
+        ):
+            result = await flow.async_step_init(None)
 
         assert result["type"] == FlowResultType.FORM
         # The schema should include the scan interval field with constraints
@@ -776,6 +784,9 @@ class TestEdgeCases:
         flow = Elios4YouConfigFlow()
         flow.hass = mock_hass
         flow.context = {"source": config_entries.SOURCE_USER}
+        # Mock unique_id methods to prevent AbortFlow
+        flow.async_set_unique_id = AsyncMock()
+        flow._abort_if_unique_id_configured = MagicMock()
 
         # Valid new host should work even if existing entry has None host
         with patch.object(_elios4you_config_flow, "Elios4YouAPI", autospec=True) as mock_api_class:

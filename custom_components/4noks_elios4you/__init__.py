@@ -87,7 +87,8 @@ async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
 ) -> bool:
     """Delete device if not entities."""
-    if DOMAIN in device_entry.identifiers:
+    # identifiers is a set of tuples like {("domain", "id")} - check if any tuple has DOMAIN
+    if any(identifier[0] == DOMAIN for identifier in device_entry.identifiers):
         log_error(
             _LOGGER,
             "async_remove_config_entry_device",
