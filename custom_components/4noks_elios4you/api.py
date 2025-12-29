@@ -219,23 +219,25 @@ class Elios4YouAPI:
 
     async def _async_read_until(
         self,
-        separator: bytes,
+        separator: str,
         timeout: float,
-    ) -> bytes:
+    ) -> str:
         """Async read until separator found or timeout.
 
         telnetlib3 provides stream-based I/O without built-in read_until,
         so we implement our own async version.
 
+        Note: telnetlib3 works with strings (not bytes) - it handles encoding internally.
+
         Args:
-            separator: Bytes sequence to wait for (e.g., b"ready...")
+            separator: String sequence to wait for (e.g., "ready...")
             timeout: Maximum seconds to wait
 
         Returns:
             Buffer containing data up to and including separator,
             or partial data if timeout/EOF occurs.
         """
-        buffer = b""
+        buffer = ""
         loop = asyncio.get_event_loop()
         end_time = loop.time() + timeout
 
@@ -280,6 +282,8 @@ class Elios4YouAPI:
 
         This replaces the synchronous telnet_get_data() method.
 
+        Note: telnetlib3 works with strings (not bytes) - it handles encoding internally.
+
         Args:
             cmd: Command to send (e.g., "@dat", "@sta", "@inf", "@rel")
 
@@ -288,21 +292,18 @@ class Elios4YouAPI:
         """
         try:
             cmd_main = cmd[0:4].lower()
-            separator = b"ready..."
+            separator = "ready..."
 
             log_debug(_LOGGER, "_async_send_command", "Sending command", cmd=cmd)
 
-            # Send command with newline
-            cmd_bytes = (cmd.lower() + "\n").encode("utf-8")
-            self._writer.write(cmd_bytes)
+            # Send command with newline (telnetlib3 expects strings, not bytes)
+            self._writer.write(cmd.lower() + "\n")
             await self._writer.drain()
 
             # Read until separator
             log_debug(_LOGGER, "_async_send_command", "Waiting for response")
-            response_bytes = await self._async_read_until(separator, self._timeout)
+            response = await self._async_read_until(separator, self._timeout)
 
-            # Decode response
-            response = response_bytes.decode("utf-8", errors="replace")
             log_debug(
                 _LOGGER,
                 "_async_send_command",
