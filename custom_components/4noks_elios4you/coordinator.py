@@ -33,9 +33,9 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize data update coordinator."""
         # get parameters from user config
-        self.conf_name = config_entry.data.get(CONF_NAME)
-        self.conf_host = config_entry.data.get(CONF_HOST)
-        self.conf_port = int(config_entry.data.get(CONF_PORT, 5001))
+        self.conf_name: str = str(config_entry.data.get(CONF_NAME, ""))
+        self.conf_host: str = str(config_entry.data.get(CONF_HOST, ""))
+        self.conf_port: int = int(config_entry.data.get(CONF_PORT, 5001))
         # Read from options first (v2), fall back to data for migration compatibility (v1)
         self.scan_interval = config_entry.options.get(
             CONF_SCAN_INTERVAL,
@@ -58,7 +58,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=f"{DOMAIN} ({config_entry.unique_id})",
-            update_method=self.async_update_data,
+            update_method=self.async_update_data,  # type: ignore[arg-type]
             update_interval=update_interval,
         )
 

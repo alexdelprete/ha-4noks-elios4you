@@ -9,7 +9,7 @@ import logging
 import socket
 import time
 
-import telnetlib3  # type: ignore[import-not-found]
+import telnetlib3  # type: ignore[import-untyped]
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError

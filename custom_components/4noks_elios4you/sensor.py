@@ -44,17 +44,18 @@ async def async_setup_entry(
 
     sensors = []
     for sensor in SENSOR_ENTITIES:
-        if coordinator.api.data[sensor["key"]] is not None:
+        sensor_def: dict[str, Any] = sensor
+        if coordinator.api.data[sensor_def["key"]] is not None:
             sensors.append(
                 Elios4YouSensor(
                     coordinator,
-                    sensor["name"],
-                    sensor["key"],
-                    sensor["icon"],
-                    sensor["device_class"],
-                    sensor["state_class"],
-                    sensor["unit"],
-                    sensor["enabled_default"],
+                    sensor_def["name"],
+                    sensor_def["key"],
+                    sensor_def["icon"],
+                    sensor_def["device_class"],
+                    sensor_def["state_class"],
+                    sensor_def["unit"],
+                    sensor_def["enabled_default"],
                 )
             )
 
@@ -163,7 +164,6 @@ class Elios4YouSensor(CoordinatorEntity[Elios4YouCoordinator], SensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device specific attributes."""
         return DeviceInfo(
-            configuration_url=None,
             hw_version=self._device_hwver,
             identifiers={(DOMAIN, self._device_sn)},
             manufacturer=self._device_manufact,
@@ -171,5 +171,4 @@ class Elios4YouSensor(CoordinatorEntity[Elios4YouCoordinator], SensorEntity):
             name=self._device_name,
             serial_number=self._device_sn,
             sw_version=self._device_swver,
-            via_device=None,
         )

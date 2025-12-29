@@ -61,7 +61,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         name: str,
         key: str,
         icon: str,
-        device_class: SwitchDeviceClass,
+        device_class: SwitchDeviceClass | str,
     ) -> None:
         """Initialize the switch."""
         super().__init__(coordinator)
@@ -70,13 +70,13 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         self._icon = icon
         self._device_class = device_class
         self._is_on = self._coordinator.api.data["relay_state"]
-        self._device_name = self._coordinator.api.name
+        self._device_name: str = str(self._coordinator.api.name)
         self._device_host = self._coordinator.api.host
-        self._device_model = self._coordinator.api.data["model"]
-        self._device_manufact = self._coordinator.api.data["manufact"]
-        self._device_sn = self._coordinator.api.data["sn"]
-        self._device_swver = self._coordinator.api.data["swver"]
-        self._device_hwver = self._coordinator.api.data["hwver"]
+        self._device_model: str = str(self._coordinator.api.data["model"])
+        self._device_manufact: str = str(self._coordinator.api.data["manufact"])
+        self._device_sn: str = str(self._coordinator.api.data["sn"])
+        self._device_swver: str = str(self._coordinator.api.data["swver"])
+        self._device_hwver: str = str(self._coordinator.api.data["hwver"])
         # Use translation key for entity name (translations in translations/*.json)
         self._attr_translation_key = key
         log_debug(
@@ -162,7 +162,6 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
     def device_info(self) -> DeviceInfo:
         """Return device specific attributes."""
         return DeviceInfo(
-            configuration_url=None,
             hw_version=self._device_hwver,
             identifiers={(DOMAIN, self._device_sn)},
             manufacturer=self._device_manufact,
@@ -170,5 +169,4 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
             name=self._device_name,
             serial_number=self._device_sn,
             sw_version=self._device_swver,
-            via_device=None,
         )
