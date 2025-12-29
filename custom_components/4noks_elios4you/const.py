@@ -28,8 +28,8 @@ MIN_PORT = 1
 MAX_PORT = 65535
 CONN_TIMEOUT = 5
 # Retry configuration for transient failures
-COMMAND_RETRY_COUNT: int = 2  # Retry each command up to 2 times
-COMMAND_RETRY_DELAY: float = 0.1  # 100ms delay between retries
+COMMAND_RETRY_COUNT: int = 3  # Retry each command up to 3 times
+COMMAND_RETRY_DELAY: float = 0.3  # 300ms delay between retries
 MANUFACTURER = "4-noks"
 MODEL = "Elios4you"
 STARTUP_MESSAGE = f"""
