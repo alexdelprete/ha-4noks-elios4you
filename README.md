@@ -29,6 +29,16 @@ So finally here we are with the first official version of the HA custom integrat
 - Configuration options: Name, hostname, tcp port, polling period
 - Reconfigure options (except device name) also at runtime: no restart needed.
 
+### Technical Architecture
+
+This integration uses a fully async telnet implementation via `telnetlib3` to communicate with the Elios4you device:
+
+- **Async I/O**: All telnet operations are fully async, preventing Home Assistant event loop blocking
+- **Connection Pooling**: Connections are reused for up to 25 seconds to prevent socket exhaustion on the embedded device
+- **Command Retry**: Failed commands are retried up to 3 times with 300ms delay for resilience
+- **Race Condition Prevention**: `asyncio.Lock` serializes all telnet operations between polling and switch commands
+- **Graceful Error Handling**: Custom exceptions (`TelnetConnectionError`, `TelnetCommandError`) provide clear error context
+
 # Installation through HACS
 
 This integration is available in [HACS][hacs] official repository. Click this button to open HA directly on the integration page so you can easily install it:

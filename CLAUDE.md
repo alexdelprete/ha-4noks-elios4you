@@ -141,6 +141,145 @@ All commands must pass without errors before committing.
 
 # Release History
 
+## v0.4.0-beta.1 - Migrate to telnetlib3 Async Client
+
+**Date:** December 29, 2025
+**Claude Model:** Opus 4.5 (claude-opus-4-5-20251101)
+**Development Tool:** Claude Code (VSCode Extension)
+
+---
+
+### Overview
+
+This release migrates from bundled synchronous `telnetlib` to `telnetlib3` async client. This eliminates event loop blocking during telnet I/O operations, ensuring Home Assistant remains responsive during polling cycles.
+
+### Problem Identified
+
+**Symptoms:**
+- `read_until()` blocked the event loop for up to 5 seconds per command
+- Other integrations, automations, and UI updates would freeze during telnet I/O
+- Home Assistant responsiveness degraded during polling cycles
+
+**Root Cause:**
+The bundled synchronous `telnetlib.Telnet` class performs blocking I/O. Even though `async_get_data()` was marked as `async`, the internal `telnet_get_data()` method called synchronous `read_until()`, which blocked the entire event loop.
+
+### Solution Implemented
+
+**Full Async Migration:**
+
+1. **Replaced bundled telnetlib with telnetlib3** - Using `telnetlib3.open_connection()` for async streams
+2. **New `_async_read_until()` method** - Custom async read-until-separator helper for stream-based reading
+3. **New `_async_send_command()` method** - Replaces sync `telnet_get_data()` with fully async implementation
+4. **Converted connection methods to async** - `_ensure_connected()`, `_safe_close()`, `close()` are now async
+5. **Removed E4Utelnet class** - No longer needed with native telnetlib3 usage
+6. **Deleted bundled telnetlib** - 672 lines of legacy code removed
+
+### Migration Summary
+
+| Component | Before (Sync) | After (Async) |
+|-----------|---------------|---------------|
+| Import | `from .telnetlib import Telnet` | `import telnetlib3` |
+| Client | `E4Utelnet()` class | `reader, writer` tuple |
+| Connect | `E4Uclient.open()` | `await telnetlib3.open_connection()` |
+| Write | `E4Uclient.write()` | `writer.write(); await writer.drain()` |
+| Read | `E4Uclient.read_until()` | `await _async_read_until()` |
+| Close | `E4Uclient.close()` | `await writer.wait_closed()` |
+| Is Open | `E4Uclient.is_open()` | `writer is not None and not writer.is_closing()` |
+
+### Preserved Features
+
+All existing functionality preserved:
+- ✅ Connection pooling (25-second reuse window)
+- ✅ Command retry logic (3 retries, 300ms delay)
+- ✅ Race condition prevention via asyncio.Lock
+- ✅ Silent timeout detection
+- ✅ Same exception handling (TelnetConnectionError, TelnetCommandError)
+
+### Files Modified
+
+1. **`api.py`** - Major rewrite (~80% of file)
+   - Removed `E4Utelnet` class
+   - Added `_async_read_until()`, `_async_send_command()` methods
+   - Converted `_ensure_connected()`, `_safe_close()`, `close()` to async
+   - Updated `_get_data_with_retry()` to use `_async_send_command()`
+   - Updated `async_get_data()` and `telnet_set_relay()` with await calls
+2. **`__init__.py`** - Updated to `await` async `close()` method
+3. **`const.py`** - Version bump to 0.4.0-beta.1
+4. **`manifest.json`** - Version bump to 0.4.0-beta.1
+5. **`telnetlib/__init__.py`** - **Deleted** (bundled sync telnetlib no longer needed)
+
+### Development Approach
+
+**Analysis Phase:**
+- Identified event loop blocking from sync `read_until()`
+- Researched async telnet alternatives (telnetlib3, aiotelnet, asyncio-telnet)
+- Chose telnetlib3 (already a dependency, actively maintained, stable)
+
+**Implementation Phase:**
+1. Created migration plan (`idempotent-tickling-crown.md`)
+2. Rewrote api.py with async telnetlib3 client
+3. Added `_async_read_until()` helper for stream-based reading
+4. Converted all connection methods to async
+5. Updated `__init__.py` for async close
+6. Deleted bundled telnetlib directory
+7. Validated with ruff (100% compliance)
+
+**Quality Assurance:**
+- Net reduction of 680 lines (+194 / -874)
+- Removed 672 lines of bundled telnetlib
+- 100% Ruff compliance maintained
+
+### Pattern: Async Telnet with telnetlib3
+
+```python
+import telnetlib3
+
+class Elios4YouAPI:
+    def __init__(self, ...):
+        self._reader: asyncio.StreamReader | None = None
+        self._writer: asyncio.StreamWriter | None = None
+        self._connection_lock = asyncio.Lock()
+
+    async def _ensure_connected(self) -> None:
+        self._reader, self._writer = await asyncio.wait_for(
+            telnetlib3.open_connection(self._host, self._port),
+            timeout=self._timeout,
+        )
+
+    async def _async_read_until(self, separator: bytes, timeout: float) -> bytes:
+        buffer = b""
+        end_time = asyncio.get_event_loop().time() + timeout
+        while separator not in buffer:
+            remaining = end_time - asyncio.get_event_loop().time()
+            if remaining <= 0:
+                return buffer
+            chunk = await asyncio.wait_for(self._reader.read(1024), timeout=remaining)
+            if not chunk:
+                return buffer
+            buffer += chunk
+        return buffer
+
+    async def _async_send_command(self, cmd: str) -> dict | None:
+        self._writer.write((cmd + "\n").encode("utf-8"))
+        await self._writer.drain()
+        response = await self._async_read_until(b"ready...", self._timeout)
+        # Parse response...
+```
+
+### Testing Recommendations
+
+1. **Basic connectivity** - Verify connection establishes
+2. **Data reading** - Verify @dat, @sta, @inf return correct data
+3. **Relay control** - Test ON/OFF commands
+4. **Timeout handling** - Disconnect device, verify timeout/retry
+5. **Connection reuse** - Verify 25-second pooling still works
+6. **Long-term stability** - Run for 24+ hours
+7. **HA responsiveness** - Verify UI remains responsive during polling
+
+**Full Release Notes:** [docs/releases/v0.4.0-beta.1.md](docs/releases/v0.4.0-beta.1.md)
+
+---
+
 ## v0.3.0-beta.1 - Connection Pooling Fix
 
 **Date:** December 29, 2025

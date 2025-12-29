@@ -11,6 +11,81 @@ No unreleased changes at this time.
 
 ---
 
+## [0.4.0-beta.1] - 2025-12-29
+
+🔧 **Beta Release** - Migrate to telnetlib3 async client
+
+### ♻️ Major Architecture Changes
+
+- **Migrated to telnetlib3 Async Client** ⭐ MOST IMPORTANT - Replaced bundled synchronous telnetlib with telnetlib3 for fully async I/O operations. This prevents blocking the Home Assistant event loop during telnet operations.
+
+### 🐛 Problem Solved
+
+**Before (Sync Blocking):**
+- `read_until()` could block the event loop for up to 5 seconds per command
+- Other integrations, automations, and UI updates would freeze during telnet I/O
+- Home Assistant responsiveness degraded during polling cycles
+
+**After (Async Non-Blocking):**
+- All telnet I/O operations yield control to the event loop
+- Other tasks run while waiting for device responses
+- Home Assistant remains responsive during polling
+
+### ✨ New Methods
+
+- **`_async_read_until()`** - Custom async read-until-separator helper for stream-based reading
+- **`_async_send_command()`** - Fully async command execution (replaces sync `telnet_get_data()`)
+- **`async _ensure_connected()`** - Async connection pooling with timeout
+- **`async _safe_close()`** - Async graceful connection cleanup
+- **`async close()`** - Public async close method
+
+### 📦 Files Changed
+
+- `custom_components/4noks_elios4you/api.py` - Major rewrite (~80% of file)
+  - Removed `E4Utelnet` class (no longer needed)
+  - Added async telnetlib3 client (reader/writer streams)
+  - All I/O operations now fully async
+- `custom_components/4noks_elios4you/__init__.py` - Updated to `await` async `close()` method
+- `custom_components/4noks_elios4you/const.py` - Version bump to 0.4.0-beta.1
+- `custom_components/4noks_elios4you/manifest.json` - Version bump to 0.4.0-beta.1
+- `custom_components/4noks_elios4you/telnetlib/__init__.py` - **Deleted** (bundled sync telnetlib no longer needed)
+
+### 🔄 Migration Summary
+
+| Component | Before (Sync) | After (Async) |
+|-----------|---------------|---------------|
+| Import | `from .telnetlib import Telnet` | `import telnetlib3` |
+| Client | `E4Utelnet()` class | `reader, writer` tuple |
+| Connect | `E4Uclient.open()` | `await telnetlib3.open_connection()` |
+| Write | `E4Uclient.write()` | `writer.write(); await writer.drain()` |
+| Read | `E4Uclient.read_until()` | `await _async_read_until()` |
+| Close | `E4Uclient.close()` | `await writer.wait_closed()` |
+
+### ✅ Preserved Features
+
+All existing functionality is preserved:
+- ✅ Connection pooling (25-second reuse window)
+- ✅ Command retry logic (3 retries, 300ms delay)
+- ✅ Race condition prevention via asyncio.Lock
+- ✅ Silent timeout detection
+- ✅ Same exception handling (TelnetConnectionError, TelnetCommandError)
+
+### ✅ Code Quality
+
+- 100% Ruff compliance maintained
+- Net reduction of 680 lines (+194 / -874)
+- Removed bundled telnetlib (672 lines)
+
+### ⚠️ Breaking Changes
+
+**None**. This is an internal refactor with full backward compatibility.
+
+**Full Release Notes:** [docs/releases/v0.4.0-beta.1.md](docs/releases/v0.4.0-beta.1.md)
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.3.0-beta.1...v0.4.0-beta.1
+
+---
+
 ## [0.3.0-beta.1] - 2025-12-29
 
 🔧 **Beta Release** - Fix device "deaf" issue with connection pooling
@@ -356,7 +431,8 @@ Initial release of the 4-noks Elios4you integration.
 
 ---
 
-[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.3.0-beta.1...HEAD
+[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.1...HEAD
+[0.4.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.3.0-beta.1...v0.4.0-beta.1
 [0.3.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0...v0.3.0-beta.1
 [0.2.0]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.1.0...v0.2.0
 [0.2.0-beta.3]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.2...v0.2.0-beta.3
