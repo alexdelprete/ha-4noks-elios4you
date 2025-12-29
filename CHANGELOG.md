@@ -11,6 +11,79 @@ No unreleased changes at this time.
 
 ---
 
+## [0.3.0-beta.1] - 2025-12-29
+
+🔧 **Beta Release** - Fix device "deaf" issue with connection pooling
+
+### 🐛 Critical Bug Fixes
+
+- **Fixed Device "Deaf" Issue** ⭐ MOST IMPORTANT - Implemented connection pooling to prevent socket exhaustion that caused device to become unresponsive 50-60 times/day
+- **Fixed Socket Exhaustion** - Eliminated double socket usage (check_port + connection) per poll cycle
+- **Fixed TIME_WAIT Accumulation** - Connection reuse prevents socket backlog on embedded device
+- **Fixed Silent Timeouts** - Added detection for incomplete responses in `telnet_get_data()`
+- **Fixed Global Timeout Mutation** - Changed `socket.setdefaulttimeout()` to socket-specific `settimeout()`
+- **Fixed Race Conditions** - Added `asyncio.Lock` to serialize telnet operations between polling and switch commands
+
+### ✨ New Features
+
+- **Connection Pooling** - Reuse existing telnet connections for up to 25 seconds
+- **Graceful Connection Close** - New `_safe_close()` method with proper buffer draining and TCP shutdown
+- **Connection Health Checks** - New `_is_connection_valid()` method validates connection before reuse
+
+### ♻️ Architecture Improvements
+
+- **Removed Redundant Update Listener** - Aligned with ha-sinapsi-alfa by removing manual `async_on_unload(add_update_listener())` - `OptionsFlowWithReload` handles this automatically
+- **New Connection Management Methods**:
+  - `_is_connection_valid()` - Check if existing connection can be reused
+  - `_safe_close()` - Graceful close with buffer drain
+  - `_ensure_connected()` - Open connection only if needed
+- **Refactored `async_get_data()`** - Uses connection lock and pooling, no longer calls `check_port()` separately
+- **Refactored `telnet_set_relay()`** - Uses same connection lock to prevent race conditions with polling
+
+### ✅ Code Quality
+
+- 100% Ruff compliance maintained
+- Fixed SIM105 linting errors by using `contextlib.suppress()` instead of try-except-pass patterns
+- Import optimization with `contextlib` module
+
+### 📝 Technical Details
+
+**Root Cause Analysis:**
+The device became "deaf" due to socket exhaustion on the embedded Elios4You device. Each poll cycle opened 2 sockets (check_port + connection), creating ~120 sockets/hour with 30-second polling. Combined with 2-minute TIME_WAIT persistence, this overwhelmed the device's limited socket backlog.
+
+**Solution:**
+- Eliminated redundant `check_port()` call before each connection
+- Implemented 25-second connection reuse window
+- Added asyncio.Lock to serialize all telnet operations
+- Added graceful socket shutdown with buffer draining
+- Added silent timeout detection for incomplete responses
+
+**Expected Results:**
+| Metric | Before | After |
+|--------|--------|-------|
+| Sockets per poll | 2 | 0-1 (reuse) |
+| TIME_WAIT accumulation | 120/hour | ~2/hour |
+| Race condition risk | High | None (locked) |
+| Device "deaf" events | 50-60/day | ~0 |
+
+### 📦 Files Changed
+
+- `custom_components/4noks_elios4you/api.py` - Connection pooling implementation
+- `custom_components/4noks_elios4you/__init__.py` - Removed redundant update listener
+- `custom_components/4noks_elios4you/const.py` - Version bump
+- `custom_components/4noks_elios4you/manifest.json` - Version bump
+- `.gitignore` - Added build/ directory
+
+### ⚠️ Breaking Changes
+
+**None**. This is a bug fix release with full backward compatibility.
+
+**Full Release Notes:** [docs/releases/v0.3.0-beta.1.md](docs/releases/v0.3.0-beta.1.md)
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0...v0.3.0-beta.1
+
+---
+
 ## [0.2.0] - 2025-10-15
 
 🎉 **Official Stable Release** - Comprehensive code quality improvements and bug fixes
@@ -283,7 +356,8 @@ Initial release of the 4-noks Elios4you integration.
 
 ---
 
-[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.3.0-beta.1...HEAD
+[0.3.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0...v0.3.0-beta.1
 [0.2.0]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.1.0...v0.2.0
 [0.2.0-beta.3]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.2...v0.2.0-beta.3
 [0.2.0-beta.2]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0-beta.1...v0.2.0-beta.2

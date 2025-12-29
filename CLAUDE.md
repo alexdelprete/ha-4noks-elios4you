@@ -141,6 +141,113 @@ All commands must pass without errors before committing.
 
 # Release History
 
+## v0.3.0-beta.1 - Connection Pooling Fix
+
+**Date:** December 29, 2025
+**Claude Model:** Opus 4.5 (claude-opus-4-5-20251101)
+**Development Tool:** Claude Code (VSCode Extension)
+
+---
+
+### Overview
+
+This beta release addresses a critical runtime issue where the Elios4You device becomes "deaf" (unresponsive to telnet commands) 50-60 times per day. The fix implements connection pooling to prevent socket exhaustion on the embedded device.
+
+### Problem Identified
+
+**Symptoms:**
+- Device becomes unresponsive 50-60 times per day
+- Device is pingable but telnet doesn't respond
+- All entities become stale
+- Only fix is WiFi reconnection
+
+**Root Causes (Deep Analysis):**
+1. **Socket Exhaustion** - 2 sockets per poll (check_port + connection) = ~120 sockets/hour
+2. **No Connection Reuse** - Fresh connection every 30-60 seconds
+3. **TIME_WAIT Accumulation** - Sockets linger 2 minutes, overwhelms device
+4. **Silent Timeouts** - `read_until()` returns partial data without exception
+5. **Race Conditions** - Polling + switch commands compete for single connection
+6. **Global Timeout Mutation** - `socket.setdefaulttimeout()` affects all sockets
+
+### Solution Implemented
+
+**Connection Pooling Architecture:**
+
+1. **`asyncio.Lock`** - Serializes all telnet operations (polling and switch commands)
+2. **25-second Connection Reuse** - Existing connections reused within window
+3. **`_safe_close()`** - Graceful close with buffer draining and TCP shutdown
+4. **`_is_connection_valid()`** - Validates connection before reuse
+5. **`_ensure_connected()`** - Opens connection only when needed
+6. **Silent Timeout Detection** - Detects incomplete responses in `telnet_get_data()`
+7. **Socket-Specific Timeout** - Fixed to use `sock.settimeout()` instead of global
+
+**Expected Results:**
+| Metric | Before | After |
+|--------|--------|-------|
+| Sockets per poll | 2 | 0-1 (reuse) |
+| TIME_WAIT accumulation | 120/hour | ~2/hour |
+| Race condition risk | High | None (locked) |
+| Device "deaf" events | 50-60/day | ~0 |
+
+### Other Changes
+
+- **Removed Redundant Update Listener** - Aligned with ha-sinapsi-alfa; `OptionsFlowWithReload` handles reloads automatically
+- **Fixed Ruff SIM105** - Used `contextlib.suppress()` instead of try-except-pass
+
+### Files Modified
+
+1. **`api.py`** - Major connection pooling implementation
+2. **`__init__.py`** - Removed redundant update listener
+3. **`const.py`** - Version bump to 0.3.0-beta.1
+4. **`manifest.json`** - Version bump to 0.3.0-beta.1
+5. **`.gitignore`** - Added build/ directory
+
+### Development Approach
+
+**Analysis Phase:**
+- Deep analysis of codebase for socket/connection issues
+- Compared with ha-sinapsi-alfa for patterns
+- Created detailed plan (saved at `C:\Users\aless\.claude\plans\generic-doodling-wren.md`)
+
+**Implementation Phase:**
+1. Added connection lock and tracking infrastructure
+2. Implemented connection reuse methods
+3. Refactored async_get_data() and telnet_set_relay()
+4. Fixed silent timeout detection
+5. Fixed global timeout mutation
+6. Removed redundant update listener
+
+**Quality Assurance:**
+- Ruff validation (100% compliance)
+- Fixed SIM105 linting errors with contextlib.suppress()
+
+### Lessons Learned
+
+**Socket Exhaustion on Embedded Devices:**
+- Embedded devices have limited socket backlog
+- TIME_WAIT accumulation can exhaust resources
+- Connection pooling is essential for frequent polling
+- Always use socket-specific timeouts, not global
+
+**Pattern: Connection Pooling for Telnet:**
+```python
+class Elios4YouAPI:
+    CONNECTION_REUSE_TIMEOUT: float = 25.0
+
+    def __init__(self, ...):
+        self._connection_lock = asyncio.Lock()
+        self._last_activity: float = 0.0
+
+    async def async_get_data(self) -> bool:
+        async with self._connection_lock:
+            self._ensure_connected()
+            # ... operations ...
+```
+
+**Full Release Notes:** [docs/releases/v0.3.0-beta.1.md](docs/releases/v0.3.0-beta.1.md)
+
+---
+
 ## v0.2.0 - Official Stable Release
 
 **Date:** October 15, 2025
