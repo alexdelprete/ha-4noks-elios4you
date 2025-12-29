@@ -94,15 +94,24 @@ This integration is based on and aligned with [ha-sinapsi-alfa](https://github.c
 
 ## Code Quality Standards
 
-### Pre-Push Linting (MANDATORY)
+### Pre-Push Checks (MANDATORY)
 
 Before pushing any commits, run these checks:
 
 ```bash
+# Run tests with coverage
+pytest tests/ --cov=custom_components/4noks_elios4you -v
+
 # Python formatting and linting
 ruff format .
 ruff check . --fix
 ```
+
+**Test Requirements:**
+
+- All tests must pass before pushing
+- Maintain 95%+ code coverage per file
+- Use `importlib` for numeric module imports in tests
 
 #### Running mypy locally
 
@@ -158,6 +167,90 @@ All commands must pass without errors before committing.
 ---
 
 # Release History
+
+## v0.4.0-beta.1 - Test Infrastructure & Bug Fixes
+
+**Date:** December 29, 2025
+**Claude Model:** Opus 4.5 (claude-opus-4-5-20251101)
+**Development Tool:** Claude Code (VSCode Extension)
+
+---
+
+### Test Infrastructure Added
+
+Comprehensive test suite achieving **98% code coverage** across the integration:
+
+**Test Statistics:**
+- 188 tests passing
+- 7 tests skipped (platform loading tests incompatible with numeric module prefix)
+- Coverage: 98% overall (`__init__.py` at 82% due to skipped platform tests)
+
+**Test Files Created:**
+- `tests/conftest.py` - Shared fixtures and test configuration
+- `tests/test_api.py` - API layer tests (connection, commands, errors)
+- `tests/test_config_flow.py` - Config flow, options flow, reconfigure tests
+- `tests/test_coordinator.py` - Coordinator and data update tests
+- `tests/test_init.py` - Integration lifecycle, migration, device registry tests
+- `tests/test_sensor.py` - Sensor entity tests
+- `tests/test_switch.py` - Switch entity tests
+
+**Testing Patterns Established:**
+
+1. **Numeric Module Import Workaround:**
+   ```python
+   import importlib
+   _elios4you_api = importlib.import_module("custom_components.4noks_elios4you.api")
+   ```
+
+2. **PropertyMock for Read-Only Properties:**
+   ```python
+   with patch.object(
+       type(flow), "config_entry", new_callable=PropertyMock, return_value=mock_entry
+   ):
+       result = await flow.async_step_init(None)
+   ```
+
+3. **Unique ID Mocking for Config Flow:**
+   ```python
+   flow.async_set_unique_id = AsyncMock()
+   flow._abort_if_unique_id_configured = MagicMock()
+   ```
+
+### Bug Fix: `async_remove_config_entry_device`
+
+**Problem:** The function incorrectly checked device identifiers:
+```python
+# WRONG - identifiers is a set of tuples, not strings
+if DOMAIN in device_entry.identifiers:
+```
+
+**Fix:** Proper tuple check per HA best practices:
+```python
+# CORRECT - check first element of each tuple
+if any(identifier[0] == DOMAIN for identifier in device_entry.identifiers):
+```
+
+**Reference:** [HA Integration Quality Scale - Stale Devices](https://developers.home-assistant.io/docs/core/integration-quality-scale/rules/stale-devices/)
+
+### CI/CD Enhancements
+
+**GitHub Actions Workflows:**
+- `test.yml` - Runs pytest with coverage, uploads to Codecov
+- `lint.yml` - Runs ruff format, ruff check, mypy (via symlink workaround)
+- `validate.yml` - Runs hassfest and HACS validation
+- `release.yml` - Creates ZIP on GitHub release publish
+
+**Mypy Symlink Workaround:**
+Since `4noks_elios4you` starts with a number (invalid Python module name), the lint workflow creates a symlink:
+```yaml
+- name: Create symlink for mypy
+  run: ln -s 4noks_elios4you custom_components/fournoks_elios4you
+
+- name: Run mypy
+  run: mypy custom_components/fournoks_elios4you
+```
+
+---
 
 ## v0.4.0-beta.1 - Migrate to telnetlib3 Async Client
 

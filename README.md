@@ -1,6 +1,8 @@
 # HA Custom Component for 4-noks Elios4you energy monitoring device
 
 [![GitHub Release][releases-shield]][releases]
+[![Tests][tests-shield]][tests]
+[![Code Coverage][coverage-shield]][coverage]
 [![BuyMeCoffee][buymecoffee-shield]][buymecoffee]
 [![Community Forum][forum-shield]][forum]
 
@@ -174,7 +176,30 @@ automation:
           entity_id: switch.elios4you_relay
 ```
 
-# Coffee
+## Development
+
+This project uses a comprehensive test suite with 98% code coverage:
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Run tests with coverage
+pytest tests/ --cov=custom_components/4noks_elios4you --cov-report=term-missing -v
+
+# Run linting
+ruff format .
+ruff check . --fix
+```
+
+**CI/CD Workflows:**
+
+- **Tests**: Runs pytest with coverage on every push/PR to master
+- **Lint**: Runs ruff format, ruff check, and mypy validation
+- **Validate**: Runs hassfest and HACS validation
+- **Release**: Automatically creates ZIP on GitHub release publish
+
+## Coffee
 
 _If you like this integration, I'll gladly accept some quality coffee, but please don't feel obliged._ :)
 
@@ -190,3 +215,7 @@ _If you like this integration, I'll gladly accept some quality coffee, but pleas
 [forum]: https://community.home-assistant.io/t/custom-component-4-noks-elios4you-data-integration/692883?u=alexdelprete
 [releases-shield]: https://img.shields.io/github/v/release/alexdelprete/ha-4noks-elios4you?style=for-the-badge&color=darkgreen
 [releases]: https://github.com/alexdelprete/ha-4noks-elios4you/releases
+[tests-shield]: https://img.shields.io/github/actions/workflow/status/alexdelprete/ha-4noks-elios4you/test.yml?style=for-the-badge&label=Tests
+[tests]: https://github.com/alexdelprete/ha-4noks-elios4you/actions/workflows/test.yml
+[coverage-shield]: https://img.shields.io/codecov/c/github/alexdelprete/ha-4noks-elios4you?style=for-the-badge
+[coverage]: https://codecov.io/gh/alexdelprete/ha-4noks-elios4you
