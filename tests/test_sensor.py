@@ -80,9 +80,9 @@ class TestSensorSetup:
         def async_add_entities(new_entities):
             entities.extend(new_entities)
 
-        result = await async_setup_entry(hass, entry, async_add_entities)
+        await async_setup_entry(hass, entry, async_add_entities)
 
-        assert result is True
+        # async_setup_entry returns None (HA pattern), just verify entities were created
         assert len(entities) > 0
         # Should create sensors for all defined sensor entities
         assert len(entities) == len(SENSOR_ENTITIES)

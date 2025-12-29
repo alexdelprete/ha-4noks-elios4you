@@ -265,9 +265,9 @@ class TestSwitchTurnOnOff:
         )
         switch.async_write_ha_state = MagicMock()
 
-        result = await switch.async_turn_on()
+        await switch.async_turn_on()
 
-        assert result is True
+        # async_turn_on returns None (SwitchEntity pattern), verify API was called
         mock_coordinator.api.telnet_set_relay.assert_called_once_with("on")
 
     @pytest.mark.asyncio
@@ -284,9 +284,10 @@ class TestSwitchTurnOnOff:
         )
         switch.async_write_ha_state = MagicMock()
 
-        result = await switch.async_turn_on()
+        await switch.async_turn_on()
 
-        assert result is False
+        # async_turn_on returns None (SwitchEntity pattern), verify API was called
+        mock_coordinator.api.telnet_set_relay.assert_called_once_with("on")
 
     @pytest.mark.asyncio
     async def test_async_turn_off_success(self, mock_coordinator) -> None:
@@ -302,9 +303,9 @@ class TestSwitchTurnOnOff:
         )
         switch.async_write_ha_state = MagicMock()
 
-        result = await switch.async_turn_off()
+        await switch.async_turn_off()
 
-        assert result is True
+        # async_turn_off returns None (SwitchEntity pattern), verify API was called
         mock_coordinator.api.telnet_set_relay.assert_called_once_with("off")
 
     @pytest.mark.asyncio
@@ -321,9 +322,10 @@ class TestSwitchTurnOnOff:
         )
         switch.async_write_ha_state = MagicMock()
 
-        result = await switch.async_turn_off()
+        await switch.async_turn_off()
 
-        assert result is False
+        # async_turn_off returns None (SwitchEntity pattern), verify API was called
+        mock_coordinator.api.telnet_set_relay.assert_called_once_with("off")
 
     @pytest.mark.asyncio
     async def test_turn_on_calls_coordinator_update(self, mock_coordinator) -> None:
