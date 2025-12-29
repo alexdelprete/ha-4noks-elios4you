@@ -3,8 +3,8 @@
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
-import logging
 from datetime import datetime, timedelta
+import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -36,12 +36,13 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
         self.conf_name = config_entry.data.get(CONF_NAME)
         self.conf_host = config_entry.data.get(CONF_HOST)
         self.conf_port = int(config_entry.data.get(CONF_PORT))
-        self.scan_interval = config_entry.data.get(
-            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+        # Read from options first (v2), fall back to data for migration compatibility (v1)
+        self.scan_interval = config_entry.options.get(
+            CONF_SCAN_INTERVAL,
+            config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         )
         # enforce scan_interval lower bound
-        if self.scan_interval < MIN_SCAN_INTERVAL:
-            self.scan_interval = MIN_SCAN_INTERVAL
+        self.scan_interval = max(self.scan_interval, MIN_SCAN_INTERVAL)
         # set coordinator update interval
         self.update_interval = timedelta(seconds=self.scan_interval)
         log_debug(
@@ -71,9 +72,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
             self.conf_port,
         )
 
-        log_debug(
-            _LOGGER, "__init__", "Coordinator config data", data=config_entry.data
-        )
+        log_debug(_LOGGER, "__init__", "Coordinator config data", data=config_entry.data)
         log_debug(
             _LOGGER,
             "__init__",

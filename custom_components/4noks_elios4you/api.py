@@ -3,10 +3,10 @@
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
+from datetime import datetime
 import logging
 import socket
 import sys
-from datetime import datetime
 
 from .const import CONN_TIMEOUT, MANUFACTURER, MODEL
 from .helpers import log_debug, log_error
@@ -23,9 +23,7 @@ class TelnetConnectionError(Exception):
         self.host = host
         self.port = port
         self.timeout = timeout
-        self.message = (
-            message or f"Failed to connect to {host}:{port} (timeout: {timeout}s)"
-        )
+        self.message = message or f"Failed to connect to {host}:{port} (timeout: {timeout}s)"
         super().__init__(self.message)
 
 
@@ -353,9 +351,7 @@ class Elios4YouAPI:
                 "Unexpected error during data fetch",
                 error=err,
             )
-            raise TelnetCommandError(
-                "async_get_data", f"Unexpected error: {err}"
-            ) from err
+            raise TelnetCommandError("async_get_data", f"Unexpected error: {err}") from err
         finally:
             log_debug(_LOGGER, "async_get_data", "Closing telnet connection")
             self.E4Uclient.close()
@@ -379,9 +375,7 @@ class Elios4YouAPI:
             )
 
             # send the command
-            log_debug(
-                _LOGGER, "telnet_get_data", "Sending command", time=datetime.now()
-            )
+            log_debug(_LOGGER, "telnet_get_data", "Sending command", time=datetime.now())
             # send the command
             self.E4Uclient.write(cmd_send)
 
@@ -411,9 +405,7 @@ class Elios4YouAPI:
                     time=datetime.now(),
                 )
             finally:
-                log_debug(
-                    _LOGGER, "telnet_get_data", "read_until ended", time=datetime.now()
-                )
+                log_debug(_LOGGER, "telnet_get_data", "read_until ended", time=datetime.now())
 
             # if we had a valid response we process data
             if response:
@@ -441,9 +433,7 @@ class Elios4YouAPI:
             else:
                 log_debug(_LOGGER, "telnet_get_data", "Response is None")
         except TimeoutError:
-            log_debug(
-                _LOGGER, "telnet_get_data", "read_until timed out", time=datetime.now()
-            )
+            log_debug(_LOGGER, "telnet_get_data", "read_until timed out", time=datetime.now())
         except Exception as ex:
             log_debug(_LOGGER, "telnet_get_data", "Failed with error", error=ex)
         finally:
@@ -462,9 +452,7 @@ class Elios4YouAPI:
                 return set_relay
             try:
                 rel_output = {}
-                log_debug(
-                    _LOGGER, "telnet_set_relay", "Open connection", time=datetime.now()
-                )
+                log_debug(_LOGGER, "telnet_set_relay", "Open connection", time=datetime.now())
                 # open connection ensuring previous connections are closed
                 self.E4Uclient.open(self._host, self._port, self._timeout)
 
@@ -513,9 +501,7 @@ class Elios4YouAPI:
                 else:
                     log_debug(_LOGGER, "telnet_set_relay", "rel_parsed is None")
             except TimeoutError:
-                log_debug(
-                    _LOGGER, "telnet_set_relay", "Connection or operation timed out"
-                )
+                log_debug(_LOGGER, "telnet_set_relay", "Connection or operation timed out")
                 set_relay = False
             except Exception as ex:
                 log_debug(_LOGGER, "telnet_set_relay", "Failed with error", error=ex)
@@ -534,7 +520,5 @@ class Elios4YouAPI:
             )
             set_relay = False
         # end telnet_set_relay
-        log_debug(
-            _LOGGER, "telnet_set_relay", "End telnet_set_relay", time=datetime.now()
-        )
+        log_debug(_LOGGER, "telnet_set_relay", "End telnet_set_relay", time=datetime.now())
         return set_relay

@@ -23,8 +23,8 @@ async def get_data(cmd, reader, writer):
     if response:
         # decode bytes to string using utf-8 and split each line as a list member
         lines = response.splitlines()
-        # print(f"lines {lines}")  # noqa: T201
-        # print(f"lines 1-1 {lines[1:-1]}")  # noqa: T201
+        # print(f"lines {lines}")
+        # print(f"lines 1-1 {lines[1:-1]}")
         # Exclude first two lines
         for line in lines[1:-1]:
             try:
@@ -82,7 +82,7 @@ async def main():
         print("Connection or operation timed out")  # noqa: T201
 
     except Exception as e:
-        print(f"An error occurred: {str(e)}")  # noqa: T201
+        print(f"An error occurred: {e!s}")  # noqa: T201
 
     finally:
         if not writer.transport.is_closing():

@@ -5,8 +5,8 @@ J. Reynolds
 
 Example:
 >>> from telnetlib import Telnet
->>> tn = Telnet('www.python.org', 79)   # connect to finger port
->>> tn.write(b'guido\r\n')
+>>> tn = Telnet("www.python.org", 79)  # connect to finger port
+>>> tn.write(b"guido\r\n")
 >>> print(tn.read_all())
 Login       Name               TTY         Idle    When    Where
 guido    Guido van Rossum      pts/2        <Dec  2 11:10> snag.cnri.reston..
@@ -437,8 +437,7 @@ class Telnet:
                     if c != IAC:
                         buf[self.sb] = buf[self.sb] + c
                         continue
-                    else:
-                        self.iacseq += c
+                    self.iacseq += c
                 elif len(self.iacseq) == 1:
                     # 'IAC: IAC CMD [OPTION only for WILL/WONT/DO/DONT]'
                     if c in (DO, DONT, WILL, WONT):
@@ -470,15 +469,13 @@ class Telnet:
                     self.iacseq = b""
                     opt = c
                     if cmd in (DO, DONT):
-                        self.msg("IAC %s %d", cmd == DO and "DO" or "DONT", ord(opt))
+                        self.msg("IAC %s %d", (cmd == DO and "DO") or "DONT", ord(opt))
                         if self.option_callback:
                             self.option_callback(self.sock, cmd, opt)
                         else:
                             self.sock.sendall(IAC + WONT + opt)
                     elif cmd in (WILL, WONT):
-                        self.msg(
-                            "IAC %s %d", cmd == WILL and "WILL" or "WONT", ord(opt)
-                        )
+                        self.msg("IAC %s %d", (cmd == WILL and "WILL") or "WONT", ord(opt))
                         if self.option_callback:
                             self.option_callback(self.sock, cmd, opt)
                         else:
@@ -629,8 +626,7 @@ class Telnet:
                     if not ready:
                         if timeout < 0:
                             break
-                        else:
-                            continue
+                        continue
                 self.fill_rawq()
         text = self.read_very_lazy()
         if not text and self.eof:

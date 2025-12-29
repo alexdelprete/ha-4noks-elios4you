@@ -49,11 +49,12 @@ async def async_setup_entry(
 class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
     """Switch to set the status of the Wiser Operation Mode (Away/Normal)."""
 
+    _attr_has_entity_name = True
+
     def __init__(self, coordinator, name, key, icon, device_class) -> None:
         """Initialize the switch."""
         super().__init__(coordinator)
         self._coordinator = coordinator
-        self._name = name
         self._key = key
         self._icon = icon
         self._device_class = device_class
@@ -65,12 +66,14 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         self._device_sn = self._coordinator.api.data["sn"]
         self._device_swver = self._coordinator.api.data["swver"]
         self._device_hwver = self._coordinator.api.data["hwver"]
+        # Use translation key for entity name (translations in translations/*.json)
+        self._attr_translation_key = key
         log_debug(
             _LOGGER,
             "__init__",
             "Switch initialized",
             device=self._coordinator.api.name,
-            name=self.name,
+            key=self._key,
         )
 
     async def async_force_update(self, delay: int = 0):
@@ -79,7 +82,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
             _LOGGER,
             "async_force_update",
             "Coordinator forced update initiated",
-            name=self.name,
+            key=self._key,
         )
         if delay:
             await asyncio.sleep(delay)
@@ -94,19 +97,8 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
             _LOGGER,
             "_handle_coordinator_update",
             "Switch coordinator update requested",
-            name=self.name,
+            key=self._key,
         )
-
-    # when has_entity_name is True, the resulting entity name will be: {device_name}_{self._name}
-    @property
-    def has_entity_name(self):
-        """Return the name state."""
-        return True
-
-    @property
-    def name(self):
-        """Return the name of the Device."""
-        return f"{self._name}"
 
     @property
     def icon(self):
@@ -123,8 +115,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         """Return the switch entity_category."""
         if self._device_class is SwitchDeviceClass.SWITCH:
             return EntityCategory.CONFIG
-        else:
-            return None
+        return None
 
     @property
     def unique_id(self):

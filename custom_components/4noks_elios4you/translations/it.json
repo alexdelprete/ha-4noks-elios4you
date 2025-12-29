@@ -1,0 +1,104 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurazione Connessione Elios4You",
+        "description": "Se hai bisogno di aiuto con la configurazione, visita: https://github.com/alexdelprete/ha-4noks-elios4you",
+        "data": {
+          "name": "Nome dispositivo (usato come prefisso dei sensori)",
+          "host": "IP o hostname",
+          "port": "Porta TCP",
+          "scan_interval": "Intervallo di polling (secondi)"
+        }
+      },
+      "reconfigure": {
+        "title": "Riconfigura Connessione Elios4You",
+        "description": "Aggiorna le impostazioni di connessione del dispositivo",
+        "data": {
+          "name": "Nome dispositivo (usato come prefisso dei sensori)",
+          "host": "IP o hostname",
+          "port": "Porta TCP"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Il dispositivo e gia configurato",
+      "invalid_host": "Indirizzo host non valido",
+      "cannot_connect": "Impossibile connettersi al dispositivo"
+    },
+    "abort": {
+      "already_configured": "Il dispositivo e gia configurato",
+      "reconfigure_successful": "Riconfigurazione riuscita",
+      "unique_id_mismatch": "Il numero di serie del dispositivo non corrisponde alla configurazione originale"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opzioni Elios4You",
+        "description": "Configura le opzioni di esecuzione",
+        "data": {
+          "scan_interval": "Intervallo di polling (secondi)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "produced_power": { "name": "Potenza Prodotta" },
+      "consumed_power": { "name": "Potenza Consumata" },
+      "self_consumed_power": { "name": "Potenza Autoconsumata" },
+      "bought_power": { "name": "Potenza Importata" },
+      "sold_power": { "name": "Potenza Esportata" },
+      "daily_peak": { "name": "Picco Giornaliero" },
+      "monthly_peak": { "name": "Picco Mensile" },
+      "produced_energy": { "name": "Energia Prodotta" },
+      "produced_energy_f1": { "name": "Energia Prodotta F1" },
+      "produced_energy_f2": { "name": "Energia Prodotta F2" },
+      "produced_energy_f3": { "name": "Energia Prodotta F3" },
+      "consumed_energy": { "name": "Energia Consumata" },
+      "consumed_energy_f1": { "name": "Energia Consumata F1" },
+      "consumed_energy_f2": { "name": "Energia Consumata F2" },
+      "consumed_energy_f3": { "name": "Energia Consumata F3" },
+      "self_consumed_energy": { "name": "Energia Autoconsumata" },
+      "self_consumed_energy_f1": { "name": "Energia Autoconsumata F1" },
+      "self_consumed_energy_f2": { "name": "Energia Autoconsumata F2" },
+      "self_consumed_energy_f3": { "name": "Energia Autoconsumata F3" },
+      "bought_energy": { "name": "Energia Importata" },
+      "bought_energy_f1": { "name": "Energia Importata F1" },
+      "bought_energy_f2": { "name": "Energia Importata F2" },
+      "bought_energy_f3": { "name": "Energia Importata F3" },
+      "sold_energy": { "name": "Energia Esportata" },
+      "sold_energy_f1": { "name": "Energia Esportata F1" },
+      "sold_energy_f2": { "name": "Energia Esportata F2" },
+      "sold_energy_f3": { "name": "Energia Esportata F3" },
+      "alarm_1": { "name": "Allarme 1" },
+      "alarm_2": { "name": "Allarme 2" },
+      "power_alarm": { "name": "Allarme Potenza" },
+      "pwm_mode": { "name": "Modalita PWM" },
+      "pr_ssv": { "name": "Riduttore Potenza Ssv" },
+      "rel_ssv": { "name": "Rele Ssv" },
+      "rel_mode": { "name": "Modalita Rele" },
+      "rel_warning": { "name": "Avviso Rele" },
+      "rcap": { "name": "RedCap" },
+      "fwtop": { "name": "Versione Firmware TOP" },
+      "fwbtm": { "name": "Versione Firmware BOTTOM" },
+      "sn": { "name": "Numero di Serie" },
+      "hwver": { "name": "Versione Hardware" },
+      "btver": { "name": "Versione BT" },
+      "hw_wifi": { "name": "Versione HW Wifi" },
+      "s2w_app_version": { "name": "Versione App Wifi" },
+      "s2w_geps_version": { "name": "Versione Geps Wifi" },
+      "s2w_wlan_version": { "name": "Versione Wlan Wifi" }
+    },
+    "switch": {
+      "relay_state": { "name": "Rele" }
+    }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Impossibile connettersi a {device_name}",
+      "description": "L'integrazione non riesce a connettersi al dispositivo Elios4You su {host}:{port}.\n\n**Possibili cause:**\n- Il dispositivo e spento o non connesso alla rete\n- L'indirizzo IP e cambiato\n- Un firewall sta bloccando la connessione\n- La porta Telnet non e accessibile\n\n**Per risolvere:**\n1. Verificare che il dispositivo sia acceso e connesso alla rete\n2. Controllare l'indirizzo IP nella tabella DHCP del router\n3. Se l'IP e cambiato, riconfigurare l'integrazione con il nuovo indirizzo"
+    }
+  }
+}

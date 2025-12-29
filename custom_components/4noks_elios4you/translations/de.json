@@ -1,0 +1,104 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Elios4You Verbindungskonfiguration",
+        "description": "Wenn Sie Hilfe bei der Konfiguration benotigen, besuchen Sie: https://github.com/alexdelprete/ha-4noks-elios4you",
+        "data": {
+          "name": "Geratename (wird als Sensorprafix verwendet)",
+          "host": "IP oder Hostname",
+          "port": "TCP-Port",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      },
+      "reconfigure": {
+        "title": "Elios4You Verbindung neu konfigurieren",
+        "description": "Gerateverbindungseinstellungen aktualisieren",
+        "data": {
+          "name": "Geratename (wird als Sensorprafix verwendet)",
+          "host": "IP oder Hostname",
+          "port": "TCP-Port"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Gerat ist bereits konfiguriert",
+      "invalid_host": "Ungultige Hostadresse",
+      "cannot_connect": "Verbindung zum Gerat nicht moglich"
+    },
+    "abort": {
+      "already_configured": "Gerat ist bereits konfiguriert",
+      "reconfigure_successful": "Neukonfiguration erfolgreich",
+      "unique_id_mismatch": "Die Seriennummer des Gerats stimmt nicht mit der ursprunglichen Konfiguration uberein"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Elios4You Optionen",
+        "description": "Laufzeitoptionen konfigurieren",
+        "data": {
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "produced_power": { "name": "Leistung Erzeugt" },
+      "consumed_power": { "name": "Leistung Verbraucht" },
+      "self_consumed_power": { "name": "Leistung Eigenverbraucht" },
+      "bought_power": { "name": "Leistung Import" },
+      "sold_power": { "name": "Leistung Export" },
+      "daily_peak": { "name": "Spitze Täglich" },
+      "monthly_peak": { "name": "Spitze Monatlich" },
+      "produced_energy": { "name": "Energie Erzeugt" },
+      "produced_energy_f1": { "name": "Energie Erzeugt F1" },
+      "produced_energy_f2": { "name": "Energie Erzeugt F2" },
+      "produced_energy_f3": { "name": "Energie Erzeugt F3" },
+      "consumed_energy": { "name": "Energie Verbraucht" },
+      "consumed_energy_f1": { "name": "Energie Verbraucht F1" },
+      "consumed_energy_f2": { "name": "Energie Verbraucht F2" },
+      "consumed_energy_f3": { "name": "Energie Verbraucht F3" },
+      "self_consumed_energy": { "name": "Energie Eigenverbraucht" },
+      "self_consumed_energy_f1": { "name": "Energie Eigenverbraucht F1" },
+      "self_consumed_energy_f2": { "name": "Energie Eigenverbraucht F2" },
+      "self_consumed_energy_f3": { "name": "Energie Eigenverbraucht F3" },
+      "bought_energy": { "name": "Energie Import" },
+      "bought_energy_f1": { "name": "Energie Import F1" },
+      "bought_energy_f2": { "name": "Energie Import F2" },
+      "bought_energy_f3": { "name": "Energie Import F3" },
+      "sold_energy": { "name": "Energie Export" },
+      "sold_energy_f1": { "name": "Energie Export F1" },
+      "sold_energy_f2": { "name": "Energie Export F2" },
+      "sold_energy_f3": { "name": "Energie Export F3" },
+      "alarm_1": { "name": "Alarm 1" },
+      "alarm_2": { "name": "Alarm 2" },
+      "power_alarm": { "name": "Leistungsalarm" },
+      "pwm_mode": { "name": "PWM-Modus" },
+      "pr_ssv": { "name": "Leistungsreduzierer Ssv" },
+      "rel_ssv": { "name": "Relais Ssv" },
+      "rel_mode": { "name": "Relais-Modus" },
+      "rel_warning": { "name": "Relais-Warnung" },
+      "rcap": { "name": "RedCap" },
+      "fwtop": { "name": "Firmware TOP Version" },
+      "fwbtm": { "name": "Firmware BOTTOM Version" },
+      "sn": { "name": "Seriennummer" },
+      "hwver": { "name": "Hardware-Version" },
+      "btver": { "name": "BT-Version" },
+      "hw_wifi": { "name": "Wifi HW-Version" },
+      "s2w_app_version": { "name": "Wifi App-Version" },
+      "s2w_geps_version": { "name": "Wifi Geps-Version" },
+      "s2w_wlan_version": { "name": "Wifi Wlan-Version" }
+    },
+    "switch": {
+      "relay_state": { "name": "Relais" }
+    }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Verbindung zu {device_name} nicht moglich",
+      "description": "Die Integration kann keine Verbindung zu Ihrem Elios4You-Gerat unter {host}:{port} herstellen.\n\n**Mogliche Ursachen:**\n- Das Gerat ist ausgeschaltet oder nicht mit dem Netzwerk verbunden\n- Die IP-Adresse hat sich geandert\n- Eine Firewall blockiert die Verbindung\n- Der Telnet-Port ist nicht zuganglich\n\n**Zur Losung:**\n1. Prufen Sie, ob das Gerat eingeschaltet und mit Ihrem Netzwerk verbunden ist\n2. Uberprufen Sie die IP-Adresse in der DHCP-Tabelle Ihres Routers\n3. Wenn sich die IP geandert hat, konfigurieren Sie die Integration mit der neuen Adresse neu"
+    }
+  }
+}

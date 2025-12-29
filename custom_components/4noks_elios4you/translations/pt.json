@@ -2,34 +2,103 @@
   "config": {
     "step": {
       "user": {
-        "title": "Configuração de Ligação do Elios4You",
-        "description": "Se precisar de ajuda com a configuração, visite: https://github.com/alexdelprete/ha-4noks-elios4you",
+        "title": "Configuracao de Ligacao do Elios4You",
+        "description": "Se precisar de ajuda com a configuracao, visite: https://github.com/alexdelprete/ha-4noks-elios4you",
         "data": {
           "name": "Nome personalizado do dispositivo (usado como prefixo dos sensores)",
           "host": "IP ou nome do host",
           "port": "Porta TCP",
-          "scan_interval": "Período de consulta (mín: 30s máx: 600s)"
+          "scan_interval": "Periodo de consulta (segundos)"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar Ligacao do Elios4You",
+        "description": "Atualizar definicoes de ligacao do dispositivo",
+        "data": {
+          "name": "Nome personalizado do dispositivo (usado como prefixo dos sensores)",
+          "host": "IP ou nome do host",
+          "port": "Porta TCP"
         }
       }
     },
     "error": {
-      "already_configured": "O dispositivo já está configurado"
+      "already_configured": "O dispositivo ja esta configurado",
+      "invalid_host": "Nome do host ou endereco IP invalido",
+      "cannot_connect": "Nao foi possivel ligar ao dispositivo"
     },
     "abort": {
-      "already_configured": "O dispositivo já está configurado"
+      "already_configured": "O dispositivo ja esta configurado",
+      "reconfigure_successful": "Reconfiguracao bem sucedida",
+      "unique_id_mismatch": "O numero de serie do dispositivo nao corresponde a configuracao original"
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Opções de Ligação do Elios4You",
-        "description": "Definir opções de ligação",
+        "title": "Opcoes do Elios4You",
+        "description": "Configurar opcoes de execucao",
         "data": {
-          "host": "IP ou nome do host",
-          "port": "Porta TCP",
-          "scan_interval": "Período de consulta (mín: 30s máx: 600s)"
+          "scan_interval": "Periodo de consulta (segundos)"
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "produced_power": { "name": "Potencia Produzida" },
+      "consumed_power": { "name": "Potencia Consumida" },
+      "self_consumed_power": { "name": "Potencia Autoconsumida" },
+      "bought_power": { "name": "Potencia Importada" },
+      "sold_power": { "name": "Potencia Exportada" },
+      "daily_peak": { "name": "Pico Diario" },
+      "monthly_peak": { "name": "Pico Mensal" },
+      "produced_energy": { "name": "Energia Produzida" },
+      "produced_energy_f1": { "name": "Energia Produzida F1" },
+      "produced_energy_f2": { "name": "Energia Produzida F2" },
+      "produced_energy_f3": { "name": "Energia Produzida F3" },
+      "consumed_energy": { "name": "Energia Consumida" },
+      "consumed_energy_f1": { "name": "Energia Consumida F1" },
+      "consumed_energy_f2": { "name": "Energia Consumida F2" },
+      "consumed_energy_f3": { "name": "Energia Consumida F3" },
+      "self_consumed_energy": { "name": "Energia Autoconsumida" },
+      "self_consumed_energy_f1": { "name": "Energia Autoconsumida F1" },
+      "self_consumed_energy_f2": { "name": "Energia Autoconsumida F2" },
+      "self_consumed_energy_f3": { "name": "Energia Autoconsumida F3" },
+      "bought_energy": { "name": "Energia Importada" },
+      "bought_energy_f1": { "name": "Energia Importada F1" },
+      "bought_energy_f2": { "name": "Energia Importada F2" },
+      "bought_energy_f3": { "name": "Energia Importada F3" },
+      "sold_energy": { "name": "Energia Exportada" },
+      "sold_energy_f1": { "name": "Energia Exportada F1" },
+      "sold_energy_f2": { "name": "Energia Exportada F2" },
+      "sold_energy_f3": { "name": "Energia Exportada F3" },
+      "alarm_1": { "name": "Alarme 1" },
+      "alarm_2": { "name": "Alarme 2" },
+      "power_alarm": { "name": "Alarme de Potencia" },
+      "pwm_mode": { "name": "Modo PWM" },
+      "pr_ssv": { "name": "Redutor de Potencia Ssv" },
+      "rel_ssv": { "name": "Rele Ssv" },
+      "rel_mode": { "name": "Modo Rele" },
+      "rel_warning": { "name": "Aviso Rele" },
+      "rcap": { "name": "RedCap" },
+      "fwtop": { "name": "Versao Firmware TOP" },
+      "fwbtm": { "name": "Versao Firmware BOTTOM" },
+      "sn": { "name": "Numero de Serie" },
+      "hwver": { "name": "Versao Hardware" },
+      "btver": { "name": "Versao BT" },
+      "hw_wifi": { "name": "Versao HW Wifi" },
+      "s2w_app_version": { "name": "Versao App Wifi" },
+      "s2w_geps_version": { "name": "Versao Geps Wifi" },
+      "s2w_wlan_version": { "name": "Versao Wlan Wifi" }
+    },
+    "switch": {
+      "relay_state": { "name": "Rele" }
+    }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Nao foi possivel ligar a {device_name}",
+      "description": "A integracao nao consegue ligar ao dispositivo Elios4You em {host}:{port}.\n\n**Possiveis causas:**\n- O dispositivo esta desligado ou nao ligado a rede\n- O endereco IP mudou\n- Uma firewall esta a bloquear a ligacao\n- A porta Telnet nao esta acessivel\n\n**Para resolver:**\n1. Verifique se o dispositivo esta ligado e conectado a sua rede\n2. Verifique o endereco IP na tabela DHCP do seu router\n3. Se o IP mudou, reconfigure a integracao com o novo endereco"
     }
   }
 }

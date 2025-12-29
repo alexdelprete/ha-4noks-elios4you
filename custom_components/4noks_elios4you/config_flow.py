@@ -4,18 +4,19 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
 import logging
+from typing import Any
 
 import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
-    OptionsFlow,
+    OptionsFlowWithReload,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.selector import selector
 
 from .api import Elios4YouAPI, TelnetCommandError, TelnetConnectionError
 from .const import (
@@ -27,6 +28,10 @@ from .const import (
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    MAX_PORT,
+    MAX_SCAN_INTERVAL,
+    MIN_PORT,
+    MIN_SCAN_INTERVAL,
 )
 from .helpers import host_valid, log_debug, log_error
 
@@ -34,7 +39,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 @callback
-def get_host_from_config(hass: HomeAssistant):
+def get_host_from_config(hass: HomeAssistant) -> set[str | None]:
     """Return the hosts already configured."""
     return {
         config_entry.data.get(CONF_HOST)
@@ -42,38 +47,42 @@ def get_host_from_config(hass: HomeAssistant):
     }
 
 
-class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore
+class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """4-noks Elios4You config flow."""
 
-    VERSION = 1
+    VERSION = 2
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: ConfigEntry):
+    def async_get_options_flow(config_entry: ConfigEntry) -> "Elios4YouOptionsFlow":
         """Initiate Options Flow Instance."""
-        return Elios4YouOptionsFlow(config_entry)
+        return Elios4YouOptionsFlow()
 
-    def _host_in_configuration_exists(self, host) -> bool:
+    def _host_in_configuration_exists(self, host: str | None) -> bool:
         """Return True if host exists in configuration."""
-        if host in get_host_from_config(self.hass):
-            return True
-        return False
+        return host in get_host_from_config(self.hass)
 
-    async def get_unique_id(self, name: str, host: str, port: int) -> str | bool:
-        """Return device serial number if connection is valid."""
-        log_debug(_LOGGER, "get_unique_id", "Testing connection", host=host, port=port)
+    async def _test_connection(
+        self,
+        name: str,
+        host: str,
+        port: int,
+        scan_interval: int,
+    ) -> str | bool:
+        """Test connection and return serial number or False on failure."""
+        log_debug(_LOGGER, "_test_connection", "Testing connection", host=host, port=port)
         try:
-            log_debug(_LOGGER, "get_unique_id", "Creating API Client")
-            self.api = Elios4YouAPI(self.hass, name, host, port)
-            log_debug(_LOGGER, "get_unique_id", "Fetching device data")
-            await self.api.async_get_data()
-            log_debug(_LOGGER, "get_unique_id", "Successfully retrieved device data")
-            return self.api.data["sn"]
+            log_debug(_LOGGER, "_test_connection", "Creating API Client")
+            api = Elios4YouAPI(self.hass, name, host, port)
+            log_debug(_LOGGER, "_test_connection", "Fetching device data")
+            await api.async_get_data()
+            log_debug(_LOGGER, "_test_connection", "Successfully retrieved device data")
+            return api.data["sn"]
         except (TelnetConnectionError, TelnetCommandError) as err:
             log_error(
                 _LOGGER,
-                "get_unique_id",
+                "_test_connection",
                 "Failed to connect",
                 host=host,
                 port=port,
@@ -81,36 +90,41 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore
             )
             return False
 
-    async def async_step_user(self, user_input=None) -> ConfigFlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial step."""
-        errors = {}
+        errors: dict[str, str] = {}
 
         if user_input is not None:
             name = user_input[CONF_NAME]
             host = user_input[CONF_HOST]
             port = user_input[CONF_PORT]
+            scan_interval = user_input[CONF_SCAN_INTERVAL]
 
             if self._host_in_configuration_exists(host):
-                errors[CONF_HOST] = "Device Already Configured"
-            elif not host_valid(user_input[CONF_HOST]):
-                errors[CONF_HOST] = "invalid Host IP"
+                errors[CONF_HOST] = "already_configured"
+            elif not host_valid(host):
+                errors[CONF_HOST] = "invalid_host"
             else:
-                uid = await self.get_unique_id(name, host, port)
+                uid = await self._test_connection(name, host, port, scan_interval)
                 if uid is not False:
                     log_debug(_LOGGER, "async_step_user", "Device unique ID", uid=uid)
-                    # Assign a unique ID to the flow and abort the flow
-                    # if another flow with the same unique ID is in progress
                     await self.async_set_unique_id(uid)
-
-                    # Abort the flow if a config entry with the same unique ID exists
                     self._abort_if_unique_id_configured()
+
+                    # Separate data (initial config) and options (runtime tuning)
                     return self.async_create_entry(
-                        title=user_input[CONF_NAME], data=user_input
+                        title=name,
+                        data={
+                            CONF_NAME: name,
+                            CONF_HOST: host,
+                            CONF_PORT: port,
+                        },
+                        options={
+                            CONF_SCAN_INTERVAL: scan_interval,
+                        },
                     )
-                else:
-                    errors[CONF_HOST] = (
-                        "Connection to device failed (S/N not retreived)"
-                    )
+
+                errors[CONF_HOST] = "cannot_connect"
 
         return self.async_show_form(
             step_id="user",
@@ -126,76 +140,123 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore
                     vol.Required(
                         CONF_PORT,
                         default=DEFAULT_PORT,
-                    ): vol.All(vol.Coerce(int), vol.Range(min=0, max=65535)),
+                    ): vol.All(vol.Coerce(int), vol.Clamp(min=MIN_PORT, max=MAX_PORT)),
                     vol.Required(
                         CONF_SCAN_INTERVAL,
                         default=DEFAULT_SCAN_INTERVAL,
-                    ): selector(
-                        {
-                            "number": {
-                                "min": 30,
-                                "max": 600,
-                                "step": 10,
-                                "unit_of_measurement": "s",
-                                "mode": "slider",
-                            }
-                        }
+                    ): vol.All(
+                        vol.Coerce(int),
+                        vol.Clamp(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
                     ),
                 },
             ),
             errors=errors,
         )
 
-
-class Elios4YouOptionsFlow(OptionsFlow):
-    """Config flow options handler."""
-
-    VERSION = 1
-
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize option flow instance."""
-        self.data_schema = vol.Schema(
-            {
-                vol.Required(
-                    CONF_HOST,
-                    default=config_entry.data.get(CONF_HOST),
-                ): cv.string,
-                vol.Required(
-                    CONF_PORT,
-                    default=config_entry.data.get(CONF_PORT),
-                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=65535)),
-                vol.Required(
-                    CONF_SCAN_INTERVAL,
-                    default=config_entry.data.get(CONF_SCAN_INTERVAL),
-                ): selector(
-                    {
-                        "number": {
-                            "min": 30,
-                            "max": 600,
-                            "step": 10,
-                            "unit_of_measurement": "s",
-                            "mode": "slider",
-                        }
-                    }
-                ),
-            }
-        )
-
-    async def async_step_init(self, user_input=None) -> ConfigFlowResult:
-        """Manage the options."""
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle reconfiguration of the integration."""
+        reconfigure_entry = self._get_reconfigure_entry()
+        errors: dict[str, str] = {}
 
         if user_input is not None:
-            # complete non-edited entries before update (ht @PeteRage)
-            if CONF_NAME in self.config_entry.data:
-                user_input[CONF_NAME] = self.config_entry.data.get(CONF_NAME)
+            name = user_input[CONF_NAME]
+            host = user_input[CONF_HOST]
+            port = user_input[CONF_PORT]
 
-            # write updated config entries (ht @PeteRage / @fuatakgun)
-            self.hass.config_entries.async_update_entry(
-                self.config_entry, data=user_input, options=self.config_entry.options
+            log_debug(
+                _LOGGER,
+                "async_step_reconfigure",
+                "Reconfigure requested",
+                name=name,
+                host=host,
+                port=port,
             )
-            self.async_abort(reason="configuration updated")
 
-            # write empty options entries (ht @PeteRage / @fuatakgun)
-            return self.async_create_entry(title="", data={})
+            if not host_valid(host):
+                log_debug(_LOGGER, "async_step_reconfigure", "Invalid host", host=host)
+                errors[CONF_HOST] = "invalid_host"
+            else:
+                # Test connection with new settings (use existing options for scan_interval)
+                scan_interval = reconfigure_entry.options.get(
+                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                )
 
-        return self.async_show_form(step_id="init", data_schema=self.data_schema)
+                uid = await self._test_connection(name, host, port, scan_interval)
+                if uid is not False:
+                    # Verify unique ID matches before updating
+                    await self.async_set_unique_id(uid)
+                    self._abort_if_unique_id_mismatch()
+
+                    log_debug(
+                        _LOGGER,
+                        "async_step_reconfigure",
+                        "Connection test passed, applying reconfigure",
+                        uid=uid,
+                    )
+                    return self.async_update_reload_and_abort(
+                        reconfigure_entry,
+                        title=name,
+                        data_updates={
+                            CONF_NAME: name,
+                            CONF_HOST: host,
+                            CONF_PORT: port,
+                        },
+                    )
+
+                log_debug(_LOGGER, "async_step_reconfigure", "Connection test failed")
+                errors[CONF_HOST] = "cannot_connect"
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_NAME,
+                        default=reconfigure_entry.data.get(CONF_NAME, DEFAULT_NAME),
+                    ): cv.string,
+                    vol.Required(
+                        CONF_HOST,
+                        default=reconfigure_entry.data.get(CONF_HOST),
+                    ): cv.string,
+                    vol.Required(
+                        CONF_PORT,
+                        default=reconfigure_entry.data.get(CONF_PORT, DEFAULT_PORT),
+                    ): vol.All(vol.Coerce(int), vol.Clamp(min=MIN_PORT, max=MAX_PORT)),
+                },
+            ),
+            errors=errors,
+        )
+
+
+class Elios4YouOptionsFlow(OptionsFlowWithReload):
+    """Config flow options handler with auto-reload."""
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            log_debug(
+                _LOGGER,
+                "async_step_init",
+                "Options updated",
+                scan_interval=user_input.get(CONF_SCAN_INTERVAL),
+            )
+            return self.async_create_entry(data=user_input)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_SCAN_INTERVAL,
+                        default=self.config_entry.options.get(
+                            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                        ),
+                    ): vol.All(
+                        vol.Coerce(int),
+                        vol.Clamp(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
+                    ),
+                },
+            ),
+        )

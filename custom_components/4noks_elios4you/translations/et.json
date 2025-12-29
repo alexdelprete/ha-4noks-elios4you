@@ -1,0 +1,104 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Elios4You uhenduse seadistamine",
+        "description": "Kui vajate seadistamisel abi, minge: https://github.com/alexdelprete/ha-4noks-elios4you",
+        "data": {
+          "name": "Seadme nimi (kasutatakse andurite eesliitena)",
+          "host": "IP voi hostinimi",
+          "port": "TCP port",
+          "scan_interval": "Kusimusintervall (sekundites)"
+        }
+      },
+      "reconfigure": {
+        "title": "Elios4You uhenduse umberseadistamine",
+        "description": "Uuenda seadme uhenduse seadeid",
+        "data": {
+          "name": "Seadme nimi (kasutatakse andurite eesliitena)",
+          "host": "IP voi hostinimi",
+          "port": "TCP port"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Seade on juba seadistatud",
+      "invalid_host": "Kehtetu hosti aadress",
+      "cannot_connect": "Seadmega ei saa uhendust"
+    },
+    "abort": {
+      "already_configured": "Seade on juba seadistatud",
+      "reconfigure_successful": "Umberseadistamine onnestus",
+      "unique_id_mismatch": "Seadme seerianumber ei vasta algsele konfiguratsioonile"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Elios4You valikud",
+        "description": "Seadista toimimisvalikuid",
+        "data": {
+          "scan_interval": "Kusimusintervall (sekundites)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "produced_power": { "name": "Toodetud Voimsus" },
+      "consumed_power": { "name": "Tarbitud Voimsus" },
+      "self_consumed_power": { "name": "Omatarbitud Voimsus" },
+      "bought_power": { "name": "Imporditud Voimsus" },
+      "sold_power": { "name": "Eksporditud Voimsus" },
+      "daily_peak": { "name": "Tipp Paevane" },
+      "monthly_peak": { "name": "Tipp Kuine" },
+      "produced_energy": { "name": "Toodetud Energia" },
+      "produced_energy_f1": { "name": "Toodetud Energia F1" },
+      "produced_energy_f2": { "name": "Toodetud Energia F2" },
+      "produced_energy_f3": { "name": "Toodetud Energia F3" },
+      "consumed_energy": { "name": "Tarbitud Energia" },
+      "consumed_energy_f1": { "name": "Tarbitud Energia F1" },
+      "consumed_energy_f2": { "name": "Tarbitud Energia F2" },
+      "consumed_energy_f3": { "name": "Tarbitud Energia F3" },
+      "self_consumed_energy": { "name": "Omatarbitud Energia" },
+      "self_consumed_energy_f1": { "name": "Omatarbitud Energia F1" },
+      "self_consumed_energy_f2": { "name": "Omatarbitud Energia F2" },
+      "self_consumed_energy_f3": { "name": "Omatarbitud Energia F3" },
+      "bought_energy": { "name": "Imporditud Energia" },
+      "bought_energy_f1": { "name": "Imporditud Energia F1" },
+      "bought_energy_f2": { "name": "Imporditud Energia F2" },
+      "bought_energy_f3": { "name": "Imporditud Energia F3" },
+      "sold_energy": { "name": "Eksporditud Energia" },
+      "sold_energy_f1": { "name": "Eksporditud Energia F1" },
+      "sold_energy_f2": { "name": "Eksporditud Energia F2" },
+      "sold_energy_f3": { "name": "Eksporditud Energia F3" },
+      "alarm_1": { "name": "Alarm 1" },
+      "alarm_2": { "name": "Alarm 2" },
+      "power_alarm": { "name": "Voimsuse Alarm" },
+      "pwm_mode": { "name": "PWM Rezim" },
+      "pr_ssv": { "name": "Voimsuse Redutseerija Ssv" },
+      "rel_ssv": { "name": "Relee Ssv" },
+      "rel_mode": { "name": "Relee Rezim" },
+      "rel_warning": { "name": "Relee Hoiatus" },
+      "rcap": { "name": "RedCap" },
+      "fwtop": { "name": "Firmware TOP Versioon" },
+      "fwbtm": { "name": "Firmware BOTTOM Versioon" },
+      "sn": { "name": "Seerianumber" },
+      "hwver": { "name": "Riistvara Versioon" },
+      "btver": { "name": "BT Versioon" },
+      "hw_wifi": { "name": "Wifi HW Versioon" },
+      "s2w_app_version": { "name": "Wifi App Versioon" },
+      "s2w_geps_version": { "name": "Wifi Geps Versioon" },
+      "s2w_wlan_version": { "name": "Wifi Wlan Versioon" }
+    },
+    "switch": {
+      "relay_state": { "name": "Relee" }
+    }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Seadmega {device_name} ei saa uhendust",
+      "description": "Integratsioon ei saa uhendust teie Elios4You seadmega aadressil {host}:{port}.\n\n**Voimalikud pohjused:**\n- Seade on valja lulitatud voi ei ole vorku uhendatud\n- IP-aadress on muutunud\n- Tulemuur blokeerib uhendust\n- Telnet port ei ole ligipaasetav\n\n**Lahendamiseks:**\n1. Kontrollige, kas seade on sisse lulitatud ja teie vorku uhendatud\n2. Kontrollige IP-aadressi oma ruuteri DHCP-tabelis\n3. Kui IP on muutunud, seadistage integratsioon uue aadressiga umber"
+    }
+  }
+}

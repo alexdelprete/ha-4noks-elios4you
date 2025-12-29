@@ -11,23 +11,21 @@ class E4Utelnet(Telnet):  # noqa: D101
 
         def read_until(self, expected, timeout=None):  # noqa: D102
             expected = bytes(expected, encoding="utf-8")
-            received = super().read_until(expected, timeout)  # noqa: UP008
+            received = super().read_until(expected, timeout)
             return str(received, encoding="utf-8")
 
         def read_all(self):  # noqa: D102
-            received = super().read_all()  # noqa: UP008
+            received = super().read_all()
             return str(received, encoding="utf-8")
 
         def write(self, buffer):  # noqa: D102
             buffer = bytes(buffer + "\n", encoding="utf-8")
-            super().write(buffer)  # noqa: UP008
+            super().write(buffer)
 
         def expect(self, list, timeout=None):  # noqa: D102
             for index, item in enumerate(list):
                 list[index] = bytes(item, encoding="utf-8")
-            match_index, match_object, match_text = super().expect(  # noqa: UP008
-                list, timeout
-            )  # noqa: UP008
+            match_index, match_object, match_text = super().expect(list, timeout)
             return match_index, match_object, str(match_text, encoding="utf-8")
 
 
@@ -46,9 +44,7 @@ async def get_data(telnet: E4Utelnet, cmd: str):
     if response:
         # decode bytes to string using utf-8 and split each line as a list member
         lines = response.splitlines()
-        lines_start = (
-            1 if lines[0].lower() in ["@dat", "@sta", "@inf", "@rel", "@hwr"] else 2
-        )
+        lines_start = 1 if lines[0].lower() in ["@dat", "@sta", "@inf", "@rel", "@hwr"] else 2
         lines_end = -2
         print("=============================")  # noqa: T201
         print(f"lines {lines}")  # noqa: T201
@@ -105,7 +101,7 @@ async def main():
         print("Connection or operation timed out")  # noqa: T201
 
     except Exception as e:
-        print(f"An error occurred: {str(e)}")  # noqa: T201
+        print(f"An error occurred: {e!s}")  # noqa: T201
 
     finally:
         if telnet.get_socket() is not None:

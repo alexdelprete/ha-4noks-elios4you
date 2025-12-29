@@ -1,0 +1,104 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Elios4You-anslutningskonfiguration",
+        "description": "Om du behover hjalp med konfigurationen, besok: https://github.com/alexdelprete/ha-4noks-elios4you",
+        "data": {
+          "name": "Enhetsnamn (anvands som sensorprefix)",
+          "host": "IP eller vardnamn",
+          "port": "TCP-port",
+          "scan_interval": "Avfragningsintervall (sekunder)"
+        }
+      },
+      "reconfigure": {
+        "title": "Omkonfigurera Elios4You-anslutning",
+        "description": "Uppdatera enhetens anslutningsinstallningar",
+        "data": {
+          "name": "Enhetsnamn (anvands som sensorprefix)",
+          "host": "IP eller vardnamn",
+          "port": "TCP-port"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Enheten ar redan konfigurerad",
+      "invalid_host": "Ogiltig vardadress",
+      "cannot_connect": "Kan inte ansluta till enheten"
+    },
+    "abort": {
+      "already_configured": "Enheten ar redan konfigurerad",
+      "reconfigure_successful": "Omkonfigurering lyckades",
+      "unique_id_mismatch": "Enhetens serienummer matchar inte den ursprungliga konfigurationen"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Elios4You-alternativ",
+        "description": "Konfigurera korningsalternativ",
+        "data": {
+          "scan_interval": "Avfragningsintervall (sekunder)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "produced_power": { "name": "Producerad Effekt" },
+      "consumed_power": { "name": "Forbrukad Effekt" },
+      "self_consumed_power": { "name": "Egenforbrukad Effekt" },
+      "bought_power": { "name": "Importerad Effekt" },
+      "sold_power": { "name": "Exporterad Effekt" },
+      "daily_peak": { "name": "Topp Daglig" },
+      "monthly_peak": { "name": "Topp Manatlig" },
+      "produced_energy": { "name": "Producerad Energi" },
+      "produced_energy_f1": { "name": "Producerad Energi F1" },
+      "produced_energy_f2": { "name": "Producerad Energi F2" },
+      "produced_energy_f3": { "name": "Producerad Energi F3" },
+      "consumed_energy": { "name": "Forbrukad Energi" },
+      "consumed_energy_f1": { "name": "Forbrukad Energi F1" },
+      "consumed_energy_f2": { "name": "Forbrukad Energi F2" },
+      "consumed_energy_f3": { "name": "Forbrukad Energi F3" },
+      "self_consumed_energy": { "name": "Egenforbrukad Energi" },
+      "self_consumed_energy_f1": { "name": "Egenforbrukad Energi F1" },
+      "self_consumed_energy_f2": { "name": "Egenforbrukad Energi F2" },
+      "self_consumed_energy_f3": { "name": "Egenforbrukad Energi F3" },
+      "bought_energy": { "name": "Importerad Energi" },
+      "bought_energy_f1": { "name": "Importerad Energi F1" },
+      "bought_energy_f2": { "name": "Importerad Energi F2" },
+      "bought_energy_f3": { "name": "Importerad Energi F3" },
+      "sold_energy": { "name": "Exporterad Energi" },
+      "sold_energy_f1": { "name": "Exporterad Energi F1" },
+      "sold_energy_f2": { "name": "Exporterad Energi F2" },
+      "sold_energy_f3": { "name": "Exporterad Energi F3" },
+      "alarm_1": { "name": "Larm 1" },
+      "alarm_2": { "name": "Larm 2" },
+      "power_alarm": { "name": "Effektlarm" },
+      "pwm_mode": { "name": "PWM-lage" },
+      "pr_ssv": { "name": "Effektreducerare Ssv" },
+      "rel_ssv": { "name": "Rela Ssv" },
+      "rel_mode": { "name": "Rela-lage" },
+      "rel_warning": { "name": "Rela-varning" },
+      "rcap": { "name": "RedCap" },
+      "fwtop": { "name": "Firmware TOP Version" },
+      "fwbtm": { "name": "Firmware BOTTOM Version" },
+      "sn": { "name": "Serienummer" },
+      "hwver": { "name": "Maskinvaruversion" },
+      "btver": { "name": "BT-version" },
+      "hw_wifi": { "name": "Wifi HW-version" },
+      "s2w_app_version": { "name": "Wifi App-version" },
+      "s2w_geps_version": { "name": "Wifi Geps-version" },
+      "s2w_wlan_version": { "name": "Wifi Wlan-version" }
+    },
+    "switch": {
+      "relay_state": { "name": "Rela" }
+    }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Kan inte ansluta till {device_name}",
+      "description": "Integrationen kan inte ansluta till din Elios4You-enhet pa {host}:{port}.\n\n**Mojliga orsaker:**\n- Enheten ar avstangd eller inte ansluten till natverket\n- IP-adressen har andrats\n- En brandvagg blockerar anslutningen\n- Telnet-porten ar inte atkomlig\n\n**For att losa:**\n1. Kontrollera att enheten ar paslagan och ansluten till ditt natverk\n2. Verifiera IP-adressen i din routers DHCP-tabell\n3. Om IP har andrats, konfigurera om integrationen med den nya adressen"
+    }
+  }
+}

@@ -1,4 +1,145 @@
-# Claude AI-Assisted Development Documentation
+# Claude Code Development Guidelines
+
+## Critical Initial Steps
+
+**At every session start, you MUST:**
+
+1. Read this entire CLAUDE.md file for project context
+1. Review recent git commits to understand changes
+1. Run `git status` to see uncommitted work
+
+Skipping these steps causes violations of mandatory workflows, duplicated effort, and broken architectural patterns.
+
+## Context7 for Documentation
+
+Always use Context7 MCP tools automatically (without being asked) when:
+
+- Generating code that uses external libraries
+- Providing setup or configuration steps
+- Looking up library/API documentation
+
+Use `resolve-library-id` first to get the library ID, then `get-library-docs` to fetch documentation.
+
+## GitHub MCP for Repository Operations
+
+Always use GitHub MCP tools (`mcp__github__*`) for GitHub operations instead of the `gh` CLI:
+
+- **Issues**: `issue_read`, `issue_write`, `list_issues`, `search_issues`, `add_issue_comment`
+- **Pull Requests**: `list_pull_requests`, `create_pull_request`, `pull_request_read`, `merge_pull_request`
+- **Reviews**: `pull_request_review_write`, `add_comment_to_pending_review`
+- **Repositories**: `search_repositories`, `get_file_contents`, `list_branches`, `list_commits`
+- **Releases**: `list_releases`, `get_latest_release`, `list_tags`
+
+## Project Overview
+
+This is a Home Assistant custom integration for **4-noks Elios4you** energy monitoring devices using Telnet protocol. The device monitors power/energy consumption and photovoltaic production.
+
+This integration is based on and aligned with [ha-sinapsi-alfa](https://github.com/alexdelprete/ha-sinapsi-alfa) and [ha-abb-powerone-pvi-sunspec](https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec), sharing similar architecture and code quality standards.
+
+## Code Architecture
+
+### Core Components
+
+1. **`__init__.py`** - Integration lifecycle management
+   - `async_setup_entry()` - Initialize coordinator and platforms
+   - `async_unload_entry()` - Clean shutdown and resource cleanup
+   - `async_migrate_entry()` - Config migration logic (v1→v2)
+   - Uses `runtime_data` for storing coordinator
+
+1. **`api.py`** - Telnet communication layer
+   - `Elios4YouAPI` class handles all Telnet operations
+   - Custom exception handling: `TelnetConnectionError`, `TelnetCommandError`
+   - Implements connection management and timeout handling
+
+1. **`coordinator.py`** - Data update coordination
+   - `Elios4YouCoordinator` manages polling cycles
+   - Handles data refresh from API
+   - Enforces MIN/MAX_SCAN_INTERVAL constraints
+
+1. **`config_flow.py`** - UI configuration (VERSION = 2)
+   - ConfigFlow for initial setup (stores data + options separately)
+   - OptionsFlowWithReload for runtime options (scan_interval) - auto-reloads
+   - Reconfigure flow for connection settings (name, host, port)
+
+1. **`sensor.py`** - Sensor entity platform (41 sensors)
+
+1. **`switch.py`** - Switch entity platform (1 relay switch)
+
+## Important Patterns
+
+### Error Handling
+
+- Use custom exceptions: `TelnetConnectionError`, `TelnetCommandError`
+- Raise exceptions instead of returning `False` for proper availability tracking
+
+### Logging
+
+- Use centralized logging helpers from `helpers.py`:
+  - `log_debug(logger, context, message, **kwargs)`
+  - `log_info(logger, context, message, **kwargs)`
+  - `log_warning(logger, context, message, **kwargs)`
+  - `log_error(logger, context, message, **kwargs)`
+- Never use f-strings in logger calls (use `%s` formatting)
+- Format: `(function_name) [key=value]: message`
+
+### Data Storage
+
+- Modern pattern: Use `config_entry.runtime_data` (not `hass.data[DOMAIN][entry_id]`)
+- `runtime_data` is typed with `RuntimeData` dataclass
+
+### Configuration Split
+
+- `config_entry.data` - Initial config (name, host, port) - changed via Reconfigure
+- `config_entry.options` - Runtime tuning (scan_interval) - changed via Options flow
+
+## Code Quality Standards
+
+### Pre-Push Linting (MANDATORY)
+
+Before pushing any commits, run these checks:
+
+```bash
+# Python formatting and linting
+ruff format .
+ruff check . --fix
+
+# Type checking
+mypy custom_components/
+```
+
+All commands must pass without errors before committing.
+
+## Release Management - CRITICAL
+
+> **NEVER create git tags or GitHub releases without explicit user command.**
+
+**Version Bumping:** Update both `manifest.json` and `const.py` VERSION constant.
+
+## Dependencies
+
+- Home Assistant core (>= 2025.10.0)
+- `telnetlib3>=2.0.4` - Telnet client library
+- Compatible with Python 3.13+
+
+## Do's and Don'ts
+
+**DO:**
+- Read CLAUDE.md at session start
+- Use custom exceptions for error handling
+- Log with proper context (use helpers.py functions)
+- Use `runtime_data` for data storage
+- Update both manifest.json AND const.py for version bumps
+- Get approval before creating tags/releases
+
+**NEVER:**
+- Use `hass.data[DOMAIN][entry_id]` - use `runtime_data` instead
+- Shadow Python builtins
+- Use f-strings in logging
+- Create git tags or GitHub releases without explicit user instruction
+
+---
+
+# Release History
 
 ## v0.2.0 - Official Stable Release
 

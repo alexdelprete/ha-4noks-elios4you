@@ -1,0 +1,149 @@
+{
+  "entity": {
+    "sensor": {
+      "produced_power": {
+        "default": "mdi:solar-power-variant-outline"
+      },
+      "consumed_power": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "self_consumed_power": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "bought_power": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "sold_power": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "daily_peak": {
+        "default": "mdi:solar-power-variant-outline"
+      },
+      "monthly_peak": {
+        "default": "mdi:solar-power-variant-outline"
+      },
+      "produced_energy": {
+        "default": "mdi:solar-power-variant-outline"
+      },
+      "produced_energy_f1": {
+        "default": "mdi:solar-power-variant-outline"
+      },
+      "produced_energy_f2": {
+        "default": "mdi:solar-power-variant-outline"
+      },
+      "produced_energy_f3": {
+        "default": "mdi:solar-power-variant-outline"
+      },
+      "consumed_energy": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "consumed_energy_f1": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "consumed_energy_f2": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "consumed_energy_f3": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "self_consumed_energy": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "self_consumed_energy_f1": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "self_consumed_energy_f2": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "self_consumed_energy_f3": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "bought_energy": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "bought_energy_f1": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "bought_energy_f2": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "bought_energy_f3": {
+        "default": "mdi:transmission-tower-export"
+      },
+      "sold_energy": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "sold_energy_f1": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "sold_energy_f2": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "sold_energy_f3": {
+        "default": "mdi:transmission-tower-import"
+      },
+      "alarm_1": {
+        "default": "mdi:alarm-light-outline"
+      },
+      "alarm_2": {
+        "default": "mdi:alarm-light-outline"
+      },
+      "power_alarm": {
+        "default": "mdi:alarm-light-outline"
+      },
+      "pwm_mode": {
+        "default": "mdi:sine-wave"
+      },
+      "pr_ssv": {
+        "default": "mdi:arrow-collapse-down"
+      },
+      "rel_ssv": {
+        "default": "mdi:toggle-switch-outline"
+      },
+      "rel_mode": {
+        "default": "mdi:toggle-switch-outline"
+      },
+      "rel_warning": {
+        "default": "mdi:alert-outline"
+      },
+      "rcap": {
+        "default": "mdi:chart-bar"
+      },
+      "fwtop": {
+        "default": "mdi:chip"
+      },
+      "fwbtm": {
+        "default": "mdi:chip"
+      },
+      "sn": {
+        "default": "mdi:identifier"
+      },
+      "hwver": {
+        "default": "mdi:memory"
+      },
+      "btver": {
+        "default": "mdi:bluetooth"
+      },
+      "hw_wifi": {
+        "default": "mdi:wifi"
+      },
+      "s2w_app_version": {
+        "default": "mdi:application-outline"
+      },
+      "s2w_geps_version": {
+        "default": "mdi:application-cog-outline"
+      },
+      "s2w_wlan_version": {
+        "default": "mdi:wifi-cog"
+      }
+    },
+    "switch": {
+      "relay_state": {
+        "default": "mdi:toggle-switch-off-outline",
+        "state": {
+          "on": "mdi:toggle-switch-outline"
+        }
+      }
+    }
+  }
+}

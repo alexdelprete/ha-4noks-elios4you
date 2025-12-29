@@ -10,7 +10,7 @@ from homeassistant.const import UnitOfEnergy, UnitOfPower
 # Base component constants
 NAME = "4-noks Elios4you integration"
 DOMAIN = "4noks_elios4you"
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 ATTRIBUTION = "by @alexdelprete"
 ISSUE_URL = "https://github.com/alexdelprete/ha-4noks-elios4you/issues"
 
@@ -23,6 +23,9 @@ DEFAULT_NAME = "Elios4you"
 DEFAULT_PORT = 5001
 DEFAULT_SCAN_INTERVAL = 60
 MIN_SCAN_INTERVAL = 30
+MAX_SCAN_INTERVAL = 600
+MIN_PORT = 1
+MAX_PORT = 65535
 CONN_TIMEOUT = 5
 MANUFACTURER = "4-noks"
 MODEL = "Elios4you"

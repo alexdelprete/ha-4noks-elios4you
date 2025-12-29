@@ -1,0 +1,104 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Elios4You-yhteyden maaritys",
+        "description": "Jos tarvitset apua maarityksessa, kay osoitteessa: https://github.com/alexdelprete/ha-4noks-elios4you",
+        "data": {
+          "name": "Laitteen nimi (kaytetaan anturien etuliitteena)",
+          "host": "IP tai isantanimi",
+          "port": "TCP-portti",
+          "scan_interval": "Kyselyvali (sekunteina)"
+        }
+      },
+      "reconfigure": {
+        "title": "Maarita Elios4You-yhteys uudelleen",
+        "description": "Paivita laitteen yhteysasetukset",
+        "data": {
+          "name": "Laitteen nimi (kaytetaan anturien etuliitteena)",
+          "host": "IP tai isantanimi",
+          "port": "TCP-portti"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "Laite on jo maaritetty",
+      "invalid_host": "Virheellinen isantaosoite",
+      "cannot_connect": "Laitteeseen ei saada yhteytta"
+    },
+    "abort": {
+      "already_configured": "Laite on jo maaritetty",
+      "reconfigure_successful": "Uudelleenmaaritys onnistui",
+      "unique_id_mismatch": "Laitteen sarjanumero ei vastaa alkuperaista kokoonpanoa"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Elios4You-asetukset",
+        "description": "Maarita ajonaikaiset asetukset",
+        "data": {
+          "scan_interval": "Kyselyvali (sekunteina)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "produced_power": { "name": "Tuotettu Teho" },
+      "consumed_power": { "name": "Kulutettu Teho" },
+      "self_consumed_power": { "name": "Omakaytetty Teho" },
+      "bought_power": { "name": "Tuotu Teho" },
+      "sold_power": { "name": "Viety Teho" },
+      "daily_peak": { "name": "Huippu Paivittainen" },
+      "monthly_peak": { "name": "Huippu Kuukausittainen" },
+      "produced_energy": { "name": "Tuotettu Energia" },
+      "produced_energy_f1": { "name": "Tuotettu Energia F1" },
+      "produced_energy_f2": { "name": "Tuotettu Energia F2" },
+      "produced_energy_f3": { "name": "Tuotettu Energia F3" },
+      "consumed_energy": { "name": "Kulutettu Energia" },
+      "consumed_energy_f1": { "name": "Kulutettu Energia F1" },
+      "consumed_energy_f2": { "name": "Kulutettu Energia F2" },
+      "consumed_energy_f3": { "name": "Kulutettu Energia F3" },
+      "self_consumed_energy": { "name": "Omakaytetty Energia" },
+      "self_consumed_energy_f1": { "name": "Omakaytetty Energia F1" },
+      "self_consumed_energy_f2": { "name": "Omakaytetty Energia F2" },
+      "self_consumed_energy_f3": { "name": "Omakaytetty Energia F3" },
+      "bought_energy": { "name": "Tuotu Energia" },
+      "bought_energy_f1": { "name": "Tuotu Energia F1" },
+      "bought_energy_f2": { "name": "Tuotu Energia F2" },
+      "bought_energy_f3": { "name": "Tuotu Energia F3" },
+      "sold_energy": { "name": "Viety Energia" },
+      "sold_energy_f1": { "name": "Viety Energia F1" },
+      "sold_energy_f2": { "name": "Viety Energia F2" },
+      "sold_energy_f3": { "name": "Viety Energia F3" },
+      "alarm_1": { "name": "Halytys 1" },
+      "alarm_2": { "name": "Halytys 2" },
+      "power_alarm": { "name": "Tehohalytys" },
+      "pwm_mode": { "name": "PWM-tila" },
+      "pr_ssv": { "name": "Tehon Vahentaja Ssv" },
+      "rel_ssv": { "name": "Rele Ssv" },
+      "rel_mode": { "name": "Rele-tila" },
+      "rel_warning": { "name": "Rele-varoitus" },
+      "rcap": { "name": "RedCap" },
+      "fwtop": { "name": "Firmware TOP Versio" },
+      "fwbtm": { "name": "Firmware BOTTOM Versio" },
+      "sn": { "name": "Sarjanumero" },
+      "hwver": { "name": "Laitteistoversio" },
+      "btver": { "name": "BT-versio" },
+      "hw_wifi": { "name": "Wifi HW-versio" },
+      "s2w_app_version": { "name": "Wifi App-versio" },
+      "s2w_geps_version": { "name": "Wifi Geps-versio" },
+      "s2w_wlan_version": { "name": "Wifi Wlan-versio" }
+    },
+    "switch": {
+      "relay_state": { "name": "Rele" }
+    }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Yhteyden muodostaminen laitteeseen {device_name} ei onnistu",
+      "description": "Integraatio ei voi muodostaa yhteytta Elios4You-laitteeseesi osoitteessa {host}:{port}.\n\n**Mahdolliset syyt:**\n- Laite on pois paalta tai ei ole yhdistetty verkkoon\n- IP-osoite on muuttunut\n- Palomuuri estaa yhteyden\n- Telnet-portti ei ole kaytettavissa\n\n**Ratkaisemiseksi:**\n1. Tarkista, etta laite on paalla ja yhdistetty verkkoon\n2. Tarkista IP-osoite reitittimesi DHCP-taulukosta\n3. Jos IP on muuttunut, maarita integraatio uudelleen uudella osoitteella"
+    }
+  }
+}

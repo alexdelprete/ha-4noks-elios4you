@@ -8,28 +8,97 @@
           "name": "Custom Name of the device (used for sensors' prefix)",
           "host": "IP or hostname",
           "port": "TCP port",
-          "scan_interval": "Polling Period (min: 30s max: 600s)"
+          "scan_interval": "Polling Period (seconds)"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Elios4You Connection",
+        "description": "Update connection settings for the device",
+        "data": {
+          "name": "Custom Name of the device (used for sensors' prefix)",
+          "host": "IP or hostname",
+          "port": "TCP port"
         }
       }
     },
     "error": {
-      "already_configured": "Device is already configured"
+      "already_configured": "Device is already configured",
+      "invalid_host": "Invalid hostname or IP address",
+      "cannot_connect": "Cannot connect to device"
     },
     "abort": {
-      "already_configured": "Device is already configured"
+      "already_configured": "Device is already configured",
+      "reconfigure_successful": "Reconfiguration successful",
+      "unique_id_mismatch": "The device serial number does not match the original configuration"
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Elios4You Connection Options",
-        "description": "Set Connection Options",
+        "title": "Elios4You Options",
+        "description": "Configure runtime options",
         "data": {
-          "host": "IP or hostname",
-          "port": "TCP port",
-          "scan_interval": "Polling Period (min: 30s max: 600s)"
+          "scan_interval": "Polling Period (seconds)"
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "produced_power": { "name": "Power Produced" },
+      "consumed_power": { "name": "Power Consumed" },
+      "self_consumed_power": { "name": "Power Self-Consumed" },
+      "bought_power": { "name": "Power Imported" },
+      "sold_power": { "name": "Power Exported" },
+      "daily_peak": { "name": "Peak Daily" },
+      "monthly_peak": { "name": "Peak Monthly" },
+      "produced_energy": { "name": "Energy Produced" },
+      "produced_energy_f1": { "name": "Energy Produced F1" },
+      "produced_energy_f2": { "name": "Energy Produced F2" },
+      "produced_energy_f3": { "name": "Energy Produced F3" },
+      "consumed_energy": { "name": "Energy Consumed" },
+      "consumed_energy_f1": { "name": "Energy Consumed F1" },
+      "consumed_energy_f2": { "name": "Energy Consumed F2" },
+      "consumed_energy_f3": { "name": "Energy Consumed F3" },
+      "self_consumed_energy": { "name": "Energy Self-Consumed" },
+      "self_consumed_energy_f1": { "name": "Energy Self-Consumed F1" },
+      "self_consumed_energy_f2": { "name": "Energy Self-Consumed F2" },
+      "self_consumed_energy_f3": { "name": "Energy Self-Consumed F3" },
+      "bought_energy": { "name": "Energy Imported" },
+      "bought_energy_f1": { "name": "Energy Imported F1" },
+      "bought_energy_f2": { "name": "Energy Imported F2" },
+      "bought_energy_f3": { "name": "Energy Imported F3" },
+      "sold_energy": { "name": "Energy Exported" },
+      "sold_energy_f1": { "name": "Energy Exported F1" },
+      "sold_energy_f2": { "name": "Energy Exported F2" },
+      "sold_energy_f3": { "name": "Energy Exported F3" },
+      "alarm_1": { "name": "Alarm 1" },
+      "alarm_2": { "name": "Alarm 2" },
+      "power_alarm": { "name": "Power Alarm" },
+      "pwm_mode": { "name": "PWM Mode" },
+      "pr_ssv": { "name": "Power Reducer Ssv" },
+      "rel_ssv": { "name": "Relay Ssv" },
+      "rel_mode": { "name": "Relay Mode" },
+      "rel_warning": { "name": "Relay Warning" },
+      "rcap": { "name": "RedCap" },
+      "fwtop": { "name": "Firmware TOP Version" },
+      "fwbtm": { "name": "Firmware BOTTOM Version" },
+      "sn": { "name": "Serial Number" },
+      "hwver": { "name": "Hardware Version" },
+      "btver": { "name": "BT Version" },
+      "hw_wifi": { "name": "Wifi HW Version" },
+      "s2w_app_version": { "name": "Wifi App Version" },
+      "s2w_geps_version": { "name": "Wifi Geps Version" },
+      "s2w_wlan_version": { "name": "Wifi Wlan Version" }
+    },
+    "switch": {
+      "relay_state": { "name": "Relay" }
+    }
+  },
+  "issues": {
+    "connection_failed": {
+      "title": "Cannot connect to {device_name}",
+      "description": "The integration cannot connect to your Elios4You device at {host}:{port}.\n\n**Possible causes:**\n- The device is powered off or not connected to the network\n- The IP address has changed\n- A firewall is blocking the connection\n- The Telnet port is not accessible\n\n**To resolve:**\n1. Check that the device is powered on and connected to your network\n2. Verify the IP address in your router's DHCP table\n3. If the IP has changed, reconfigure the integration with the new address"
     }
   }
 }

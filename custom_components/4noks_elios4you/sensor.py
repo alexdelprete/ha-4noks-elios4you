@@ -12,11 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import Elios4YouConfigEntry
-from .const import (
-    CONF_NAME,
-    DOMAIN,
-    SENSOR_ENTITIES,
-)
+from .const import CONF_NAME, DOMAIN, SENSOR_ENTITIES
 from .coordinator import Elios4YouCoordinator
 from .helpers import log_debug
 
@@ -66,11 +62,12 @@ async def async_setup_entry(
 class Elios4YouSensor(CoordinatorEntity, SensorEntity):
     """Representation of an Elios4You sensor."""
 
+    _attr_has_entity_name = True
+
     def __init__(self, coordinator, name, key, icon, device_class, state_class, unit):
         """Class Initializitation."""
         super().__init__(coordinator)
         self._coordinator = coordinator
-        self._name = name
         self._key = key
         self._icon = icon
         self._device_class = device_class
@@ -83,6 +80,8 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
         self._device_sn = self._coordinator.api.data["sn"]
         self._device_swver = self._coordinator.api.data["swver"]
         self._device_hwver = self._coordinator.api.data["hwver"]
+        # Use translation key for entity name (translations in translations/*.json)
+        self._attr_translation_key = key
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -90,23 +89,12 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
         self._state = self._coordinator.api.data[self._key]
         self.async_write_ha_state()
         # write debug log only on first sensor to avoid spamming the log
-        if self.name == "RedCap":
+        if self._key == "rcap":
             log_debug(
                 _LOGGER,
                 "_handle_coordinator_update",
                 "Sensors state written to state machine",
             )
-
-    # when has_entity_name is True, the resulting entity name will be: {device_name}_{self._name}
-    @property
-    def has_entity_name(self):
-        """Return the name state."""
-        return True
-
-    @property
-    def name(self):
-        """Return the name."""
-        return f"{self._name}"
 
     @property
     def native_unit_of_measurement(self):
@@ -133,16 +121,14 @@ class Elios4YouSensor(CoordinatorEntity, SensorEntity):
         """Return the sensor entity_category."""
         if self._state_class is None:
             return EntityCategory.DIAGNOSTIC
-        else:
-            return None
+        return None
 
     @property
     def native_value(self):
         """Return the state of the sensor."""
         if self._key in self._coordinator.api.data:
             return self._coordinator.api.data[self._key]
-        else:
-            return None
+        return None
 
     @property
     def state_attributes(self) -> dict[str, Any] | None:
