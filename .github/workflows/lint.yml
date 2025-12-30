@@ -40,7 +40,7 @@ jobs:
         run: ln -s 4noks_elios4you custom_components/fournoks_elios4you
 
       - name: Run ty
-        run: ty check --python $(which python) fournoks_elios4you
+        run: ty check --python $(which python) custom_components/fournoks_elios4you
 
       - name: Remove symlink
         run: rm custom_components/fournoks_elios4you

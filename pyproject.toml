@@ -93,7 +93,6 @@ show_missing = true
 [tool.ty.environment]
 python-version = "3.13"
 python-platform = "linux"
-root = ["custom_components"]
 
 [tool.ty.rules]
 # Promote warnings to errors for strictness
