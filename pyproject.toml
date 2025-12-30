@@ -108,6 +108,11 @@ include = ["custom_components/4noks_elios4you"]
 # Promote warnings to errors for strictness:
 deprecated = "error"
 redundant-cast = "error"
+# Ignore unresolved-import because package name '4noks_elios4you' starts with
+# a digit, which is not a valid Python identifier. ty cannot resolve relative
+# imports within packages with numeric prefixes. The integration works correctly
+# at runtime as Python/HA handles this at the filesystem level.
+unresolved-import = "ignore"
 
 [[tool.ty.overrides]]
 include = ["tests/**"]
