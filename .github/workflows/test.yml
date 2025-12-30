@@ -46,5 +46,4 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: junit.xml
           report_type: test_results
