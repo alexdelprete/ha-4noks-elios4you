@@ -88,11 +88,12 @@ relative_files = true
 show_missing = true
 
 # ty type checker configuration
-# Note: ty validation may need symlink workaround in CI since '4noks_elios4you'
-# starts with a number (not valid Python package name). Testing required.
+# Note: Package name '4noks_elios4you' starts with a number, so we need
+# extra-paths to help ty resolve relative imports within the package.
 [tool.ty.environment]
 python-version = "3.13"
 python-platform = "linux"
+extra-paths = ["custom_components"]
 
 [tool.ty.src]
 include = ["custom_components/4noks_elios4you"]
