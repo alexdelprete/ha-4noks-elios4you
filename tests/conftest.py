@@ -102,7 +102,7 @@ def mock_elios4you_api(mock_api_data: dict) -> Generator[MagicMock]:
         api_instance.data = mock_api_data
         api_instance.async_get_data = AsyncMock(return_value=True)
         api_instance.check_port = MagicMock(return_value=True)
-        api_instance.close = MagicMock()
+        api_instance.close = AsyncMock()
         yield mock_api
 
 
