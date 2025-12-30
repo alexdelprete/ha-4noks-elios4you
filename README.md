@@ -226,7 +226,7 @@ _If you like this integration, I'll gladly accept some quality coffee, but pleas
 [releases]: https://github.com/alexdelprete/ha-4noks-elios4you/releases
 [tests-shield]: https://img.shields.io/github/actions/workflow/status/alexdelprete/ha-4noks-elios4you/test.yml?style=for-the-badge&label=Tests
 [tests]: https://github.com/alexdelprete/ha-4noks-elios4you/actions/workflows/test.yml
-[coverage-shield]: https://codecov.io/github/alexdelprete/ha-4noks-elios4you/graph/badge.svg?token=BWMCFFPJ9J
+[coverage-shield]: https://img.shields.io/codecov/c/github/alexdelprete/ha-4noks-elios4you?style=for-the-badge&token=BWMCFFPJ9J
 [coverage]: https://codecov.io/github/alexdelprete/ha-4noks-elios4you
 [downloads-shield]: https://img.shields.io/github/downloads/alexdelprete/ha-4noks-elios4you/total?style=for-the-badge
 [downloads]: https://github.com/alexdelprete/ha-4noks-elios4you/releases
