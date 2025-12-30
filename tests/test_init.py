@@ -30,6 +30,7 @@ DOMAIN = _elios4you_const.DOMAIN
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL
 from .test_config_flow import MockConfigEntry
 
+
 async def test_async_setup_entry_success(
     hass: HomeAssistant,
     mock_elios4you_api,
