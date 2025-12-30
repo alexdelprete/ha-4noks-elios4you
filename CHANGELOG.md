@@ -7,7 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No unreleased changes at this time.
+### 🔧 Improvements
+
+- **Test Client Alignment** - Updated `e4u-client/e4u.py` to use telnetlib3 with patterns from api.py
+- Deleted old bundled `lib/telnetlib.py` (848 lines removed)
+
+---
+
+## [0.4.0-beta.3] - 2025-12-29
+
+🔧 **Beta Release** - Test infrastructure, bug fixes, and ty type checker
+
+### ✅ Test Infrastructure
+
+- **Comprehensive Test Suite** - 188 tests passing with 98% code coverage
+- Test files: `conftest.py`, `test_api.py`, `test_config_flow.py`, `test_coordinator.py`, `test_init.py`, `test_sensor.py`, `test_switch.py`
+- Established testing patterns for numeric module prefix workaround
+
+### 🐛 Bug Fixes
+
+- **Fixed `async_remove_config_entry_device`** - Device identifiers check was incorrect (set of tuples, not strings)
+
+### 🔧 CI/CD Enhancements
+
+- **New Workflows:** `test.yml`, `validate.yml`, `release.yml`
+- **Type Checker Migration** - Migrated from mypy to [ty](https://github.com/astral-sh/ty) (Astral's Rust-based type checker)
+- Symlink workaround for numeric package name in type checking
+
+### 📝 Documentation
+
+- Updated README with CI badges and ty documentation
+- Added comprehensive ty instructions in CLAUDE.md
+
+**Full Release Notes:** [docs/releases/v0.4.0-beta.3.md](docs/releases/v0.4.0-beta.3.md)
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.2...v0.4.0-beta.3
+
+---
+
+## [0.4.0-beta.2] - 2025-12-29
+
+🔧 **Beta Release** - telnetlib3 API optimization
+
+### 🐛 Bug Fixes
+
+- **Fixed telnetlib3 API Usage** - Updated to use strings instead of bytes
+  - telnetlib3 works with strings internally (handles encoding)
+  - Removed unnecessary `.encode()` and `.decode()` calls
+  - Aligned with library's documented usage patterns
+
+### 📝 Documentation
+
+- Added comprehensive v0.4.0-beta.1 release documentation
+
+**Full Release Notes:** [docs/releases/v0.4.0-beta.2.md](docs/releases/v0.4.0-beta.2.md)
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.1...v0.4.0-beta.2
 
 ---
 
@@ -431,7 +486,9 @@ Initial release of the 4-noks Elios4you integration.
 
 ---
 
-[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.1...HEAD
+[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.3...HEAD
+[0.4.0-beta.3]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.2...v0.4.0-beta.3
+[0.4.0-beta.2]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.1...v0.4.0-beta.2
 [0.4.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.3.0-beta.1...v0.4.0-beta.1
 [0.3.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0...v0.3.0-beta.1
 [0.2.0]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.1.0...v0.2.0
