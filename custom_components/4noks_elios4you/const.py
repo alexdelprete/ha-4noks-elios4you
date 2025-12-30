@@ -2,7 +2,6 @@
 
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
-# ruff: noqa: E501
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.components.switch import SwitchDeviceClass
