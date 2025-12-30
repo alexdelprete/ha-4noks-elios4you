@@ -34,8 +34,16 @@ jobs:
       - name: Run Ruff check
         run: ruff check . --fix
 
+      # Create symlink with valid Python name for ty validation
+      # (4noks_elios4you starts with a digit, which is invalid for Python imports)
+      - name: Create symlink for ty
+        run: ln -s 4noks_elios4you custom_components/fournoks_elios4you
+
       - name: Run ty
-        run: ty check --python $(which python) custom_components/4noks_elios4you
+        run: ty check --python $(which python) custom_components/fournoks_elios4you
+
+      - name: Remove symlink
+        run: rm custom_components/fournoks_elios4you
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v7

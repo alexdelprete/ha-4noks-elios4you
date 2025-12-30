@@ -88,15 +88,15 @@ relative_files = true
 show_missing = true
 
 # ty type checker configuration
-# Note: Package name '4noks_elios4you' starts with a number, so we need
-# extra-paths to help ty resolve relative imports within the package.
+# Note: In CI, we create a symlink (fournoks_elios4you -> 4noks_elios4you)
+# because package names starting with digits are not valid Python identifiers.
 [tool.ty.environment]
 python-version = "3.13"
 python-platform = "linux"
-extra-paths = ["custom_components"]
 
 [tool.ty.src]
-include = ["custom_components/4noks_elios4you"]
+root = "custom_components"
+include = ["fournoks_elios4you"]
 
 [tool.ty.rules]
 # All rules default to "error" - ty is strict by default
@@ -108,11 +108,6 @@ include = ["custom_components/4noks_elios4you"]
 # Promote warnings to errors for strictness:
 deprecated = "error"
 redundant-cast = "error"
-# Ignore unresolved-import because package name '4noks_elios4you' starts with
-# a digit, which is not a valid Python identifier. ty cannot resolve relative
-# imports within packages with numeric prefixes. The integration works correctly
-# at runtime as Python/HA handles this at the filesystem level.
-unresolved-import = "ignore"
 
 [[tool.ty.overrides]]
 include = ["tests/**"]
