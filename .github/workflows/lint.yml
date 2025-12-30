@@ -33,6 +33,10 @@ jobs:
       - name: Run Ruff check
         run: uvx ruff check .
 
+      # ty needs dependencies installed to resolve imports (homeassistant, telnetlib3, etc.)
+      - name: Install dependencies for ty
+        run: uv pip install -e ".[dev]" --system
+
       # Create symlink with valid Python name for ty validation
       # (4noks_elios4you starts with a digit, which is invalid for Python imports)
       - name: Create symlink for ty
