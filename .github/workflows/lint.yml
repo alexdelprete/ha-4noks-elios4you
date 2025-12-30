@@ -35,7 +35,7 @@ jobs:
         run: ruff check . --fix
 
       - name: Run ty
-        run: ty check custom_components/4noks_elios4you
+        run: ty check --python $(which python) custom_components/4noks_elios4you
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v7
