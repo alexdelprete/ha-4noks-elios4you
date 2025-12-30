@@ -29,6 +29,8 @@ jobs:
             --cov=custom_components/4noks_elios4you \
             --cov-report=term-missing \
             --cov-report=xml \
+            --junitxml=junit.xml \
+            -o junit_family=legacy \
             -v
 
       - name: Upload coverage to Codecov
@@ -38,3 +40,9 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
           fail_ci_if_error: false
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
