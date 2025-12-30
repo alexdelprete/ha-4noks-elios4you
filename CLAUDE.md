@@ -113,16 +113,35 @@ ruff check . --fix
 - Maintain 95%+ code coverage per file
 - Use `importlib` for numeric module imports in tests
 
-#### Running ty locally
+#### Running ty Type Checker
 
-Run the ty type checker (requires dev dependencies to be installed):
+The ty type checker validates Python type annotations. Due to the package name starting with a digit (`4noks_elios4you`), which is invalid for Python imports, we use a symlink workaround:
 
+**In CI (GitHub Actions):**
+The workflow creates a symlink `fournoks_elios4you -> 4noks_elios4you` and runs ty against it:
 ```bash
-# Install dev dependencies (includes ty, homeassistant, etc.)
+ln -s 4noks_elios4you custom_components/fournoks_elios4you
+ty check -vv --python $(which python) custom_components/fournoks_elios4you
+rm custom_components/fournoks_elios4you
+```
+
+**Locally (Linux/macOS):**
+```bash
+# Install dev dependencies
 pip install -e ".[dev]"
 
-# Run type checking
-ty check custom_components/4noks_elios4you
+# Create symlink, run ty, remove symlink
+ln -s 4noks_elios4you custom_components/fournoks_elios4you
+ty check --python $(which python) custom_components/fournoks_elios4you
+rm custom_components/fournoks_elios4you
+```
+
+**Locally (Windows):**
+```powershell
+# Create symlink (requires admin or Developer Mode)
+New-Item -ItemType SymbolicLink -Path "custom_components\fournoks_elios4you" -Target "4noks_elios4you"
+ty check custom_components/fournoks_elios4you
+Remove-Item custom_components\fournoks_elios4you
 ```
 
 All commands must pass without errors before committing.
@@ -158,6 +177,42 @@ All commands must pass without errors before committing.
 ---
 
 # Release History
+
+## v0.4.0-beta.3 - Migrate from mypy to ty Type Checker
+
+**Date:** December 29, 2025
+**Claude Model:** Opus 4.5 (claude-opus-4-5-20251101)
+**Development Tool:** Claude Code (VSCode Extension)
+
+---
+
+### Overview
+
+Migrated from mypy to [ty](https://github.com/astral-sh/ty) (Astral's new Rust-based Python type checker) for faster type checking in CI.
+
+### The Digit-Prefix Problem
+
+The package name `4noks_elios4you` starts with a digit, which is not a valid Python identifier. This causes type checkers to fail when resolving relative imports like `.const`, `.api`, `.helpers`.
+
+**Solution:** Use a symlink workaround in CI:
+1. Create symlink: `ln -s 4noks_elios4you custom_components/fournoks_elios4you`
+2. Run ty against the symlink: `ty check -vv --python $(which python) custom_components/fournoks_elios4you`
+3. Remove symlink after checking
+
+### Files Modified
+
+1. **`.github/workflows/lint.yml`** - Updated ty step with symlink workaround
+2. **`pyproject.toml`** - Simplified ty configuration
+3. **`README.md`** - Updated CI/CD documentation (changed "mypy" to "ty")
+4. **`CLAUDE.md`** - Added detailed instructions for running ty locally
+
+### Why ty Over mypy
+
+- **Speed**: ty is written in Rust, significantly faster than mypy
+- **Modern**: Actively developed by Astral (makers of ruff)
+- **Consistent**: Same team maintains ruff and ty, unified tooling
+
+---
 
 ## v0.4.0-beta.1 - Test Infrastructure & Bug Fixes
 

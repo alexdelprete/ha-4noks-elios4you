@@ -197,7 +197,7 @@ ruff check . --fix
 **CI/CD Workflows:**
 
 - **Tests**: Runs pytest with coverage on every push/PR to master
-- **Lint**: Runs ruff format, ruff check, and mypy validation
+- **Lint**: Runs ruff format, ruff check, and ty type checker
 - **Validate**: Runs hassfest and HACS validation
 - **Release**: Automatically creates ZIP on GitHub release publish
 
