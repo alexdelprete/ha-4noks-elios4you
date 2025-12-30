@@ -2,13 +2,24 @@
 
 ## Critical Initial Steps
 
+> **MANDATORY: At the START of EVERY session, you MUST read this entire CLAUDE.md file.**
+>
+> This file contains project-specific directives, workflows, and patterns that override default behavior.
+> Failure to read this file results in violations of mandatory workflows (e.g., missing release documentation),
+> duplicated effort, and broken architectural patterns.
+
 **At every session start, you MUST:**
 
-1. Read this entire CLAUDE.md file for project context
-1. Review recent git commits to understand changes
-1. Run `git status` to see uncommitted work
+1. **Read this entire CLAUDE.md file** for project context and mandatory procedures
+2. Review recent git commits to understand changes (`git log --oneline -10`)
+3. Run `git status` to see uncommitted work
 
-Skipping these steps causes violations of mandatory workflows, duplicated effort, and broken architectural patterns.
+**Key mandatory workflows documented here:**
+- Release documentation (CHANGELOG.md + docs/releases/)
+- Version bumping (manifest.json + const.py)
+- Logging patterns (helpers.py functions)
+- Error handling (custom exceptions)
+- Code quality checks (ruff, ty)
 
 ## Context7 for Documentation
 
