@@ -30,13 +30,6 @@ DOMAIN = _elios4you_const.DOMAIN
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL
 from .test_config_flow import MockConfigEntry
 
-# Skip reason for tests requiring full integration/platform loading
-SKIP_PLATFORM_LOADING = (
-    "Skipped: HA platform loading fails in CI for modules with numeric prefix (4noks_elios4you)"
-)
-
-
-@pytest.mark.skip(reason=SKIP_PLATFORM_LOADING)
 async def test_async_setup_entry_success(
     hass: HomeAssistant,
     mock_elios4you_api,
@@ -56,7 +49,7 @@ async def test_async_setup_entry_success(
     )
     entry.add_to_hass(hass)
 
-    # Mock both the API and coordinator's first refresh
+    # Mock the API, coordinator's first refresh, and platform loading
     with (
         patch.object(
             _elios4you_coordinator,
@@ -68,6 +61,11 @@ async def test_async_setup_entry_success(
             "async_config_entry_first_refresh",
             new_callable=AsyncMock,
         ),
+        patch.object(
+            hass.config_entries,
+            "async_forward_entry_setups",
+            new_callable=AsyncMock,
+        ),
     ):
         result = await async_setup_entry(hass, entry)
 
@@ -75,7 +73,6 @@ async def test_async_setup_entry_success(
     assert entry.runtime_data is not None
 
 
-@pytest.mark.skip(reason=SKIP_PLATFORM_LOADING)
 async def test_async_unload_entry(
     hass: HomeAssistant,
     mock_elios4you_api,
@@ -94,7 +91,7 @@ async def test_async_unload_entry(
     )
     entry.add_to_hass(hass)
 
-    # Mock both the API and coordinator's first refresh
+    # Mock the API, coordinator's first refresh, and platform loading
     with (
         patch.object(
             _elios4you_coordinator,
@@ -105,6 +102,17 @@ async def test_async_unload_entry(
             Elios4YouCoordinator,
             "async_config_entry_first_refresh",
             new_callable=AsyncMock,
+        ),
+        patch.object(
+            hass.config_entries,
+            "async_forward_entry_setups",
+            new_callable=AsyncMock,
+        ),
+        patch.object(
+            hass.config_entries,
+            "async_unload_platforms",
+            new_callable=AsyncMock,
+            return_value=True,
         ),
     ):
         await async_setup_entry(hass, entry)
