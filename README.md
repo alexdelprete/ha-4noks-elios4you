@@ -5,8 +5,9 @@
 [![Community Forum][forum-shield]][forum]
 
 [![Tests][tests-shield]][tests]
-[![Code Coverage][coverage-shield]][coverage]
+[![codecov](https://codecov.io/github/alexdelprete/ha-4noks-elios4you/graph/badge.svg?token=BWMCFFPJ9J)](https://codecov.io/github/alexdelprete/ha-4noks-elios4you)
 [![Downloads][downloads-shield]][downloads]
+[![BuyMeCoffee][buymecoffee-shield]][buymecoffee]
 
 _This project is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by 4-noks / Astrel Group_
 
@@ -31,7 +32,8 @@ So finally here we are with the first official version of the HA custom integrat
 - Sensor entities for all data provided by the device (I don't even know what some of the ones in the diagnostic category specifically represent)
 - Switch entity to control the device internal relay
 - Configuration options: Name, hostname, tcp port, polling period
-- Reconfigure options (except device name) also at runtime: no restart needed.
+- Options flow: change polling period at runtime without restart
+- Reconfigure flow: change connection settings (name, host, port) with automatic reload
 
 ### Technical Architecture
 
@@ -64,12 +66,17 @@ Download the source code archive from the release page. Unpack the archive and c
 
 # Configuration
 
-Configuration is done via config flow right after adding the integration. After the first configuration you can change parameters (except device name) at runtime through the integration page configuration, without the need to restart HA. 
+Configuration is done via config flow right after adding the integration. The integration provides two ways to modify settings after initial setup:
 
-- **custom name**: custom name for the device, that will be used as prefix for sensors created by the component
-- **ip/hostname**: IP/hostname of the inverter - this is used as unique_id, if you change it and reinstall you will lose historical data, that's why I advice to use hostname, so you can change IP without losing historical data
-- **tcp port**: TCP port of the device. tcp/5001 is the only known working port, but I preferred to leave it configurable
-- **polling period**: frequency, in seconds, to read the registers and update the sensors
+### Options Flow (Configure button)
+Change runtime options without restarting Home Assistant:
+- **Polling period**: frequency, in seconds, to read the registers and update the sensors (30-300 seconds)
+
+### Reconfigure Flow (3-dot menu > Reconfigure)
+Change connection settings - the integration will automatically reload:
+- **Custom name**: custom name for the device, used as prefix for sensors created by the component
+- **IP/hostname**: IP/hostname of the device - this is used as unique_id, if you change it you will lose historical data (tip: use hostname so you can change IP without losing data)
+- **TCP port**: TCP port of the device. tcp/5001 is the only known working port, but left configurable
 
 <img style="border: 5px solid #767676;border-radius: 10px;max-width: 500px;width: 50%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/cbe045c6-8753-4c52-9d50-97de983d18b0" alt="Config">
 
@@ -219,7 +226,5 @@ _If you like this integration, I'll gladly accept some quality coffee, but pleas
 [releases]: https://github.com/alexdelprete/ha-4noks-elios4you/releases
 [tests-shield]: https://img.shields.io/github/actions/workflow/status/alexdelprete/ha-4noks-elios4you/test.yml?style=for-the-badge&label=Tests
 [tests]: https://github.com/alexdelprete/ha-4noks-elios4you/actions/workflows/test.yml
-[coverage-shield]: https://img.shields.io/codecov/c/github/alexdelprete/ha-4noks-elios4you?style=for-the-badge
-[coverage]: https://codecov.io/gh/alexdelprete/ha-4noks-elios4you
 [downloads-shield]: https://img.shields.io/github/downloads/alexdelprete/ha-4noks-elios4you/total?style=for-the-badge
 [downloads]: https://github.com/alexdelprete/ha-4noks-elios4you/releases

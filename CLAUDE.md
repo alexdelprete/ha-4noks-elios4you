@@ -69,8 +69,8 @@ This integration is based on and aligned with [ha-sinapsi-alfa](https://github.c
 
 1. **`config_flow.py`** - UI configuration (VERSION = 2)
    - ConfigFlow for initial setup (stores data + options separately)
-   - OptionsFlowWithReload for runtime options (scan_interval) - auto-reloads
-   - Reconfigure flow for connection settings (name, host, port)
+   - OptionsFlow (Configure button): change scan_interval - auto-reloads via `OptionsFlowWithReload`
+   - ReconfigureFlow (3-dot menu > Reconfigure): change name, host, port - auto-reloads
 
 1. **`sensor.py`** - Sensor entity platform (41 sensors)
 
@@ -100,8 +100,8 @@ This integration is based on and aligned with [ha-sinapsi-alfa](https://github.c
 
 ### Configuration Split
 
-- `config_entry.data` - Initial config (name, host, port) - changed via Reconfigure
-- `config_entry.options` - Runtime tuning (scan_interval) - changed via Options flow
+- `config_entry.data` - Connection config (name, host, port) - changed via Reconfigure flow (3-dot menu)
+- `config_entry.options` - Runtime tuning (scan_interval) - changed via Options flow (Configure button)
 
 ## Code Quality Standards
 
