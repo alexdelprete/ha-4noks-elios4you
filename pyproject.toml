@@ -93,27 +93,12 @@ show_missing = true
 [tool.ty.environment]
 python-version = "3.13"
 python-platform = "linux"
-
-[tool.ty.src]
 root = "custom_components"
-include = ["fournoks_elios4you"]
 
 [tool.ty.rules]
-# All rules default to "error" - ty is strict by default
-# These match mypy's strict mode behavior:
-# - invalid-argument-type (like mypy's type checking)
-# - invalid-assignment (like mypy's type checking)
-# - invalid-return-type (like mypy's type checking)
-# - call-non-callable (like mypy's type checking)
-# Promote warnings to errors for strictness:
+# Promote warnings to errors for strictness
 deprecated = "error"
 redundant-cast = "error"
-
-[[tool.ty.overrides]]
-include = ["tests/**"]
-[tool.ty.overrides.rules]
-# Relaxed rules for tests (matches mypy overrides)
-# ty's defaults are already more lenient for untyped code
 
 [tool.ruff]
 line-length = 100
