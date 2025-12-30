@@ -113,25 +113,16 @@ ruff check . --fix
 - Maintain 95%+ code coverage per file
 - Use `importlib` for numeric module imports in tests
 
-#### Running mypy locally
+#### Running ty locally
 
-The module name `4noks_elios4you` starts with a number, which is invalid for Python imports.
-To run mypy locally, create a temporary junction, run mypy, then remove it:
-
-**Windows (CMD):**
-
-```cmd
-mklink /J custom_components\fournoks_elios4you custom_components\4noks_elios4you
-mypy custom_components/fournoks_elios4you
-rmdir custom_components\fournoks_elios4you
-```
-
-**Linux/macOS:**
+Run the ty type checker (requires dev dependencies to be installed):
 
 ```bash
-ln -s 4noks_elios4you custom_components/fournoks_elios4you
-mypy custom_components/fournoks_elios4you
-rm custom_components/fournoks_elios4you
+# Install dev dependencies (includes ty, homeassistant, etc.)
+pip install -e ".[dev]"
+
+# Run type checking
+ty check custom_components/4noks_elios4you
 ```
 
 All commands must pass without errors before committing.
@@ -236,19 +227,9 @@ if any(identifier[0] == DOMAIN for identifier in device_entry.identifiers):
 
 **GitHub Actions Workflows:**
 - `test.yml` - Runs pytest with coverage, uploads to Codecov
-- `lint.yml` - Runs ruff format, ruff check, mypy (via symlink workaround)
+- `lint.yml` - Runs ruff format, ruff check, ty type checker
 - `validate.yml` - Runs hassfest and HACS validation
 - `release.yml` - Creates ZIP on GitHub release publish
-
-**Mypy Symlink Workaround:**
-Since `4noks_elios4you` starts with a number (invalid Python module name), the lint workflow creates a symlink:
-```yaml
-- name: Create symlink for mypy
-  run: ln -s 4noks_elios4you custom_components/fournoks_elios4you
-
-- name: Run mypy
-  run: mypy custom_components/fournoks_elios4you
-```
 
 ---
 
