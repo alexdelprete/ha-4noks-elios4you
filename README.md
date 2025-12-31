@@ -7,7 +7,6 @@
 [![Tests][tests-shield]][tests]
 [![Code Coverage][coverage-shield]][coverage]
 [![Downloads][downloads-shield]][downloads]
-[![BuyMeCoffee][buymecoffee-shield]][buymecoffee]
 
 _This project is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by 4-noks / Astrel Group_
 
@@ -217,7 +216,7 @@ _If you like this integration, I'll gladly accept some quality coffee, but pleas
 ---
 
 [buymecoffee]: https://www.buymeacoffee.com/alexdelprete
-[buymecoffee-shield]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow?style=for-the-badge&logo=buymeacoffee&logoColor=white
+[buymecoffee-shield]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-white?style=for-the-badge&logo=buymeacoffee&logoColor=white
 [hacs]: https://hacs.xyz
 [my-hacs]: https://my.home-assistant.io/redirect/hacs_repository/?owner=alexdelprete&repository=ha-4noks-elios4you&category=integration
 [forum-shield]: https://img.shields.io/badge/community-forum-darkred?style=for-the-badge
