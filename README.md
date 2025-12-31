@@ -211,7 +211,7 @@ ruff check . --fix
 
 _If you like this integration, I'll gladly accept some quality coffee, but please don't feel obliged._ :)
 
-[![BuyMeCoffee][buymecoffee-shield]][buymecoffee]
+[![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=☕&slug=alexdelprete&button_colour=FFDD00&font_colour=000000&font_family=Lato&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/alexdelprete)
 
 ---
 
