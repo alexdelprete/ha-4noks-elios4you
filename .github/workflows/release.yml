@@ -17,12 +17,13 @@ jobs:
       - name: "Checkout the repository"
         uses: "actions/checkout@v6"
         with:
+          ref: ${{ github.event.release.target_commitish }}
           token: ${{ secrets.WORKFLOW_PAT || github.token }}
 
       - name: "Adjust version number"
         shell: "bash"
         run: |
-          # Remove 'v' prefix if present (e.g., v0.4.0 -> 0.4.0)
+          # Remove 'v' prefix if present (e.g., v1.0.0 -> 1.0.0)
           VERSION="${{ github.event.release.tag_name }}"
           VERSION="${VERSION#v}"
 
@@ -39,6 +40,7 @@ jobs:
         with:
           commit_message: "build: bump version to ${{ github.event.release.tag_name }}"
           file_pattern: "custom_components/4noks_elios4you/manifest.json custom_components/4noks_elios4you/const.py"
+          branch: ${{ github.event.release.target_commitish }}
 
       - name: "ZIP the integration directory"
         shell: "bash"
