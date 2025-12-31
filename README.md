@@ -217,7 +217,7 @@ _If you like this integration, I'll gladly accept some quality coffee, but pleas
 ---
 
 [buymecoffee]: https://www.buymeacoffee.com/alexdelprete
-[buymecoffee-shield]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-white?style=for-the-badge
+[buymecoffee-shield]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow?style=for-the-badge&logo=buymeacoffee&logoColor=white
 [hacs]: https://hacs.xyz
 [my-hacs]: https://my.home-assistant.io/redirect/hacs_repository/?owner=alexdelprete&repository=ha-4noks-elios4you&category=integration
 [forum-shield]: https://img.shields.io/badge/community-forum-darkred?style=for-the-badge
