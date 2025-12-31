@@ -8,8 +8,6 @@ from __future__ import annotations
 import importlib
 from unittest.mock import AsyncMock, patch
 
-import pytest
-
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 

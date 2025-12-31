@@ -189,6 +189,53 @@ All commands must pass without errors before committing.
 
 # Release History
 
+## v1.0.0 - First Stable Release
+
+**Date:** December 31, 2025
+**Claude Model:** Opus 4.5 (claude-opus-4-5-20251101)
+**Development Tool:** Claude Code (VSCode Extension)
+
+---
+
+### Overview
+
+First stable v1.0.0 release marking the integration as production-ready. This milestone represents the culmination of extensive development and testing since v0.2.0.
+
+### Key Achievements
+
+- **Home Assistant Quality Scale Gold Tier** - Full compliance with mandatory and recommended rules
+- **98% Test Coverage** - 188 tests covering all integration components
+- **Full Async I/O** - telnetlib3 for non-blocking telnet operations
+- **Connection Pooling** - 25-second reuse window prevents device socket exhaustion
+- **Comprehensive Documentation** - Known limitations, troubleshooting, repair notifications
+
+### Documentation Updates
+
+1. **README.md**
+   - Added Known Limitations section (single device per instance)
+   - Added Troubleshooting section (debug logging, repair notifications, opening issues)
+   - Updated Features to include repair notifications and diagnostics
+
+2. **docs/releases/v1.0.0.md** - Comprehensive release notes
+3. **CHANGELOG.md** - v1.0.0 section with all changes since v0.2.0
+
+### Breaking Changes
+
+**None** - Migration from any previous version is seamless.
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| `README.md` | Known Limitations, Troubleshooting, Features update |
+| `docs/releases/v1.0.0.md` | New release notes |
+| `CHANGELOG.md` | v1.0.0 section |
+| `CLAUDE.md` | This release history |
+| `manifest.json` | version: "1.0.0" |
+| `const.py` | VERSION = "1.0.0" |
+
+---
+
 ## v0.4.0-beta.3 - Migrate from mypy to ty Type Checker
 
 **Date:** December 29, 2025

@@ -7,10 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### 🔧 Improvements
+---
 
-- **Test Client Alignment** - Updated `e4u-client/e4u.py` to use telnetlib3 with patterns from api.py
-- Deleted old bundled `lib/telnetlib.py` (848 lines removed)
+## [1.0.0] - 2025-12-31
+
+🎉 **First Stable v1.0.0 Release** - Production-ready integration
+
+This milestone release represents a mature, battle-tested integration that has undergone extensive development and testing, achieving **Home Assistant Quality Scale Gold tier compliance**.
+
+### 🚀 Journey from v0.2.0 to v1.0.0
+
+| Version | Milestone |
+|---------|-----------|
+| v0.3.0-beta.1 | Connection pooling fix for device "deaf" issue |
+| v0.4.0-beta.1 | Full async telnetlib3 migration |
+| v0.4.0-beta.2 | telnetlib3 API optimization |
+| v0.4.0-beta.3 | Comprehensive test suite (98% coverage) |
+| **v1.0.0** | **Production-ready stable release** |
+
+### ✨ Key Features
+
+- **Full Async I/O** - telnetlib3 for non-blocking telnet operations
+- **Connection Pooling** - 25-second reuse window prevents device socket exhaustion
+- **98% Test Coverage** - 188 tests across all components
+- **HA Quality Scale Gold** - Full compliance with mandatory and recommended rules
+- **Config/Options/Reconfigure Flows** - Complete configuration management
+- **Repair Notifications** - Connection issues surfaced in HA repairs system
+- **Diagnostics Support** - Downloadable diagnostics for troubleshooting
+- **6 Language Translations** - EN, DE, IT, NL, PL, UK
+- **Type Checking with ty** - Astral's Rust-based type checker
+
+### 📝 Documentation
+
+- **Known Limitations Section** - Documents single device per instance
+- **Troubleshooting Section** - Debug logging, repair notifications, issue reporting
+- **Updated Features** - Repair notifications and diagnostics documented
+
+### ⚠️ Breaking Changes
+
+**None** - Migration from any previous version is seamless.
+
+### 📦 Requirements
+
+- Home Assistant 2025.10.0 or newer
+- Python 3.13 or newer
+
+**Full Release Notes:** [docs/releases/v1.0.0.md](docs/releases/v1.0.0.md)
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.2.0...v1.0.0
 
 ---
 
@@ -486,7 +530,8 @@ Initial release of the 4-noks Elios4you integration.
 
 ---
 
-[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.3...HEAD
+[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.3...v1.0.0
 [0.4.0-beta.3]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.2...v0.4.0-beta.3
 [0.4.0-beta.2]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.1...v0.4.0-beta.2
 [0.4.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.3.0-beta.1...v0.4.0-beta.1

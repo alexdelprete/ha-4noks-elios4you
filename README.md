@@ -33,6 +33,8 @@ So finally here we are with the first official version of the HA custom integrat
 - Configuration options: Name, hostname, tcp port, polling period
 - Options flow: change polling period at runtime without restart
 - Reconfigure flow: change connection settings (name, host, port) with automatic reload
+- Repair notifications: connection issues are surfaced in Home Assistant's repair system
+- Diagnostics: downloadable diagnostics file for troubleshooting
 
 ### Technical Architecture
 
@@ -43,6 +45,10 @@ This integration uses a fully async telnet implementation via `telnetlib3` to co
 - **Command Retry**: Failed commands are retried up to 3 times with 300ms delay for resilience
 - **Race Condition Prevention**: `asyncio.Lock` serializes all telnet operations between polling and switch commands
 - **Graceful Error Handling**: Custom exceptions (`TelnetConnectionError`, `TelnetCommandError`) provide clear error context
+
+### Known Limitations
+
+- **Single device per integration instance**: Each Elios4you device requires a separate integration instance. To monitor multiple devices, add the integration multiple times.
 
 # Installation through HACS
 
@@ -183,6 +189,37 @@ automation:
         target:
           entity_id: switch.elios4you_relay
 ```
+
+## Troubleshooting
+
+### Enabling Debug Logging
+
+Add this to your `configuration.yaml` to enable debug logging:
+
+```yaml
+logger:
+  default: info
+  logs:
+    custom_components.4noks_elios4you: debug
+```
+
+Restart Home Assistant and check the logs in **Settings > System > Logs**.
+
+### Repair Notifications
+
+The integration uses Home Assistant's repair system to notify you of connection issues. If the device becomes unreachable, you'll see a repair notification in **Settings > System > Repairs** with troubleshooting steps.
+
+### Opening an Issue
+
+If you encounter problems, please open an issue on GitHub with:
+
+1. **Debug logs** - Enable debug logging (see above) and capture relevant log entries
+2. **Diagnostics file** - Download from **Settings > Devices & Services > 4-noks Elios4you > 3-dot menu > Download diagnostics**
+3. **Home Assistant version** - Found in **Settings > About**
+4. **Integration version** - Found in **HACS > 4-noks Elios4you**
+5. **Problem description** - What you expected vs what happened
+
+[Open an issue on GitHub](https://github.com/alexdelprete/ha-4noks-elios4you/issues/new)
 
 ## Development
 
