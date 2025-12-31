@@ -203,7 +203,7 @@ First stable v1.0.0 release marking the integration as production-ready. This mi
 
 ### Key Achievements
 
-- **Home Assistant Quality Scale Gold Tier** - Full compliance with mandatory and recommended rules
+- **Home Assistant Quality Scale Platinum Tier** - Full compliance with all tiers including strict typing
 - **98% Test Coverage** - 188 tests covering all integration components
 - **Full Async I/O** - telnetlib3 for non-blocking telnet operations
 - **Connection Pooling** - 25-second reuse window prevents device socket exhaustion

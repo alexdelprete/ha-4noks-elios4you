@@ -15,22 +15,22 @@ rules:
     comment: Integration does not define any service actions.
 
   # Rule: If it's a polling integration, set an appropriate polling interval
-  appropriate-polling: done  # Configurable scan_interval (30-600s) via options flow
+  appropriate-polling: done # Configurable scan_interval (30-600s) via options flow
 
   # Rule: Has branding assets available for the integration
-  brands: done  # Available in HACS, branding assets submitted
+  brands: done # Available in HACS, branding assets submitted
 
   # Rule: Place common patterns in common modules
-  common-modules: done  # coordinator.py, helpers.py, api.py
+  common-modules: done # coordinator.py, helpers.py, api.py
 
   # Rule: Integration needs to be able to be set up via the UI
-  config-flow: done  # UI setup via config_flow.py with VERSION = 2
+  config-flow: done # UI setup via config_flow.py with VERSION = 2
 
   # Rule: Full test coverage for the config flow
-  config-flow-test-coverage: done  # tests/test_config_flow.py covers all flows
+  config-flow-test-coverage: done # tests/test_config_flow.py covers all flows
 
   # Rule: Dependency transparency
-  dependency-transparency: done  # telnetlib3 is OSI-licensed, on PyPI
+  dependency-transparency: done # telnetlib3 is OSI-licensed, on PyPI
 
   # Rule: The documentation describes the provided service actions
   docs-actions:
@@ -38,34 +38,34 @@ rules:
     comment: Integration does not define any service actions.
 
   # Rule: The documentation includes a high-level description
-  docs-high-level-description: done  # README.md describes Elios4you device
+  docs-high-level-description: done # README.md describes Elios4you device
 
   # Rule: The documentation provides step-by-step installation instructions
-  docs-installation-instructions: done  # README.md with HACS instructions
+  docs-installation-instructions: done # README.md with HACS instructions
 
   # Rule: The documentation provides removal instructions
-  docs-removal-instructions: done  # Standard HA removal via integrations page
+  docs-removal-instructions: done # Standard HA removal via integrations page
 
   # Rule: Entity events are subscribed in the correct lifecycle methods
-  entity-event-setup: done  # Uses DataUpdateCoordinator pattern
+  entity-event-setup: done # Uses DataUpdateCoordinator pattern
 
   # Rule: Entities have a unique ID
-  entity-unique-id: done  # Serial number based unique IDs
+  entity-unique-id: done # Serial number based unique IDs
 
   # Rule: Entities use has_entity_name = True
-  has-entity-name: done  # _attr_has_entity_name = True in sensor.py
+  has-entity-name: done # _attr_has_entity_name = True in sensor.py
 
   # Rule: Use ConfigEntry.runtime_data to store runtime data
-  runtime-data: done  # Uses entry.runtime_data with RuntimeData dataclass
+  runtime-data: done # Uses entry.runtime_data with RuntimeData dataclass
 
   # Rule: Test a connection in the config flow
-  test-before-configure: done  # Validates Telnet connection before setup
+  test-before-configure: done # Validates Telnet connection before setup
 
   # Rule: Check during integration initialization if we can set it up correctly
-  test-before-setup: done  # Raises ConfigEntryNotReady on connection failure
+  test-before-setup: done # Raises ConfigEntryNotReady on connection failure
 
   # Rule: Don't allow the same device or service to be set up twice
-  unique-config-entry: done  # Uses serial number as unique_id
+  unique-config-entry: done # Uses serial number as unique_id
 
   # ============================================================================
   # SILVER TIER (10 rules) - Enhanced reliability
@@ -77,22 +77,22 @@ rules:
     comment: Integration does not define any service actions.
 
   # Rule: Support config entry unloading
-  config-entry-unloading: done  # async_unload_entry properly cleans up
+  config-entry-unloading: done # async_unload_entry properly cleans up
 
   # Rule: The documentation describes all integration configuration options
-  docs-configuration-parameters: done  # README documents scan_interval
+  docs-configuration-parameters: done # README documents scan_interval
 
   # Rule: The documentation describes all integration installation parameters
-  docs-installation-parameters: done  # README documents host, port, name
+  docs-installation-parameters: done # README documents host, port, name
 
   # Rule: Mark entity unavailable if appropriate
-  entity-unavailable: done  # Coordinator handles availability via UpdateFailed
+  entity-unavailable: done # Coordinator handles availability via UpdateFailed
 
   # Rule: Has an integration owner
-  integration-owner: done  # @alexdelprete in manifest.json codeowners
+  integration-owner: done # @alexdelprete in manifest.json codeowners
 
   # Rule: If unavailable, log once when unavailable and once when back connected
-  log-when-unavailable: done  # DataUpdateCoordinator handles this automatically
+  log-when-unavailable: done # DataUpdateCoordinator handles this automatically
 
   # Rule: Number of parallel updates is specified
   parallel-updates:
@@ -105,17 +105,17 @@ rules:
     comment: Integration does not require authentication credentials.
 
   # Rule: Above 95% test coverage for all integration modules
-  test-coverage: done  # Tests for all modules: init, helpers, config_flow
+  test-coverage: done # Tests for all modules: init, helpers, config_flow
 
   # ============================================================================
   # GOLD TIER (20 rules) - Best user experience
   # ============================================================================
 
   # Rule: The integration creates devices
-  devices: done  # Creates device with manufacturer, model, serial number
+  devices: done # Creates device with manufacturer, model, serial number
 
   # Rule: Implements diagnostics
-  diagnostics: done  # diagnostics.py provides downloadable debug info
+  diagnostics: done # diagnostics.py provides downloadable debug info
 
   # Rule: Devices can be discovered
   discovery:
@@ -128,25 +128,25 @@ rules:
     comment: No discovery mechanism available for Telnet.
 
   # Rule: The documentation describes how data is updated
-  docs-data-update: done  # README explains polling via Telnet
+  docs-data-update: done # README explains polling via Telnet
 
   # Rule: The documentation provides automation examples
-  docs-examples: done  # README includes 5 automation examples
+  docs-examples: done # README includes 5 automation examples
 
   # Rule: The documentation describes known limitations
-  docs-known-limitations: done  # README documents limitations
+  docs-known-limitations: done # README documents limitations
 
   # Rule: The documentation describes known supported / unsupported devices
-  docs-supported-devices: done  # README specifies 4-noks Elios4you device
+  docs-supported-devices: done # README specifies 4-noks Elios4you device
 
   # Rule: The documentation describes the supported functionality
-  docs-supported-functions: done  # README lists all 41 sensors and relay switch
+  docs-supported-functions: done # README lists all 41 sensors and relay switch
 
   # Rule: The documentation provides troubleshooting information
-  docs-troubleshooting: done  # README includes debug logging instructions
+  docs-troubleshooting: done # README includes debug logging instructions
 
   # Rule: The documentation describes use cases
-  docs-use-cases: done  # README documents energy monitoring and PV tracking
+  docs-use-cases: done # README documents energy monitoring and PV tracking
 
   # Rule: Devices added after integration setup
   dynamic-devices:
@@ -154,28 +154,28 @@ rules:
     comment: Single device integration, no dynamic device addition.
 
   # Rule: Entities are assigned an appropriate EntityCategory
-  entity-category: done  # Uses EntityCategory.DIAGNOSTIC where appropriate
+  entity-category: done # Uses EntityCategory.DIAGNOSTIC where appropriate
 
   # Rule: Entities use device classes where possible
-  entity-device-class: done  # Uses POWER, ENERGY device classes
+  entity-device-class: done # Uses POWER, ENERGY device classes
 
   # Rule: Integration disables less popular (or noisy) entities
-  entity-disabled-by-default: done  # F1/F2/F3 variants and diagnostic sensors disabled by default
+  entity-disabled-by-default: done # F1/F2/F3 variants and diagnostic sensors disabled by default
 
   # Rule: Entities have translated names
-  entity-translations: done  # 6 languages: de, en, es, fr, it, pt
+  entity-translations: done # 6 languages: de, en, es, fr, it, pt
 
   # Rule: Exception messages are translatable
-  exception-translations: done  # TelnetConnectionError and TelnetCommandError use HomeAssistantError translations
+  exception-translations: done # TelnetConnectionError and TelnetCommandError use HomeAssistantError translations
 
   # Rule: Entities implement icon translations
-  icon-translations: done  # icons.json defines icons for entities
+  icon-translations: done # icons.json defines icons for entities
 
   # Rule: Integrations should have a reconfigure flow
-  reconfiguration-flow: done  # Reconfigure flow for host/port changes
+  reconfiguration-flow: done # Reconfigure flow for host/port changes
 
   # Rule: Repair issues and repair flows are used when user intervention is needed
-  repair-issues: done  # Creates repair issue for connection failures
+  repair-issues: done # Creates repair issue for connection failures
 
   # Rule: Stale devices are removed
   stale-devices:
@@ -187,7 +187,7 @@ rules:
   # ============================================================================
 
   # Rule: Dependency is async
-  async-dependency: done  # telnetlib3 is native async
+  async-dependency: done # telnetlib3 is native async
 
   # Rule: The integration dependency supports passing in a websession
   inject-websession:
@@ -195,6 +195,4 @@ rules:
     comment: Uses Telnet, not HTTP.
 
   # Rule: Strict typing
-  strict-typing:
-    status: todo
-    comment: Package name with numeric prefix prevents mypy validation.
+  strict-typing: done # ty type checker passes via symlink workaround in CI

@@ -30,7 +30,7 @@ This milestone release represents a mature, battle-tested integration that has u
 - **Full Async I/O** - telnetlib3 for non-blocking telnet operations
 - **Connection Pooling** - 25-second reuse window prevents device socket exhaustion
 - **98% Test Coverage** - 188 tests across all components
-- **HA Quality Scale Gold** - Full compliance with mandatory and recommended rules
+- **HA Quality Scale Platinum** - Full compliance with all tiers including strict typing
 - **Config/Options/Reconfigure Flows** - Complete configuration management
 - **Repair Notifications** - Connection issues surfaced in HA repairs system
 - **Diagnostics Support** - Downloadable diagnostics for troubleshooting
