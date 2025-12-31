@@ -34,7 +34,7 @@ This milestone release represents a mature, battle-tested integration that has u
 - **Config/Options/Reconfigure Flows** - Complete configuration management
 - **Repair Notifications** - Connection issues surfaced in HA repairs system
 - **Diagnostics Support** - Downloadable diagnostics for troubleshooting
-- **6 Language Translations** - EN, DE, IT, NL, PL, UK
+- **10 Language Translations** - EN, DE, ES, ET, FI, FR, IT, NB, PT, SV
 - **Type Checking with ty** - Astral's Rust-based type checker
 
 ### 📝 Documentation
