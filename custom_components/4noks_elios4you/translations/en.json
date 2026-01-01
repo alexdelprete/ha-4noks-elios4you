@@ -97,8 +97,8 @@
   },
   "issues": {
     "connection_failed": {
-      "title": "Cannot connect to {device_name}",
-      "description": "The integration cannot connect to your Elios4You device at {host}:{port}.\n\n**Possible causes:**\n- The device is powered off or not connected to the network\n- The IP address has changed\n- A firewall is blocking the connection\n- The Telnet port is not accessible\n\n**To resolve:**\n1. Check that the device is powered on and connected to your network\n2. Verify the IP address in your router's DHCP table\n3. If the IP has changed, reconfigure the integration with the new address"
+      "title": "{device_name} is not responding",
+      "description": "The integration cannot communicate with your Elios4You device at {host}:{port}.\n\n**Possible causes:**\n- The device is powered off or not connected to the network\n- The device is connected but not responding to commands (device may need a restart)\n- The IP address has changed\n- A firewall is blocking the connection\n- The Telnet port is not accessible\n\n**To resolve:**\n1. Check that the device is powered on and connected to your network\n2. Try restarting the device (power cycle)\n3. Verify the IP address in your router's DHCP table\n4. If the IP has changed, reconfigure the integration with the new address"
     }
   },
   "exceptions": {
