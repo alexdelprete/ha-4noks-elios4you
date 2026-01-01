@@ -47,7 +47,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: Elios4YouConfigEn
 
     # Test to see if api initialised correctly, else raise ConfigNotReady to make HA retry setup
     if not coordinator.api.data["sn"]:
-        raise ConfigEntryNotReady(f"Timeout connecting to {config_entry.data.get(CONF_NAME)}")
+        raise ConfigEntryNotReady(
+            translation_domain=DOMAIN,
+            translation_key="connection_timeout",
+            translation_placeholders={"device_name": str(config_entry.data.get(CONF_NAME, ""))},
+        )
 
     # Store coordinator in runtime_data to make it accessible throughout the integration
     config_entry.runtime_data = RuntimeData(coordinator)
@@ -126,11 +130,23 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
     This function handles migration of config entries when the schema version changes.
     """
-    log_debug(
+    # Handle downgrade scenario (per HA best practice)
+    if config_entry.version > 2:
+        log_error(
+            _LOGGER,
+            "async_migrate_entry",
+            "Cannot downgrade from future version",
+            from_version=config_entry.version,
+            current_version=2,
+        )
+        return False
+
+    log_info(
         _LOGGER,
         "async_migrate_entry",
-        "Migrating config entry",
-        version=config_entry.version,
+        "Starting migration",
+        from_version=config_entry.version,
+        target_version=2,
     )
 
     if config_entry.version == 1:

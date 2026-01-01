@@ -102,6 +102,9 @@
     }
   },
   "exceptions": {
+    "connection_timeout": {
+      "message": "Timeout connecting to {device_name}"
+    },
     "telnet_connection_error": {
       "message": "Failed to connect to Elios4You device at {host}:{port} (timeout: {timeout}s)"
     },
