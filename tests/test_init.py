@@ -522,12 +522,12 @@ class TestMigration:
         # Existing options should be preserved
         assert entry.options.get("some_other_option") == "value"
 
-    async def test_migration_always_returns_true(
+    async def test_migration_rejects_future_version(
         self,
         hass: HomeAssistant,
     ) -> None:
-        """Test that migration always returns True (succeeds) for any version."""
-        # Test with a higher version (future-proofing)
+        """Test that migration returns False for future versions (downgrade protection)."""
+        # Test with a higher version - should be rejected
         entry = MockConfigEntry(
             domain=DOMAIN,
             data={
@@ -542,5 +542,29 @@ class TestMigration:
 
         result = await async_migrate_entry(hass, entry)
 
-        # Should return True even for unknown versions
+        # Should return False for versions higher than current (downgrade protection)
+        assert result is False
+
+    async def test_migration_accepts_current_version(
+        self,
+        hass: HomeAssistant,
+    ) -> None:
+        """Test that migration returns True for current version."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={
+                CONF_NAME: TEST_NAME,
+                CONF_HOST: TEST_HOST,
+                CONF_PORT: TEST_PORT,
+            },
+            options={
+                CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
+            },
+            version=2,  # Current version
+        )
+        entry.add_to_hass(hass)
+
+        result = await async_migrate_entry(hass, entry)
+
+        # Should return True for current version
         assert result is True
