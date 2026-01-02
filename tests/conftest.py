@@ -5,6 +5,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -42,6 +43,9 @@ def mock_hass() -> MagicMock:
 
     # Add state for coordinator base class checks
     mock.state = CoreState.running
+
+    # Add loop for async operations (required by DataUpdateCoordinator)
+    mock.loop = asyncio.get_event_loop()
 
     # Add bus for event firing
     mock.bus = MagicMock()
