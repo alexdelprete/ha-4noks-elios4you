@@ -224,6 +224,19 @@ Before creating any git tag or GitHub release, you MUST present a Release Readin
 3. Present the checklist to user
 4. Wait for explicit user approval before creating tag/release
 
+### Release Notes Format
+
+Every release notes file (`docs/releases/vX.Y.Z.md`) MUST include a download badge at the top:
+
+```markdown
+# vX.Y.Z - Release Title
+
+[![GitHub Downloads](https://img.shields.io/github/downloads/alexdelprete/ha-4noks-elios4you/vX.Y.Z/total?style=for-the-badge)](https://github.com/alexdelprete/ha-4noks-elios4you/releases/tag/vX.Y.Z)
+
+**Date:** Month Day, Year
+**Type:** Major/Minor/Patch Release
+```
+
 ## Dependencies
 
 - Home Assistant core (>= 2025.10.0)
