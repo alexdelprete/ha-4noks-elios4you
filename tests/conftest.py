@@ -18,7 +18,7 @@ from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL
 import pytest
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CoreState, HomeAssistant
 
 # Test constants
 TEST_HOST = "192.168.1.100"
@@ -39,6 +39,9 @@ def mock_hass() -> MagicMock:
     mock.config_entries = MagicMock()
     mock.config_entries.async_entries = MagicMock(return_value=[])
     mock.data = {}  # Required for enable_custom_integrations fixture
+
+    # Add state for coordinator base class checks
+    mock.state = CoreState.running
 
     # Add bus for event firing
     mock.bus = MagicMock()
