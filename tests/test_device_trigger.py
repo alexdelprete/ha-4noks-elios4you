@@ -16,6 +16,7 @@ from custom_components.fournoks_elios4you.device_trigger import (
     async_get_triggers,
 )
 import pytest
+import voluptuous as vol
 
 from homeassistant.components.homeassistant.triggers import event as event_trigger
 from homeassistant.const import CONF_DEVICE_ID, CONF_DOMAIN, CONF_PLATFORM, CONF_TYPE
@@ -46,8 +47,6 @@ class TestTriggerConstants:
 
     def test_trigger_schema_rejects_invalid_type(self) -> None:
         """Test that trigger schema rejects invalid type."""
-        import voluptuous as vol
-
         invalid_config = {
             CONF_PLATFORM: "device",
             CONF_DOMAIN: DOMAIN,
@@ -169,11 +168,17 @@ class TestAsyncAttachTrigger:
             mock_attach.assert_called_once()
             call_args = mock_attach.call_args
 
-            # Check event config
+            # Check event config - event_type may be a Template object in HA
             event_config = call_args[0][1]
-            assert event_config[event_trigger.CONF_EVENT_TYPE] == f"{DOMAIN}_event"
-            assert event_config[event_trigger.CONF_EVENT_DATA][CONF_DEVICE_ID] == "device_123"
-            assert event_config[event_trigger.CONF_EVENT_DATA][CONF_TYPE] == "device_unreachable"
+            event_type = event_config[event_trigger.CONF_EVENT_TYPE]
+            # Handle both string and Template types
+            event_type_str = str(event_type) if hasattr(event_type, "template") else event_type
+            assert f"{DOMAIN}_event" in str(event_type_str)
+
+            # Check event data
+            event_data = event_config[event_trigger.CONF_EVENT_DATA]
+            assert event_data[CONF_DEVICE_ID] == "device_123"
+            assert event_data[CONF_TYPE] == "device_unreachable"
 
             # Check other args
             assert call_args[0][2] == action

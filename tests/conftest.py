@@ -39,6 +39,19 @@ def mock_hass() -> MagicMock:
     mock.config_entries = MagicMock()
     mock.config_entries.async_entries = MagicMock(return_value=[])
     mock.data = {}  # Required for enable_custom_integrations fixture
+
+    # Add bus for event firing
+    mock.bus = MagicMock()
+    mock.bus.async_fire = MagicMock()
+
+    # Add config for recovery script path resolution
+    mock.config = MagicMock()
+    mock.config.is_allowed_path = MagicMock(return_value=True)
+
+    # Add services for script execution
+    mock.services = MagicMock()
+    mock.services.async_call = AsyncMock()
+
     return mock
 
 
