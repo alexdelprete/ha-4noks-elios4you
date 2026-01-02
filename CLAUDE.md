@@ -200,6 +200,30 @@ All commands must pass without errors before committing.
 
 **Version Bumping:** Update both `manifest.json` and `const.py` VERSION constant.
 
+### Release Readiness Checklist (MANDATORY)
+
+Before creating any git tag or GitHub release, you MUST present a Release Readiness Checklist to the user for approval:
+
+```markdown
+## Release Readiness Checklist
+
+| Item | Status |
+|------|--------|
+| Version in `manifest.json` | ✅ X.Y.Z |
+| Version in `const.py` | ✅ X.Y.Z |
+| Release notes (`docs/releases/vX.Y.Z.md`) | ✅ Created |
+| CHANGELOG.md updated | ✅ Updated |
+| GitHub Actions (lint/test/validate) | ✅ **PASSING** (check latest runs) |
+| Working tree clean | ✅ Clean |
+| Commits since last tag | N commits since vX.Y.Z |
+```
+
+**Steps:**
+1. Verify all checklist items
+2. Check GitHub Actions status for the latest push
+3. Present the checklist to user
+4. Wait for explicit user approval before creating tag/release
+
 ## Dependencies
 
 - Home Assistant core (>= 2025.10.0)
