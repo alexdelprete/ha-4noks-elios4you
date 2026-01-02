@@ -9,6 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0-beta.2] - 2026-01-02
+
+🔧 **Beta Release** - Options flow UI improvements
+
+### ✨ Improvements
+
+#### Options Flow UI Rearrangement
+
+Rearranged the options flow dialog for better UX:
+
+| Order | Field | Change |
+|-------|-------|--------|
+| 1 | Recovery script | Moved up (right after variables description) |
+| 2 | Enable repair notifications | Unchanged position |
+| 3 | Failures before notification | Changed from slider to input box |
+| 4 | Polling Period | Moved to bottom |
+
+**Technical changes:**
+- Changed `failures_threshold` from `vol.Clamp` slider to `NumberSelector` with `mode=BOX`
+- Changed `scan_interval` to `NumberSelector` with `unit_of_measurement="seconds"`
+- Reordered schema fields for logical grouping
+
+### 📦 Files Changed
+
+- `custom_components/4noks_elios4you/config_flow.py` - Reordered options schema, added NumberSelector imports
+
+### ⚠️ Breaking Changes
+
+**None** - Full backward compatibility maintained.
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.0-beta.1...v1.1.0-beta.2
+
+---
+
 ## [1.1.0-beta.1] - 2026-01-02
 
 🔧 **Beta Release** - Device triggers and enhanced recovery notifications
@@ -598,7 +632,8 @@ Initial release of the 4-noks Elios4you integration.
 
 ---
 
-[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.0-beta.1...HEAD
+[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.0-beta.2...HEAD
+[1.1.0-beta.2]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.0-beta.1...v1.1.0-beta.2
 [1.1.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.0.0...v1.1.0-beta.1
 [1.0.0]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.3...v1.0.0
 [0.4.0-beta.3]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.2...v0.4.0-beta.3
