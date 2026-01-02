@@ -105,17 +105,34 @@ This integration is based on and aligned with [ha-sinapsi-alfa](https://github.c
 
 ## Code Quality Standards
 
-### Pre-Push Checks (MANDATORY)
+### Pre-Commit Configuration
 
-Before pushing any commits, run these checks:
+This project uses pre-commit hooks for automated code quality checks. Configuration is in `.pre-commit-config.yaml`.
+
+| Hook | Command | Description |
+|------|---------|-------------|
+| ruff | `ruff check --no-fix --verbose` | Python linting |
+| ruff-format | `ruff format --check --verbose` | Python formatting |
+| jsonlint | `uvx --from demjson3 jsonlint` | JSON validation (excludes .vscode/) |
+| check-yaml | `python -c "import yaml, sys; yaml.safe_load(open(sys.argv[1]))"` | YAML validation |
+| pymarkdown | `pymarkdown scan` | Markdown linting |
+
+### Pre-Push Linting (MANDATORY)
+
+Before pushing any commits, run pre-commit on all files:
 
 ```bash
+# Run all pre-commit hooks
+uvx pre-commit run --all-files
+
 # Run tests with coverage
 pytest tests/ --cov=custom_components/4noks_elios4you -v
+```
 
-# Python formatting and linting
-ruff format .
-ruff check . --fix
+To install hooks for automatic pre-commit checking:
+
+```bash
+uvx pre-commit install
 ```
 
 **Test Requirements:**
@@ -123,6 +140,10 @@ ruff check . --fix
 - All tests must pass before pushing
 - Maintain 95%+ code coverage per file
 - Use `importlib` for numeric module imports in tests
+
+### Windows Shell Notes
+
+When using Claude Code on Windows, bash commands redirecting to `NUL` (Windows null device) can create stray `NUL` files. These are harmless but should be added to `.gitignore` and not committed.
 
 #### Running ty Type Checker
 

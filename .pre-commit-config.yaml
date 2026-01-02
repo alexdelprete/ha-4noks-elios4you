@@ -1,0 +1,42 @@
+# Pre-commit configuration for ha-4noks-elios4you
+# Run: uvx pre-commit run --all-files
+# Install hooks: uvx pre-commit install
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: ruff check --no-fix --verbose
+        language: system
+        types: [python]
+        verbose: true
+
+      - id: ruff-format
+        name: ruff-format
+        entry: ruff format --check --verbose
+        language: system
+        types: [python]
+        verbose: true
+
+      - id: jsonlint
+        name: jsonlint
+        entry: uvx --from demjson3 jsonlint
+        language: system
+        types: [json]
+        exclude: ^\.vscode/
+        verbose: true
+
+      - id: check-yaml
+        name: check-yaml
+        entry: python -c "import yaml, sys; yaml.safe_load(open(sys.argv[1]))"
+        language: system
+        types: [yaml]
+        verbose: true
+
+      - id: pymarkdown
+        name: pymarkdown
+        entry: pymarkdown scan
+        language: system
+        types: [markdown]
+        verbose: true
