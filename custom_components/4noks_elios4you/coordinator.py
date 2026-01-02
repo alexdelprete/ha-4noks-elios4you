@@ -361,5 +361,5 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
             "_fire_device_event",
             "Device event fired",
             event_type=event_type,
-            device_id=self._device_id,
+            device_id=self.device_id,
         )

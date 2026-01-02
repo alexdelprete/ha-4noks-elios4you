@@ -760,7 +760,7 @@ class TestConfigFlowAttributes:
 
     def test_config_flow_version(self) -> None:
         """Test ConfigFlow VERSION is set correctly."""
-        assert Elios4YouConfigFlow.VERSION == 2
+        assert Elios4YouConfigFlow.VERSION == 3
 
     def test_config_flow_connection_class(self) -> None:
         """Test ConfigFlow CONNECTION_CLASS is set correctly."""
