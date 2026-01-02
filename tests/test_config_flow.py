@@ -5,34 +5,23 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from __future__ import annotations
 
-import importlib
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
+# Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
+from custom_components.fournoks_elios4you import config_flow as _elios4you_config_flow
+from custom_components.fournoks_elios4you.api import TelnetCommandError, TelnetConnectionError
+from custom_components.fournoks_elios4you.config_flow import (
+    Elios4YouConfigFlow,
+    Elios4YouOptionsFlow,
+    get_host_from_config,
+)
+from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL, DOMAIN
 import pytest
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-
-# Import modules with numeric prefix using importlib
-_elios4you_config_flow = importlib.import_module("custom_components.4noks_elios4you.config_flow")
-_elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
-_elios4you_api = importlib.import_module("custom_components.4noks_elios4you.api")
-
-Elios4YouConfigFlow = _elios4you_config_flow.Elios4YouConfigFlow
-Elios4YouOptionsFlow = _elios4you_config_flow.Elios4YouOptionsFlow
-get_host_from_config = _elios4you_config_flow.get_host_from_config
-TelnetConnectionError = _elios4you_api.TelnetConnectionError
-TelnetCommandError = _elios4you_api.TelnetCommandError
-
-CONF_SCAN_INTERVAL = _elios4you_const.CONF_SCAN_INTERVAL
-DEFAULT_NAME = _elios4you_const.DEFAULT_NAME
-DEFAULT_PORT = _elios4you_const.DEFAULT_PORT
-DEFAULT_SCAN_INTERVAL = _elios4you_const.DEFAULT_SCAN_INTERVAL
-DOMAIN = _elios4you_const.DOMAIN
-MIN_SCAN_INTERVAL = _elios4you_const.MIN_SCAN_INTERVAL
-MAX_SCAN_INTERVAL = _elios4you_const.MAX_SCAN_INTERVAL
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL, TEST_SERIAL_NUMBER
 

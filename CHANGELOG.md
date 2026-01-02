@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.1] - 2026-01-02
+
+### 🐛 Bug Fixes
+
+- **Repairs flow handler:** Fixed empty recovery notification issue by adding `ConfirmRepairFlow` handler
+
+### 🔧 Code Quality
+
+- **Exception handling:** Refactored to use specific exceptions instead of catch-all handlers (aligned with ha-sinapsi-alfa patterns)
+- **Code patterns:** Aligned with ha-sinapsi-alfa coding standards (list comprehensions, simplified conditionals)
+- **Pre-commit:** Added pre-commit configuration for automated code quality checks
+- **Test imports:** Replaced importlib workaround with symlink approach (consistent with ty type checker)
+- **Tests:** Updated tests to match refactored exception handling behavior
+
+### 📚 Documentation
+
+- **CLAUDE.md:** Added local test instructions with symlink workaround
+- **CLAUDE.md:** Added directive to never modify production code to make tests pass
+
+---
+
 ## [1.1.0] - 2026-01-02
 
 🎉 **Official Stable Release** - Recovery script, device triggers, enhanced notifications, and UI improvements

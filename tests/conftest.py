@@ -6,25 +6,19 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 from __future__ import annotations
 
 from collections.abc import Generator
-import importlib
 from unittest.mock import AsyncMock, MagicMock, patch
 
+# Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
+import custom_components.fournoks_elios4you as _elios4you_init
+from custom_components.fournoks_elios4you import (
+    api as _elios4you_api,
+    config_flow as _elios4you_config_flow,
+)
+from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL
 import pytest
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
-
-# Import modules with numeric prefix using importlib
-_elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
-_elios4you_api = importlib.import_module("custom_components.4noks_elios4you.api")
-_elios4you_config_flow = importlib.import_module("custom_components.4noks_elios4you.config_flow")
-_elios4you_init = importlib.import_module("custom_components.4noks_elios4you")
-
-CONF_SCAN_INTERVAL = _elios4you_const.CONF_SCAN_INTERVAL
-DEFAULT_NAME = _elios4you_const.DEFAULT_NAME
-DEFAULT_PORT = _elios4you_const.DEFAULT_PORT
-DEFAULT_SCAN_INTERVAL = _elios4you_const.DEFAULT_SCAN_INTERVAL
-DOMAIN = _elios4you_const.DOMAIN
 
 # Test constants
 TEST_HOST = "192.168.1.100"

@@ -5,31 +5,34 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from __future__ import annotations
 
-import importlib
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
+# Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
+from custom_components.fournoks_elios4you import (
+    RuntimeData,
+    async_migrate_entry,
+    async_remove_config_entry_device,
+    async_setup_entry,
+    async_unload_entry,
+    async_update_device_registry,
+    coordinator as _elios4you_coordinator,
+)
+from custom_components.fournoks_elios4you.const import (
+    CONF_ENABLE_REPAIR_NOTIFICATION,
+    CONF_FAILURES_THRESHOLD,
+    CONF_RECOVERY_SCRIPT,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_ENABLE_REPAIR_NOTIFICATION,
+    DEFAULT_FAILURES_THRESHOLD,
+    DEFAULT_RECOVERY_SCRIPT,
+    DOMAIN,
+)
+from custom_components.fournoks_elios4you.coordinator import Elios4YouCoordinator
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
-
-# Import modules with numeric prefix using importlib
-_elios4you_init = importlib.import_module("custom_components.4noks_elios4you")
-_elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
-_elios4you_coordinator = importlib.import_module("custom_components.4noks_elios4you.coordinator")
-
-async_migrate_entry = _elios4you_init.async_migrate_entry
-async_setup_entry = _elios4you_init.async_setup_entry
-async_unload_entry = _elios4you_init.async_unload_entry
-Elios4YouCoordinator = _elios4you_coordinator.Elios4YouCoordinator
-
-CONF_SCAN_INTERVAL = _elios4you_const.CONF_SCAN_INTERVAL
-CONF_ENABLE_REPAIR_NOTIFICATION = _elios4you_const.CONF_ENABLE_REPAIR_NOTIFICATION
-CONF_FAILURES_THRESHOLD = _elios4you_const.CONF_FAILURES_THRESHOLD
-CONF_RECOVERY_SCRIPT = _elios4you_const.CONF_RECOVERY_SCRIPT
-DEFAULT_SCAN_INTERVAL = _elios4you_const.DEFAULT_SCAN_INTERVAL
-DEFAULT_ENABLE_REPAIR_NOTIFICATION = _elios4you_const.DEFAULT_ENABLE_REPAIR_NOTIFICATION
-DEFAULT_FAILURES_THRESHOLD = _elios4you_const.DEFAULT_FAILURES_THRESHOLD
-DEFAULT_RECOVERY_SCRIPT = _elios4you_const.DEFAULT_RECOVERY_SCRIPT
-DOMAIN = _elios4you_const.DOMAIN
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceEntry
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL
 from .test_config_flow import MockConfigEntry
@@ -211,20 +214,6 @@ async def test_migration_v2_to_v3(
     assert entry.options.get(CONF_ENABLE_REPAIR_NOTIFICATION) == DEFAULT_ENABLE_REPAIR_NOTIFICATION
     assert entry.options.get(CONF_FAILURES_THRESHOLD) == DEFAULT_FAILURES_THRESHOLD
     assert entry.options.get(CONF_RECOVERY_SCRIPT) == DEFAULT_RECOVERY_SCRIPT
-
-
-# =============================================================================
-# Additional imports for new tests
-# =============================================================================
-from unittest.mock import MagicMock
-
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.device_registry import DeviceEntry
-
-# Import additional functions from the init module
-async_update_device_registry = _elios4you_init.async_update_device_registry
-async_remove_config_entry_device = _elios4you_init.async_remove_config_entry_device
-RuntimeData = _elios4you_init.RuntimeData
 
 
 # =============================================================================

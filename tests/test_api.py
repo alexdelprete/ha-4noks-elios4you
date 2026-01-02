@@ -6,23 +6,17 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 from __future__ import annotations
 
 import asyncio
-import importlib
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
+# Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
+from custom_components.fournoks_elios4you.api import (
+    Elios4YouAPI,
+    TelnetCommandError,
+    TelnetConnectionError,
+)
+from custom_components.fournoks_elios4you.const import CONN_TIMEOUT, MANUFACTURER, MODEL
 import pytest
-
-# Import modules with numeric prefix using importlib
-_elios4you_api = importlib.import_module("custom_components.4noks_elios4you.api")
-_elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
-
-Elios4YouAPI = _elios4you_api.Elios4YouAPI
-TelnetConnectionError = _elios4you_api.TelnetConnectionError
-TelnetCommandError = _elios4you_api.TelnetCommandError
-
-CONN_TIMEOUT = _elios4you_const.CONN_TIMEOUT
-MANUFACTURER = _elios4you_const.MANUFACTURER
-MODEL = _elios4you_const.MODEL
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SERIAL_NUMBER
 

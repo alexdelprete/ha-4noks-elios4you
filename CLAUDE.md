@@ -139,7 +139,23 @@ uvx pre-commit install
 
 - All tests must pass before pushing
 - Maintain 95%+ code coverage per file
-- Use `importlib` for numeric module imports in tests
+- **Tests run in CI only** - Due to complex HA dependencies, run tests via GitHub Actions
+
+#### Running Tests
+
+Due to the package name starting with a digit (`4noks_elios4you`), which is invalid for Python imports, tests use a symlink workaround. The CI workflow handles this automatically.
+
+**Testing via CI (Recommended):**
+Push your changes and let GitHub Actions run the tests. The workflow:
+1. Creates symlink: `ln -s 4noks_elios4you custom_components/fournoks_elios4you`
+2. Runs pytest with coverage
+3. Removes symlink after tests complete
+
+**Why CI-only testing?**
+- `pytest-homeassistant-custom-component` has complex dependencies
+- Symlink creation on Windows requires admin privileges or Developer Mode
+- CI environment is pre-configured and consistent
+- Faster feedback loop for most development workflows
 
 ### Windows Shell Notes
 

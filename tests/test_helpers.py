@@ -5,17 +5,16 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from __future__ import annotations
 
-import importlib
 import logging
 
-# Import modules with numeric prefix using importlib
-_elios4you_helpers = importlib.import_module("custom_components.4noks_elios4you.helpers")
-
-host_valid = _elios4you_helpers.host_valid
-log_debug = _elios4you_helpers.log_debug
-log_error = _elios4you_helpers.log_error
-log_info = _elios4you_helpers.log_info
-log_warning = _elios4you_helpers.log_warning
+# Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
+from custom_components.fournoks_elios4you.helpers import (
+    host_valid,
+    log_debug,
+    log_error,
+    log_info,
+    log_warning,
+)
 
 
 class TestHostValid:

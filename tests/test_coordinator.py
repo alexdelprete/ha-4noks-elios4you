@@ -6,26 +6,22 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 from __future__ import annotations
 
 from datetime import timedelta
-import importlib
 from unittest.mock import AsyncMock, patch
 
+# Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
+from custom_components.fournoks_elios4you import coordinator as _elios4you_coordinator
+from custom_components.fournoks_elios4you.api import TelnetCommandError, TelnetConnectionError
+from custom_components.fournoks_elios4you.const import (
+    CONF_SCAN_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    MIN_SCAN_INTERVAL,
+)
+from custom_components.fournoks_elios4you.coordinator import Elios4YouCoordinator
 import pytest
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.helpers.update_coordinator import UpdateFailed
-
-# Import modules with numeric prefix using importlib
-_elios4you_coordinator = importlib.import_module("custom_components.4noks_elios4you.coordinator")
-_elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
-_elios4you_api = importlib.import_module("custom_components.4noks_elios4you.api")
-
-Elios4YouCoordinator = _elios4you_coordinator.Elios4YouCoordinator
-CONF_SCAN_INTERVAL = _elios4you_const.CONF_SCAN_INTERVAL
-DEFAULT_SCAN_INTERVAL = _elios4you_const.DEFAULT_SCAN_INTERVAL
-MIN_SCAN_INTERVAL = _elios4you_const.MIN_SCAN_INTERVAL
-DOMAIN = _elios4you_const.DOMAIN
-TelnetConnectionError = _elios4you_api.TelnetConnectionError
-TelnetCommandError = _elios4you_api.TelnetCommandError
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL, TEST_SERIAL_NUMBER
 from .test_config_flow import MockConfigEntry

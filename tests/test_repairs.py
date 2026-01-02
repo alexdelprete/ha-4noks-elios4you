@@ -5,20 +5,18 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from __future__ import annotations
 
-import importlib
 from unittest.mock import patch
+
+# Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
+from custom_components.fournoks_elios4you.const import DOMAIN
+from custom_components.fournoks_elios4you.repairs import (
+    ISSUE_CONNECTION_FAILED,
+    create_connection_issue,
+    delete_connection_issue,
+)
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
-
-# Import modules with numeric prefix using importlib
-_elios4you_repairs = importlib.import_module("custom_components.4noks_elios4you.repairs")
-_elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
-
-create_connection_issue = _elios4you_repairs.create_connection_issue
-delete_connection_issue = _elios4you_repairs.delete_connection_issue
-ISSUE_CONNECTION_FAILED = _elios4you_repairs.ISSUE_CONNECTION_FAILED
-DOMAIN = _elios4you_const.DOMAIN
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT
 

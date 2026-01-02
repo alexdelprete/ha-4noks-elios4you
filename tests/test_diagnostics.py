@@ -6,22 +6,15 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 from __future__ import annotations
 
 from datetime import timedelta
-import importlib
 from unittest.mock import MagicMock
 
+# Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
+from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL, DOMAIN, VERSION
+from custom_components.fournoks_elios4you.diagnostics import async_get_config_entry_diagnostics
 import pytest
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
-
-# Import modules with numeric prefix using importlib
-_elios4you_diagnostics = importlib.import_module("custom_components.4noks_elios4you.diagnostics")
-_elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
-
-async_get_config_entry_diagnostics = _elios4you_diagnostics.async_get_config_entry_diagnostics
-CONF_SCAN_INTERVAL = _elios4you_const.CONF_SCAN_INTERVAL
-DOMAIN = _elios4you_const.DOMAIN
-VERSION = _elios4you_const.VERSION
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL, TEST_SERIAL_NUMBER
 from .test_config_flow import MockConfigEntry

@@ -25,6 +25,11 @@ jobs:
       - name: Install dependencies
         run: uv pip install -e ".[dev]" --system
 
+      # Create symlink with valid Python name for imports
+      # (4noks_elios4you starts with a digit, which is invalid for Python imports)
+      - name: Create symlink for tests
+        run: ln -s 4noks_elios4you custom_components/fournoks_elios4you
+
       - name: Run tests with coverage
         run: |
           pytest tests/ \
@@ -34,6 +39,9 @@ jobs:
             --junitxml=junit.xml \
             -o junit_family=legacy \
             -v
+
+      - name: Remove symlink
+        run: rm custom_components/fournoks_elios4you
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

@@ -5,25 +5,17 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from __future__ import annotations
 
-import importlib
 from unittest.mock import AsyncMock, MagicMock, patch
 
+# Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
+from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL, DOMAIN, SWITCH_ENTITIES
+from custom_components.fournoks_elios4you.switch import Elios4YouSwitch, async_setup_entry
 import pytest
 
 from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
-
-# Import modules with numeric prefix using importlib
-_elios4you_switch = importlib.import_module("custom_components.4noks_elios4you.switch")
-_elios4you_const = importlib.import_module("custom_components.4noks_elios4you.const")
-
-async_setup_entry = _elios4you_switch.async_setup_entry
-Elios4YouSwitch = _elios4you_switch.Elios4YouSwitch
-CONF_SCAN_INTERVAL = _elios4you_const.CONF_SCAN_INTERVAL
-DOMAIN = _elios4you_const.DOMAIN
-SWITCH_ENTITIES = _elios4you_const.SWITCH_ENTITIES
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL, TEST_SERIAL_NUMBER
 from .test_config_flow import MockConfigEntry
