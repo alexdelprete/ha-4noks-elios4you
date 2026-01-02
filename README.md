@@ -34,6 +34,8 @@ So finally here we are with the first official version of the HA custom integrat
 - Options flow: change polling period at runtime without restart
 - Reconfigure flow: change connection settings (name, host, port) with automatic reload
 - Repair notifications: connection issues are surfaced in Home Assistant's repair system
+- Enhanced recovery notifications: detailed timing info (downtime, script execution) with persistent acknowledgment
+- Device triggers: automate based on device connection events (unreachable, not responding, recovered)
 - Diagnostics: downloadable diagnostics file for troubleshooting
 
 ### Technical Architecture
@@ -87,6 +89,67 @@ Change connection settings - the integration will automatically reload:
 
 # Sensor view
 <img style="border: 5px solid #767676;border-radius: 10px;max-width: 500px;width: 75%;box-sizing: border-box;" src="https://raw.githubusercontent.com/alexdelprete/ha-4noks-elios4you/master/gfxfiles/elios4you_sensors.gif" alt="Config">
+
+# Device Triggers
+
+The integration provides device triggers that allow you to create automations based on device connection events. These triggers fire when the Elios4you device experiences connectivity issues or recovers from them.
+
+### Available Triggers
+
+| Trigger | Description |
+|---------|-------------|
+| **Device unreachable** | Fires when the device cannot be reached on the network (TCP connection failed) |
+| **Device not responding** | Fires when the device is reachable but not responding to telnet commands |
+| **Device recovered** | Fires when the device starts responding again after a failure |
+
+### How to Use Device Triggers
+
+1. Go to **Settings > Automations & Scenes > Create Automation**
+2. Click **Add Trigger** and select **Device**
+3. Select your Elios4you device
+4. Choose from the available triggers (e.g., "Device unreachable")
+
+### Device Trigger Automation Example
+
+Get notified when your Elios4you device goes offline and comes back online:
+
+```yaml
+automation:
+  - alias: "Elios4you Device Offline Alert"
+    trigger:
+      - platform: device
+        domain: 4noks_elios4you
+        device_id: YOUR_DEVICE_ID
+        type: device_unreachable
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "Elios4you Offline"
+          message: "The Elios4you device is unreachable. Check network connection."
+
+  - alias: "Elios4you Device Recovered"
+    trigger:
+      - platform: device
+        domain: 4noks_elios4you
+        device_id: YOUR_DEVICE_ID
+        type: device_recovered
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "Elios4you Online"
+          message: "The Elios4you device is back online and responding."
+```
+
+### Recovery Notifications
+
+When the device recovers from a failure, the integration creates a persistent repair notification with detailed timing information:
+
+- **Failure started**: When the issue began
+- **Script executed**: When the recovery script ran (if configured in options)
+- **Recovery time**: When the device became responsive again
+- **Total downtime**: Duration of the outage (e.g., "5m 23s")
+
+These notifications appear in **Settings > System > Repairs** and require user acknowledgment to dismiss.
 
 # Automation Examples
 
