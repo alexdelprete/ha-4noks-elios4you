@@ -10,7 +10,7 @@ from homeassistant.const import UnitOfEnergy, UnitOfPower
 # Base component constants
 NAME = "4-noks Elios4you integration"
 DOMAIN = "4noks_elios4you"
-VERSION = "1.1.0-beta.2"
+VERSION = "1.1.0"
 ATTRIBUTION = "by @alexdelprete"
 ISSUE_URL = "https://github.com/alexdelprete/ha-4noks-elios4you/issues"
 

@@ -9,6 +9,107 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-01-02
+
+🎉 **Official Stable Release** - Recovery script, device triggers, enhanced notifications, and UI improvements
+
+This release includes all improvements from the v1.1.0 beta cycle, bringing automated recovery scripts, device automation triggers, enhanced recovery notifications with detailed timing, and options flow UI improvements.
+
+### ✨ New Features
+
+#### Recovery Script (Optional)
+
+Configure an optional script that automatically executes when the device stops responding. This enables automated recovery actions like restarting your WiFi router or power-cycling network equipment.
+
+**Configuration:** In Options flow, select a script entity to run when failures exceed the configured threshold.
+
+**Available variables for script:**
+- `device_name` - The configured device name
+- `host` - The device IP address
+- `port` - The device TCP port
+
+**Example use case:** Configure a script that restarts your WiFi access point when the Elios4you device becomes unreachable, enabling automatic network recovery.
+
+#### Device Triggers for Automations
+
+Added 3 device triggers to enable Home Assistant automations based on device connection events:
+
+| Trigger | Event | Description |
+|---------|-------|-------------|
+| `device_unreachable` | Network/TCP connection failed | Fires when device cannot be reached on the network |
+| `device_not_responding` | Connected but not responding | Fires when device is reachable but telnet commands fail |
+| `device_recovered` | Device responding again | Fires when device recovers after a failure |
+
+**Usage:** In HA Automations, go to "Device" trigger and select your Elios4You device to see available triggers.
+
+#### Enhanced Recovery Notifications
+
+Improved repair notifications with detailed timing information:
+
+- **Failure started:** Time when the issue began (locale-aware format)
+- **Script executed:** Time when recovery script ran (if configured)
+- **Recovery time:** Time when device recovered
+- **Total downtime:** Compact format (e.g., "5m 23s", "1h 15m")
+- **Persistent notifications:** Survive HA restarts, require user acknowledgment
+
+**Example notification:**
+```
+Title: My Elios4You has recovered
+
+Your Elios4You device is now responding again.
+
+Failure started: 14:32:15
+Script executed: 14:32:18
+Recovery time: 14:37:38
+Total downtime: 5m 23s
+
+The recovery script script.restart_wifi was executed.
+
+Please dismiss this notification to acknowledge.
+```
+
+#### Options Flow UI Improvements
+
+Rearranged the options flow dialog for better UX:
+
+| Order | Field | Change |
+|-------|-------|--------|
+| 1 | Recovery script | Moved up (right after variables description) |
+| 2 | Enable repair notifications | Unchanged position |
+| 3 | Failures before notification | Changed from slider to input box |
+| 4 | Polling Period | Moved to bottom |
+
+#### Min-Max Validation in Field Labels
+
+All numeric input fields now display their validation ranges:
+- TCP port: `(1-65535)`
+- Polling Period: `(30-600)`
+- Failures threshold: `(1-10)`
+
+### 🌐 Translations
+
+All 10 languages fully updated with new features:
+- English, Italian, German, Spanish, French, Portuguese, Estonian, Finnish, Norwegian, Swedish
+
+### 📦 Files Changed
+
+- `custom_components/4noks_elios4you/device_trigger.py` (NEW) - Device trigger implementation
+- `custom_components/4noks_elios4you/coordinator.py` - Recovery script execution, trigger firing, downtime tracking
+- `custom_components/4noks_elios4you/repairs.py` - Enhanced notification function
+- `custom_components/4noks_elios4you/__init__.py` - Register device triggers platform
+- `custom_components/4noks_elios4you/config_flow.py` - Recovery script selector, UI improvements, NumberSelector
+- All 10 translation files - Complete updates with all new features and min-max values
+
+### ⚠️ Breaking Changes
+
+**None** - Full backward compatibility maintained.
+
+**Full Release Notes:** [docs/releases/v1.1.0.md](docs/releases/v1.1.0.md)
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.0.0...v1.1.0
+
+---
+
 ## [1.1.0-beta.2] - 2026-01-02
 
 🔧 **Beta Release** - Options flow UI improvements
@@ -632,7 +733,8 @@ Initial release of the 4-noks Elios4you integration.
 
 ---
 
-[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.0-beta.2...HEAD
+[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.0.0...v1.1.0
 [1.1.0-beta.2]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.0-beta.1...v1.1.0-beta.2
 [1.1.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.0.0...v1.1.0-beta.1
 [1.0.0]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v0.4.0-beta.3...v1.0.0
