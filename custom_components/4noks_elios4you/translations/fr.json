@@ -7,8 +7,8 @@
         "data": {
           "name": "Nom de l'appareil (utilise comme prefixe des capteurs)",
           "host": "IP ou nom d'hote",
-          "port": "Port TCP",
-          "scan_interval": "Intervalle d'interrogation (secondes)"
+          "port": "Port TCP (1-65535)",
+          "scan_interval": "Intervalle d'interrogation en secondes (30-600)"
         }
       },
       "reconfigure": {
@@ -17,7 +17,7 @@
         "data": {
           "name": "Nom de l'appareil (utilise comme prefixe des capteurs)",
           "host": "IP ou nom d'hote",
-          "port": "Port TCP"
+          "port": "Port TCP (1-65535)"
         }
       }
     },
@@ -38,7 +38,10 @@
         "title": "Options Elios4You",
         "description": "Configurer les options d'execution",
         "data": {
-          "scan_interval": "Intervalle d'interrogation (secondes)"
+          "scan_interval": "Intervalle d'interrogation en secondes (30-600)",
+          "enable_repair_notification": "Activer les notifications de reparation",
+          "failures_threshold": "Echecs avant notification (1-10)",
+          "recovery_script": "Script de recuperation (optionnel, execute lorsque l'appareil cesse de repondre)"
         }
       }
     }

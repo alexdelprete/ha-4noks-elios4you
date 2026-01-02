@@ -7,8 +7,8 @@
         "data": {
           "name": "Nombre del dispositivo (usado como prefijo de sensores)",
           "host": "IP o nombre de host",
-          "port": "Puerto TCP",
-          "scan_interval": "Intervalo de sondeo (segundos)"
+          "port": "Puerto TCP (1-65535)",
+          "scan_interval": "Intervalo de sondeo en segundos (30-600)"
         }
       },
       "reconfigure": {
@@ -17,7 +17,7 @@
         "data": {
           "name": "Nombre del dispositivo (usado como prefijo de sensores)",
           "host": "IP o nombre de host",
-          "port": "Puerto TCP"
+          "port": "Puerto TCP (1-65535)"
         }
       }
     },
@@ -38,7 +38,10 @@
         "title": "Opciones de Elios4You",
         "description": "Configurar opciones de ejecucion",
         "data": {
-          "scan_interval": "Intervalo de sondeo (segundos)"
+          "scan_interval": "Intervalo de sondeo en segundos (30-600)",
+          "enable_repair_notification": "Habilitar notificaciones de reparacion",
+          "failures_threshold": "Fallos antes de notificacion (1-10)",
+          "recovery_script": "Script de recuperacion (opcional, se ejecuta cuando el dispositivo deja de responder)"
         }
       }
     }

@@ -7,8 +7,8 @@
         "data": {
           "name": "Custom Name of the device (used for sensors' prefix)",
           "host": "IP or hostname",
-          "port": "TCP port",
-          "scan_interval": "Polling Period (seconds)"
+          "port": "TCP port (1-65535)",
+          "scan_interval": "Polling Period in seconds (30-600)"
         }
       },
       "reconfigure": {
@@ -17,7 +17,7 @@
         "data": {
           "name": "Custom Name of the device (used for sensors' prefix)",
           "host": "IP or hostname",
-          "port": "TCP port"
+          "port": "TCP port (1-65535)"
         }
       }
     },
@@ -38,9 +38,9 @@
         "title": "Elios4You Options",
         "description": "Configure runtime options.\n\n**Recovery Script Variables:**\nWhen configured, the recovery script receives these variables:\n- `device_name`: Device name\n- `host`: IP address/hostname\n- `port`: TCP port\n- `serial_number`: Device serial number\n- `mac_address`: Device MAC address\n- `failures_count`: Number of consecutive failures",
         "data": {
-          "scan_interval": "Polling Period (seconds)",
+          "scan_interval": "Polling Period in seconds (30-600)",
           "enable_repair_notification": "Enable repair notifications",
-          "failures_threshold": "Failures before notification (consecutive polling failures)",
+          "failures_threshold": "Failures before notification (1-10)",
           "recovery_script": "Recovery script (optional, runs when device stops responding)"
         }
       }

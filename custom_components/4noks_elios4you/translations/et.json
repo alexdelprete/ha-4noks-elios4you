@@ -7,8 +7,8 @@
         "data": {
           "name": "Seadme nimi (kasutatakse andurite eesliitena)",
           "host": "IP voi hostinimi",
-          "port": "TCP port",
-          "scan_interval": "Kusimusintervall (sekundites)"
+          "port": "TCP port (1-65535)",
+          "scan_interval": "Kusimusintervall sekundites (30-600)"
         }
       },
       "reconfigure": {
@@ -17,7 +17,7 @@
         "data": {
           "name": "Seadme nimi (kasutatakse andurite eesliitena)",
           "host": "IP voi hostinimi",
-          "port": "TCP port"
+          "port": "TCP port (1-65535)"
         }
       }
     },
@@ -36,9 +36,12 @@
     "step": {
       "init": {
         "title": "Elios4You valikud",
-        "description": "Seadista toimimisvalikuid",
+        "description": "Saate konfigureerida valikulise taastamisskripti, mis kaivitub, kui seade lopetab vastamise. Skript saab kasutada jarelmisi muutujaid:\n- **device_name**: Seadme nimi\n- **host**: Seadme IP-aadress\n- **port**: Seadme TCP-port",
         "data": {
-          "scan_interval": "Kusimusintervall (sekundites)"
+          "recovery_script": "Taastamisskript (valikuline, kaivitub kui seade lopetab vastamise)",
+          "enable_repair_notification": "Luba taastamisteatised",
+          "failures_threshold": "Vigade arv enne teatist (1-10)",
+          "scan_interval": "Kusimusintervall sekundites (30-600)"
         }
       }
     }

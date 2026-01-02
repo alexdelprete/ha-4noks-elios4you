@@ -7,8 +7,8 @@
         "data": {
           "name": "Enhetsnamn (anvands som sensorprefix)",
           "host": "IP eller vardnamn",
-          "port": "TCP-port",
-          "scan_interval": "Avfragningsintervall (sekunder)"
+          "port": "TCP-port (1-65535)",
+          "scan_interval": "Avfragningsintervall i sekunder (30-600)"
         }
       },
       "reconfigure": {
@@ -17,7 +17,7 @@
         "data": {
           "name": "Enhetsnamn (anvands som sensorprefix)",
           "host": "IP eller vardnamn",
-          "port": "TCP-port"
+          "port": "TCP-port (1-65535)"
         }
       }
     },
@@ -36,9 +36,12 @@
     "step": {
       "init": {
         "title": "Elios4You-alternativ",
-        "description": "Konfigurera korningsalternativ",
+        "description": "Du kan konfigurera ett valfritt aterstallningsskript som kors nar enheten slutar svara. Skriptet kan anvanda foljande variabler:\n- **device_name**: Enhetens namn\n- **host**: Enhetens IP-adress\n- **port**: Enhetens TCP-port",
         "data": {
-          "scan_interval": "Avfragningsintervall (sekunder)"
+          "recovery_script": "Aterstallningsskript (valfritt, kors nar enheten inte svarar)",
+          "enable_repair_notification": "Aktivera aterstallningsaviseringar",
+          "failures_threshold": "Fel fore avisering (1-10)",
+          "scan_interval": "Avfragningsintervall i sekunder (30-600)"
         }
       }
     }

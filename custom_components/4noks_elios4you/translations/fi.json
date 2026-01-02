@@ -7,8 +7,8 @@
         "data": {
           "name": "Laitteen nimi (kaytetaan anturien etuliitteena)",
           "host": "IP tai isantanimi",
-          "port": "TCP-portti",
-          "scan_interval": "Kyselyvali (sekunteina)"
+          "port": "TCP-portti (1-65535)",
+          "scan_interval": "Kyselyvali sekunteina (30-600)"
         }
       },
       "reconfigure": {
@@ -17,7 +17,7 @@
         "data": {
           "name": "Laitteen nimi (kaytetaan anturien etuliitteena)",
           "host": "IP tai isantanimi",
-          "port": "TCP-portti"
+          "port": "TCP-portti (1-65535)"
         }
       }
     },
@@ -36,9 +36,12 @@
     "step": {
       "init": {
         "title": "Elios4You-asetukset",
-        "description": "Maarita ajonaikaiset asetukset",
+        "description": "Voit maarittaa valinnaisen palautusskriptin, joka suoritetaan kun laite lakkaa vastaamasta. Skripti voi kayttaa seuraavia muuttujia:\n- **device_name**: Laitteen nimi\n- **host**: Laitteen IP-osoite\n- **port**: Laitteen TCP-portti",
         "data": {
-          "scan_interval": "Kyselyvali (sekunteina)"
+          "recovery_script": "Palautusskripti (valinnainen, suoritetaan kun laite ei vastaa)",
+          "enable_repair_notification": "Ota palautusilmoitukset kayttoon",
+          "failures_threshold": "Epionnistumisia ennen ilmoitusta (1-10)",
+          "scan_interval": "Kyselyvali sekunteina (30-600)"
         }
       }
     }

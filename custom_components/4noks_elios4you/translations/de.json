@@ -7,8 +7,8 @@
         "data": {
           "name": "Geratename (wird als Sensorprafix verwendet)",
           "host": "IP oder Hostname",
-          "port": "TCP-Port",
-          "scan_interval": "Abfrageintervall (Sekunden)"
+          "port": "TCP-Port (1-65535)",
+          "scan_interval": "Abfrageintervall in Sekunden (30-600)"
         }
       },
       "reconfigure": {
@@ -17,7 +17,7 @@
         "data": {
           "name": "Geratename (wird als Sensorprafix verwendet)",
           "host": "IP oder Hostname",
-          "port": "TCP-Port"
+          "port": "TCP-Port (1-65535)"
         }
       }
     },
@@ -38,7 +38,10 @@
         "title": "Elios4You Optionen",
         "description": "Laufzeitoptionen konfigurieren",
         "data": {
-          "scan_interval": "Abfrageintervall (Sekunden)"
+          "scan_interval": "Abfrageintervall in Sekunden (30-600)",
+          "enable_repair_notification": "Reparaturbenachrichtigungen aktivieren",
+          "failures_threshold": "Fehler vor Benachrichtigung (1-10)",
+          "recovery_script": "Wiederherstellungsskript (optional, wird ausgefuhrt wenn Gerat nicht antwortet)"
         }
       }
     }

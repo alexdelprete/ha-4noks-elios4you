@@ -7,8 +7,8 @@
         "data": {
           "name": "Enhetsnavn (brukes som sensorprefiks)",
           "host": "IP eller vertsnavn",
-          "port": "TCP-port",
-          "scan_interval": "Avsporringsintervall (sekunder)"
+          "port": "TCP-port (1-65535)",
+          "scan_interval": "Avsporringsintervall i sekunder (30-600)"
         }
       },
       "reconfigure": {
@@ -17,7 +17,7 @@
         "data": {
           "name": "Enhetsnavn (brukes som sensorprefiks)",
           "host": "IP eller vertsnavn",
-          "port": "TCP-port"
+          "port": "TCP-port (1-65535)"
         }
       }
     },
@@ -36,9 +36,12 @@
     "step": {
       "init": {
         "title": "Elios4You-alternativer",
-        "description": "Konfigurer kjortidsalternativer",
+        "description": "Du kan konfigurere et valgfritt gjenopprettingsskript som kjores nar enheten slutter a svare. Skriptet kan bruke folgende variabler:\n- **device_name**: Enhetens navn\n- **host**: Enhetens IP-adresse\n- **port**: Enhetens TCP-port",
         "data": {
-          "scan_interval": "Avsporringsintervall (sekunder)"
+          "recovery_script": "Gjenopprettingsskript (valgfritt, kjores nar enheten ikke svarer)",
+          "enable_repair_notification": "Aktiver gjenopprettingsvarsler",
+          "failures_threshold": "Feil for varsling (1-10)",
+          "scan_interval": "Avsporringsintervall i sekunder (30-600)"
         }
       }
     }
