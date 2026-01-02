@@ -28,7 +28,8 @@ jobs:
           MANIFEST_VERSION=$(yq -r '.version' "${{ github.workspace }}/custom_components/4noks_elios4you/manifest.json")
 
           # Extract VERSION from const.py
-          CONST_VERSION=$(grep -E "^VERSION = " "${{ github.workspace }}/custom_components/4noks_elios4you/const.py" | sed 's/VERSION = "\(.*\)"/\1/')
+          CONST_FILE="${{ github.workspace }}/custom_components/4noks_elios4you/const.py"
+          CONST_VERSION=$(grep -E "^VERSION = " "$CONST_FILE" | sed 's/VERSION = "\(.*\)"/\1/')
 
           echo "Tag version:      $TAG_VERSION"
           echo "manifest.json:    $MANIFEST_VERSION"
