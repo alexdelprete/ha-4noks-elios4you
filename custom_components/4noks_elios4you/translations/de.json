@@ -99,6 +99,14 @@
     "connection_failed": {
       "title": "Verbindung zu {device_name} nicht moglich",
       "description": "Die Integration kann keine Verbindung zu Ihrem Elios4You-Gerat unter {host}:{port} herstellen.\n\n**Mogliche Ursachen:**\n- Das Gerat ist ausgeschaltet oder nicht mit dem Netzwerk verbunden\n- Die IP-Adresse hat sich geandert\n- Eine Firewall blockiert die Verbindung\n- Der Telnet-Port ist nicht zuganglich\n\n**Zur Losung:**\n1. Prufen Sie, ob das Gerat eingeschaltet und mit Ihrem Netzwerk verbunden ist\n2. Uberprufen Sie die IP-Adresse in der DHCP-Tabelle Ihres Routers\n3. Wenn sich die IP geandert hat, konfigurieren Sie die Integration mit der neuen Adresse neu"
+    },
+    "recovery_success": {
+      "title": "{device_name} ist wieder erreichbar",
+      "description": "Ihr Elios4You-Gerat antwortet wieder.\n\n**Fehler begann:** {started_at}\n**Skript ausgefuhrt:** {script_executed_at}\n**Wiederherstellungszeit:** {ended_at}\n**Gesamtausfallzeit:** {downtime}\n\nDas Wiederherstellungsskript **{script_name}** wurde ausgefuhrt.\n\nBitte schliessen Sie diese Benachrichtigung zur Bestatigung."
+    },
+    "recovery_success_no_script": {
+      "title": "{device_name} ist wieder erreichbar",
+      "description": "Ihr Elios4You-Gerat antwortet wieder.\n\n**Fehler begann:** {started_at}\n**Wiederherstellungszeit:** {ended_at}\n**Gesamtausfallzeit:** {downtime}\n\nBitte schliessen Sie diese Benachrichtigung zur Bestatigung."
     }
   },
   "exceptions": {
@@ -107,6 +115,13 @@
     },
     "telnet_command_error": {
       "message": "Telnet-Befehl {command} konnte nicht ausgefuhrt werden"
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "device_unreachable": "{device_name} nicht erreichbar (Netzwerkproblem)",
+      "device_not_responding": "{device_name} antwortet nicht",
+      "device_recovered": "{device_name} wiederhergestellt"
     }
   }
 }

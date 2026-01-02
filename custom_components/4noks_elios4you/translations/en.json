@@ -36,9 +36,12 @@
     "step": {
       "init": {
         "title": "Elios4You Options",
-        "description": "Configure runtime options",
+        "description": "Configure runtime options.\n\n**Recovery Script Variables:**\nWhen configured, the recovery script receives these variables:\n- `device_name`: Device name\n- `host`: IP address/hostname\n- `port`: TCP port\n- `serial_number`: Device serial number\n- `mac_address`: Device MAC address\n- `failures_count`: Number of consecutive failures",
         "data": {
-          "scan_interval": "Polling Period (seconds)"
+          "scan_interval": "Polling Period (seconds)",
+          "enable_repair_notification": "Enable repair notifications",
+          "failures_threshold": "Failures before notification (consecutive polling failures)",
+          "recovery_script": "Recovery script (optional, runs when device stops responding)"
         }
       }
     }
@@ -99,6 +102,14 @@
     "connection_failed": {
       "title": "{device_name} is not responding",
       "description": "The integration cannot communicate with your Elios4You device at {host}:{port}.\n\n**Possible causes:**\n- The device is powered off or not connected to the network\n- The device is connected but not responding to commands (device may need a restart)\n- The IP address has changed\n- A firewall is blocking the connection\n- The Telnet port is not accessible\n\n**To resolve:**\n1. Check that the device is powered on and connected to your network\n2. Try restarting the device (power cycle)\n3. Verify the IP address in your router's DHCP table\n4. If the IP has changed, reconfigure the integration with the new address"
+    },
+    "recovery_success": {
+      "title": "{device_name} has recovered",
+      "description": "Your Elios4You device is now responding again.\n\n**Failure started:** {started_at}\n**Script executed:** {script_executed_at}\n**Recovery time:** {ended_at}\n**Total downtime:** {downtime}\n\nThe recovery script **{script_name}** was executed.\n\nPlease dismiss this notification to acknowledge."
+    },
+    "recovery_success_no_script": {
+      "title": "{device_name} has recovered",
+      "description": "Your Elios4You device is now responding again.\n\n**Failure started:** {started_at}\n**Recovery time:** {ended_at}\n**Total downtime:** {downtime}\n\nPlease dismiss this notification to acknowledge."
     }
   },
   "exceptions": {
@@ -110,6 +121,13 @@
     },
     "telnet_command_error": {
       "message": "Telnet command {command} failed to execute"
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "device_unreachable": "{device_name} is unreachable (network issue)",
+      "device_not_responding": "{device_name} is not responding",
+      "device_recovered": "{device_name} recovered"
     }
   }
 }

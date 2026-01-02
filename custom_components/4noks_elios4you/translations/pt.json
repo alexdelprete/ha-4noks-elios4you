@@ -99,6 +99,14 @@
     "connection_failed": {
       "title": "Nao foi possivel ligar a {device_name}",
       "description": "A integracao nao consegue ligar ao dispositivo Elios4You em {host}:{port}.\n\n**Possiveis causas:**\n- O dispositivo esta desligado ou nao ligado a rede\n- O endereco IP mudou\n- Uma firewall esta a bloquear a ligacao\n- A porta Telnet nao esta acessivel\n\n**Para resolver:**\n1. Verifique se o dispositivo esta ligado e conectado a sua rede\n2. Verifique o endereco IP na tabela DHCP do seu router\n3. Se o IP mudou, reconfigure a integracao com o novo endereco"
+    },
+    "recovery_success": {
+      "title": "{device_name} recuperou",
+      "description": "O seu dispositivo Elios4You esta a responder novamente.\n\n**Inicio da falha:** {started_at}\n**Script executado:** {script_executed_at}\n**Hora de recuperacao:** {ended_at}\n**Tempo de inatividade total:** {downtime}\n\nO script de recuperacao **{script_name}** foi executado.\n\nPor favor feche esta notificacao para confirmar."
+    },
+    "recovery_success_no_script": {
+      "title": "{device_name} recuperou",
+      "description": "O seu dispositivo Elios4You esta a responder novamente.\n\n**Inicio da falha:** {started_at}\n**Hora de recuperacao:** {ended_at}\n**Tempo de inatividade total:** {downtime}\n\nPor favor feche esta notificacao para confirmar."
     }
   },
   "exceptions": {
@@ -107,6 +115,13 @@
     },
     "telnet_command_error": {
       "message": "O comando Telnet {command} falhou ao executar"
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "device_unreachable": "{device_name} esta inacessivel (problema de rede)",
+      "device_not_responding": "{device_name} nao esta a responder",
+      "device_recovered": "{device_name} recuperou"
     }
   }
 }

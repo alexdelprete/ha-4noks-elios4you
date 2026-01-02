@@ -99,6 +99,14 @@
     "connection_failed": {
       "title": "Kan inte ansluta till {device_name}",
       "description": "Integrationen kan inte ansluta till din Elios4You-enhet pa {host}:{port}.\n\n**Mojliga orsaker:**\n- Enheten ar avstangd eller inte ansluten till natverket\n- IP-adressen har andrats\n- En brandvagg blockerar anslutningen\n- Telnet-porten ar inte atkomlig\n\n**For att losa:**\n1. Kontrollera att enheten ar paslagan och ansluten till ditt natverk\n2. Verifiera IP-adressen i din routers DHCP-tabell\n3. Om IP har andrats, konfigurera om integrationen med den nya adressen"
+    },
+    "recovery_success": {
+      "title": "{device_name} har aterstallts",
+      "description": "Din Elios4You-enhet svarar igen.\n\n**Fel startade:** {started_at}\n**Skript kordes:** {script_executed_at}\n**Aterstallningstid:** {ended_at}\n**Total stillestandstid:** {downtime}\n\nAterstallningsskriptet **{script_name}** kordes.\n\nStang denna avisering for att bekrafta."
+    },
+    "recovery_success_no_script": {
+      "title": "{device_name} har aterstallts",
+      "description": "Din Elios4You-enhet svarar igen.\n\n**Fel startade:** {started_at}\n**Aterstallningstid:** {ended_at}\n**Total stillestandstid:** {downtime}\n\nStang denna avisering for att bekrafta."
     }
   },
   "exceptions": {
@@ -107,6 +115,13 @@
     },
     "telnet_command_error": {
       "message": "Telnet-kommando {command} kunde inte koras"
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "device_unreachable": "{device_name} ar oatkomlig (natverksproblem)",
+      "device_not_responding": "{device_name} svarar inte",
+      "device_recovered": "{device_name} aterstalldes"
     }
   }
 }

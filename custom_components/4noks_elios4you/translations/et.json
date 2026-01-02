@@ -99,6 +99,14 @@
     "connection_failed": {
       "title": "Seadmega {device_name} ei saa uhendust",
       "description": "Integratsioon ei saa uhendust teie Elios4You seadmega aadressil {host}:{port}.\n\n**Voimalikud pohjused:**\n- Seade on valja lulitatud voi ei ole vorku uhendatud\n- IP-aadress on muutunud\n- Tulemuur blokeerib uhendust\n- Telnet port ei ole ligipaasetav\n\n**Lahendamiseks:**\n1. Kontrollige, kas seade on sisse lulitatud ja teie vorku uhendatud\n2. Kontrollige IP-aadressi oma ruuteri DHCP-tabelis\n3. Kui IP on muutunud, seadistage integratsioon uue aadressiga umber"
+    },
+    "recovery_success": {
+      "title": "{device_name} on taastunud",
+      "description": "Teie Elios4You seade vastab jalle.\n\n**Rike algas:** {started_at}\n**Skript kaivitatatud:** {script_executed_at}\n**Taastumise aeg:** {ended_at}\n**Kogu seisuaeg:** {downtime}\n\nTaastamisskript **{script_name}** kaivitati.\n\nPalun sulgege see teade kinnitamiseks."
+    },
+    "recovery_success_no_script": {
+      "title": "{device_name} on taastunud",
+      "description": "Teie Elios4You seade vastab jalle.\n\n**Rike algas:** {started_at}\n**Taastumise aeg:** {ended_at}\n**Kogu seisuaeg:** {downtime}\n\nPalun sulgege see teade kinnitamiseks."
     }
   },
   "exceptions": {
@@ -107,6 +115,13 @@
     },
     "telnet_command_error": {
       "message": "Telnet kasku {command} ei saanud taita"
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "device_unreachable": "{device_name} pole kattesaadav (vorguprobleem)",
+      "device_not_responding": "{device_name} ei vasta",
+      "device_recovered": "{device_name} taastus"
     }
   }
 }

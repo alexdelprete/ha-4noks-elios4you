@@ -30,6 +30,16 @@ CONN_TIMEOUT = 5
 # Retry configuration for transient failures
 COMMAND_RETRY_COUNT: int = 3  # Retry each command up to 3 times
 COMMAND_RETRY_DELAY: float = 0.3  # 300ms delay between retries
+
+# Repair notification options
+CONF_ENABLE_REPAIR_NOTIFICATION = "enable_repair_notification"
+CONF_FAILURES_THRESHOLD = "failures_threshold"
+CONF_RECOVERY_SCRIPT = "recovery_script"
+DEFAULT_ENABLE_REPAIR_NOTIFICATION = True
+DEFAULT_FAILURES_THRESHOLD = 3
+DEFAULT_RECOVERY_SCRIPT = ""
+MIN_FAILURES_THRESHOLD = 1
+MAX_FAILURES_THRESHOLD = 10
 MANUFACTURER = "4-noks"
 MODEL = "Elios4you"
 STARTUP_MESSAGE = f"""

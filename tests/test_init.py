@@ -22,7 +22,13 @@ async_unload_entry = _elios4you_init.async_unload_entry
 Elios4YouCoordinator = _elios4you_coordinator.Elios4YouCoordinator
 
 CONF_SCAN_INTERVAL = _elios4you_const.CONF_SCAN_INTERVAL
+CONF_ENABLE_REPAIR_NOTIFICATION = _elios4you_const.CONF_ENABLE_REPAIR_NOTIFICATION
+CONF_FAILURES_THRESHOLD = _elios4you_const.CONF_FAILURES_THRESHOLD
+CONF_RECOVERY_SCRIPT = _elios4you_const.CONF_RECOVERY_SCRIPT
 DEFAULT_SCAN_INTERVAL = _elios4you_const.DEFAULT_SCAN_INTERVAL
+DEFAULT_ENABLE_REPAIR_NOTIFICATION = _elios4you_const.DEFAULT_ENABLE_REPAIR_NOTIFICATION
+DEFAULT_FAILURES_THRESHOLD = _elios4you_const.DEFAULT_FAILURES_THRESHOLD
+DEFAULT_RECOVERY_SCRIPT = _elios4you_const.DEFAULT_RECOVERY_SCRIPT
 DOMAIN = _elios4you_const.DOMAIN
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL
@@ -120,10 +126,10 @@ async def test_async_unload_entry(
     assert result is True
 
 
-async def test_migration_v1_to_v2(
+async def test_migration_v1_to_v3(
     hass: HomeAssistant,
 ) -> None:
-    """Test migration from v1 to v2 moves scan_interval to options."""
+    """Test migration from v1 to v3 moves scan_interval and adds new options."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -140,15 +146,19 @@ async def test_migration_v1_to_v2(
     result = await async_migrate_entry(hass, entry)
 
     assert result is True
-    assert entry.version == 2
+    assert entry.version == 3
     assert CONF_SCAN_INTERVAL not in entry.data
     assert entry.options.get(CONF_SCAN_INTERVAL) == 90
+    # v3 adds new repair notification options with defaults
+    assert entry.options.get(CONF_ENABLE_REPAIR_NOTIFICATION) == DEFAULT_ENABLE_REPAIR_NOTIFICATION
+    assert entry.options.get(CONF_FAILURES_THRESHOLD) == DEFAULT_FAILURES_THRESHOLD
+    assert entry.options.get(CONF_RECOVERY_SCRIPT) == DEFAULT_RECOVERY_SCRIPT
 
 
-async def test_migration_v1_to_v2_no_scan_interval(
+async def test_migration_v1_to_v3_no_scan_interval(
     hass: HomeAssistant,
 ) -> None:
-    """Test migration from v1 to v2 when scan_interval not in data."""
+    """Test migration from v1 to v3 when scan_interval not in data."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -164,9 +174,43 @@ async def test_migration_v1_to_v2_no_scan_interval(
     result = await async_migrate_entry(hass, entry)
 
     assert result is True
-    assert entry.version == 2
+    assert entry.version == 3
     # Options should not have scan_interval if it wasn't in data
     assert CONF_SCAN_INTERVAL not in entry.options
+    # But v3 options should be added
+    assert entry.options.get(CONF_ENABLE_REPAIR_NOTIFICATION) == DEFAULT_ENABLE_REPAIR_NOTIFICATION
+    assert entry.options.get(CONF_FAILURES_THRESHOLD) == DEFAULT_FAILURES_THRESHOLD
+    assert entry.options.get(CONF_RECOVERY_SCRIPT) == DEFAULT_RECOVERY_SCRIPT
+
+
+async def test_migration_v2_to_v3(
+    hass: HomeAssistant,
+) -> None:
+    """Test migration from v2 to v3 adds new repair notification options."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_NAME: TEST_NAME,
+            CONF_HOST: TEST_HOST,
+            CONF_PORT: TEST_PORT,
+        },
+        options={
+            CONF_SCAN_INTERVAL: 120,
+        },
+        version=2,
+    )
+    entry.add_to_hass(hass)
+
+    result = await async_migrate_entry(hass, entry)
+
+    assert result is True
+    assert entry.version == 3
+    # Existing options should be preserved
+    assert entry.options.get(CONF_SCAN_INTERVAL) == 120
+    # v3 adds new repair notification options with defaults
+    assert entry.options.get(CONF_ENABLE_REPAIR_NOTIFICATION) == DEFAULT_ENABLE_REPAIR_NOTIFICATION
+    assert entry.options.get(CONF_FAILURES_THRESHOLD) == DEFAULT_FAILURES_THRESHOLD
+    assert entry.options.get(CONF_RECOVERY_SCRIPT) == DEFAULT_RECOVERY_SCRIPT
 
 
 # =============================================================================
@@ -461,11 +505,11 @@ class TestUnloadEntry:
 class TestMigration:
     """Additional tests for config entry migration."""
 
-    async def test_migration_v2_no_change(
+    async def test_migration_v3_no_change(
         self,
         hass: HomeAssistant,
     ) -> None:
-        """Test that v2 entries are not modified (already at current version)."""
+        """Test that v3 entries are not modified (already at current version)."""
         original_data = {
             CONF_NAME: TEST_NAME,
             CONF_HOST: TEST_HOST,
@@ -473,13 +517,16 @@ class TestMigration:
         }
         original_options = {
             CONF_SCAN_INTERVAL: 120,
+            CONF_ENABLE_REPAIR_NOTIFICATION: True,
+            CONF_FAILURES_THRESHOLD: 5,
+            CONF_RECOVERY_SCRIPT: "script.my_recovery",
         }
 
         entry = MockConfigEntry(
             domain=DOMAIN,
             data=original_data.copy(),
             options=original_options.copy(),
-            version=2,  # Already at v2
+            version=3,  # Already at v3
         )
         entry.add_to_hass(hass)
 
@@ -487,7 +534,7 @@ class TestMigration:
 
         # Should succeed without modifying anything
         assert result is True
-        assert entry.version == 2
+        assert entry.version == 3
         # Data and options should remain unchanged
         assert entry.data == original_data
         assert entry.options == original_options
@@ -515,12 +562,16 @@ class TestMigration:
         result = await async_migrate_entry(hass, entry)
 
         assert result is True
-        assert entry.version == 2
+        assert entry.version == 3
         # scan_interval should be moved to options
         assert CONF_SCAN_INTERVAL not in entry.data
         assert entry.options.get(CONF_SCAN_INTERVAL) == 90
         # Existing options should be preserved
         assert entry.options.get("some_other_option") == "value"
+        # v3 options should be added
+        assert (
+            entry.options.get(CONF_ENABLE_REPAIR_NOTIFICATION) == DEFAULT_ENABLE_REPAIR_NOTIFICATION
+        )
 
     async def test_migration_rejects_future_version(
         self,
@@ -559,8 +610,11 @@ class TestMigration:
             },
             options={
                 CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
+                CONF_ENABLE_REPAIR_NOTIFICATION: True,
+                CONF_FAILURES_THRESHOLD: 3,
+                CONF_RECOVERY_SCRIPT: "",
             },
-            version=2,  # Current version
+            version=3,  # Current version
         )
         entry.add_to_hass(hass)
 

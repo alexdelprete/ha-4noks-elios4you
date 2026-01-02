@@ -17,19 +17,28 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.selector import EntitySelector, EntitySelectorConfig
 
 from .api import Elios4YouAPI, TelnetCommandError, TelnetConnectionError
 from .const import (
+    CONF_ENABLE_REPAIR_NOTIFICATION,
+    CONF_FAILURES_THRESHOLD,
     CONF_HOST,
     CONF_NAME,
     CONF_PORT,
+    CONF_RECOVERY_SCRIPT,
     CONF_SCAN_INTERVAL,
+    DEFAULT_ENABLE_REPAIR_NOTIFICATION,
+    DEFAULT_FAILURES_THRESHOLD,
     DEFAULT_NAME,
     DEFAULT_PORT,
+    DEFAULT_RECOVERY_SCRIPT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    MAX_FAILURES_THRESHOLD,
     MAX_PORT,
     MAX_SCAN_INTERVAL,
+    MIN_FAILURES_THRESHOLD,
     MIN_PORT,
     MIN_SCAN_INTERVAL,
 )
@@ -50,7 +59,7 @@ def get_host_from_config(hass: HomeAssistant) -> set[str | None]:
 class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
     """4-noks Elios4You config flow."""
 
-    VERSION = 2
+    VERSION = 3
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     @staticmethod
@@ -241,8 +250,21 @@ class Elios4YouOptionsFlow(OptionsFlowWithReload):
                 "async_step_init",
                 "Options updated",
                 scan_interval=user_input.get(CONF_SCAN_INTERVAL),
+                enable_repair_notification=user_input.get(CONF_ENABLE_REPAIR_NOTIFICATION),
+                failures_threshold=user_input.get(CONF_FAILURES_THRESHOLD),
+                recovery_script=user_input.get(CONF_RECOVERY_SCRIPT),
             )
             return self.async_create_entry(data=user_input)
+
+        # Get current options with defaults
+        current_options = self.config_entry.options
+        enable_repair = current_options.get(
+            CONF_ENABLE_REPAIR_NOTIFICATION, DEFAULT_ENABLE_REPAIR_NOTIFICATION
+        )
+        failures_threshold = current_options.get(
+            CONF_FAILURES_THRESHOLD, DEFAULT_FAILURES_THRESHOLD
+        )
+        recovery_script = current_options.get(CONF_RECOVERY_SCRIPT, DEFAULT_RECOVERY_SCRIPT)
 
         return self.async_show_form(
             step_id="init",
@@ -250,12 +272,27 @@ class Elios4YouOptionsFlow(OptionsFlowWithReload):
                 {
                     vol.Required(
                         CONF_SCAN_INTERVAL,
-                        default=self.config_entry.options.get(
-                            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                        ),
+                        default=current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
                     ): vol.All(
                         vol.Coerce(int),
                         vol.Clamp(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
+                    ),
+                    vol.Required(
+                        CONF_ENABLE_REPAIR_NOTIFICATION,
+                        default=enable_repair,
+                    ): cv.boolean,
+                    vol.Required(
+                        CONF_FAILURES_THRESHOLD,
+                        default=failures_threshold,
+                    ): vol.All(
+                        vol.Coerce(int),
+                        vol.Clamp(min=MIN_FAILURES_THRESHOLD, max=MAX_FAILURES_THRESHOLD),
+                    ),
+                    vol.Optional(
+                        CONF_RECOVERY_SCRIPT,
+                        default=recovery_script,
+                    ): EntitySelector(
+                        EntitySelectorConfig(domain="script"),
                     ),
                 },
             ),

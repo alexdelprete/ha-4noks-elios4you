@@ -99,6 +99,14 @@
     "connection_failed": {
       "title": "Impossible de se connecter a {device_name}",
       "description": "L'integration ne peut pas se connecter a votre appareil Elios4You sur {host}:{port}.\n\n**Causes possibles:**\n- L'appareil est eteint ou non connecte au reseau\n- L'adresse IP a change\n- Un pare-feu bloque la connexion\n- Le port Telnet n'est pas accessible\n\n**Pour resoudre:**\n1. Verifiez que l'appareil est allume et connecte a votre reseau\n2. Verifiez l'adresse IP dans la table DHCP de votre routeur\n3. Si l'IP a change, reconfigurez l'integration avec la nouvelle adresse"
+    },
+    "recovery_success": {
+      "title": "{device_name} a recupere",
+      "description": "Votre appareil Elios4You repond a nouveau.\n\n**Debut de la panne:** {started_at}\n**Script execute:** {script_executed_at}\n**Heure de recuperation:** {ended_at}\n**Temps d'arret total:** {downtime}\n\nLe script de recuperation **{script_name}** a ete execute.\n\nVeuillez fermer cette notification pour confirmer."
+    },
+    "recovery_success_no_script": {
+      "title": "{device_name} a recupere",
+      "description": "Votre appareil Elios4You repond a nouveau.\n\n**Debut de la panne:** {started_at}\n**Heure de recuperation:** {ended_at}\n**Temps d'arret total:** {downtime}\n\nVeuillez fermer cette notification pour confirmer."
     }
   },
   "exceptions": {
@@ -107,6 +115,13 @@
     },
     "telnet_command_error": {
       "message": "La commande Telnet {command} n'a pas pu etre executee"
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "device_unreachable": "{device_name} est injoignable (probleme reseau)",
+      "device_not_responding": "{device_name} ne repond pas",
+      "device_recovered": "{device_name} a recupere"
     }
   }
 }
