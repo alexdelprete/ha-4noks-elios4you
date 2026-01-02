@@ -156,11 +156,12 @@ class TestConnectionValidation:
         """Test connection is invalid when exception occurs during check.
 
         Covers lines 177-179: Exception handling when checking connection state.
+        The code catches AttributeError and OSError specifically.
         """
         api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         mock_writer = MagicMock()
-        # Make is_closing raise an exception
-        mock_writer.is_closing.side_effect = Exception("Unexpected error during check")
+        # Make is_closing raise an OSError (one of the caught exceptions)
+        mock_writer.is_closing.side_effect = OSError("Connection check failed")
         api._writer = mock_writer
         # Should return False and not raise
         assert api._is_connection_valid() is False
@@ -815,25 +816,6 @@ class TestAsyncGetData:
         assert api.data["utc_time"] == ""
 
     @pytest.mark.asyncio
-    async def test_async_get_data_unexpected_exception(self, mock_hass) -> None:
-        """Test data retrieval handles unexpected exceptions.
-
-        Covers lines 638-652: Unexpected exception handling.
-        """
-        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
-        api._ensure_connected = AsyncMock()
-        api._safe_close = AsyncMock()
-
-        # Simulate an unexpected exception during data retrieval
-        api._get_data_with_retry = AsyncMock(side_effect=RuntimeError("Unexpected internal error"))
-
-        with pytest.raises(TelnetCommandError) as exc_info:
-            await api.async_get_data()
-
-        assert "Unexpected error" in str(exc_info.value)
-        api._safe_close.assert_called()
-
-    @pytest.mark.asyncio
     async def test_async_get_data_os_error(self, mock_hass) -> None:
         """Test data retrieval handles OSError.
 
@@ -952,18 +934,6 @@ class TestTelnetSetRelay:
         api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._get_data_with_retry = AsyncMock(side_effect=TimeoutError("Timed out"))
-        api._safe_close = AsyncMock()
-
-        result = await api.telnet_set_relay("on")
-
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_set_relay_generic_exception(self, mock_hass) -> None:
-        """Test relay handles generic exception."""
-        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
-        api._ensure_connected = AsyncMock()
-        api._get_data_with_retry = AsyncMock(side_effect=Exception("Unexpected error"))
         api._safe_close = AsyncMock()
 
         result = await api.telnet_set_relay("on")
@@ -1090,7 +1060,11 @@ class TestEdgeCases:
 
     @pytest.mark.asyncio
     async def test_relay_value_error_during_parsing(self, mock_hass) -> None:
-        """Test relay handles ValueError when parsing relay state."""
+        """Test relay propagates ValueError when parsing relay state.
+
+        With specific exception handling, ValueError from int() parsing
+        is not caught and propagates up to the caller.
+        """
         api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
         api._ensure_connected = AsyncMock()
         api._safe_close = AsyncMock()
@@ -1098,10 +1072,9 @@ class TestEdgeCases:
         # rel value is not a valid integer
         api._get_data_with_retry = AsyncMock(side_effect=[{"status": "ok"}, {"rel": "not_an_int"}])
 
-        result = await api.telnet_set_relay("on")
-
-        # Should return False due to ValueError when parsing rel
-        assert result is False
+        # ValueError should propagate (not be caught)
+        with pytest.raises(ValueError, match="invalid literal for int"):
+            await api.telnet_set_relay("on")
 
     def test_check_port_exception_handling(self, mock_hass) -> None:
         """Test check_port handles socket exceptions."""
