@@ -205,6 +205,7 @@ All commands must pass without errors before committing.
 - Shadow Python builtins
 - Use f-strings in logging
 - Create git tags or GitHub releases without explicit user instruction
+- Modify production code to make tests pass - always update tests to match intended code behavior
 
 ---
 
