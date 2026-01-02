@@ -42,6 +42,38 @@ Always use GitHub MCP tools (`mcp__github__*`) for GitHub operations instead of 
 - **Repositories**: `search_repositories`, `get_file_contents`, `list_branches`, `list_commits`
 - **Releases**: `list_releases`, `get_latest_release`, `list_tags`
 
+### Fetching GitHub Actions Workflow Run Logs
+
+The GitHub MCP server does not provide a tool to fetch workflow run logs directly. Use this workaround:
+
+1. **Get the workflow run ID** using `gh` CLI:
+
+   ```bash
+   gh run list --repo alexdelprete/ha-4noks-elios4you --workflow=test.yml --limit 1 --json databaseId,status,conclusion
+   ```
+
+2. **Fetch the logs** using the run ID:
+
+   ```bash
+   gh run view <run_id> --repo alexdelprete/ha-4noks-elios4you --log
+   ```
+
+3. **Filter for specific output** (e.g., coverage percentage):
+
+   ```bash
+   gh run view <run_id> --repo alexdelprete/ha-4noks-elios4you --log 2>&1 | grep "TOTAL"
+   ```
+
+**Example - Get latest test coverage:**
+
+```bash
+# Step 1: Get latest test run ID
+gh run list --repo alexdelprete/ha-4noks-elios4you --workflow=test.yml --limit 1 --json databaseId
+
+# Step 2: Fetch coverage from logs (replace <run_id> with actual ID)
+gh run view <run_id> --repo alexdelprete/ha-4noks-elios4you --log 2>&1 | grep "TOTAL"
+```
+
 ## Project Overview
 
 This is a Home Assistant custom integration for **4-noks Elios4you** energy monitoring devices using Telnet protocol. The device monitors power/energy consumption and photovoltaic production.
