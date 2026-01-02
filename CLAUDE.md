@@ -15,6 +15,7 @@
 3. Run `git status` to see uncommitted work
 
 **Key mandatory workflows documented here:**
+- **Pre-commit checks** - Run `uvx pre-commit run --all-files` BEFORE every commit
 - Release documentation (CHANGELOG.md + docs/releases/)
 - Version bumping (manifest.json + const.py)
 - Logging patterns (helpers.py functions)
@@ -117,19 +118,25 @@ This project uses pre-commit hooks for automated code quality checks. Configurat
 | check-yaml | `python -c "import yaml, sys; yaml.safe_load(open(sys.argv[1]))"` | YAML validation |
 | pymarkdown | `pymarkdown scan` | Markdown linting |
 
-### Pre-Push Linting (MANDATORY)
+### Pre-Commit Checks (MANDATORY)
 
-Before pushing any commits, run pre-commit on all files:
+> **CRITICAL: You MUST run `uvx pre-commit run --all-files` BEFORE every `git commit`.**
+>
+> This is non-negotiable. Never commit without running pre-commit first.
+> If pre-commit fails, fix the issues and run it again until it passes.
 
+**Workflow:**
 ```bash
-# Run all pre-commit hooks
+# 1. Make your changes
+# 2. Run pre-commit (MANDATORY before commit)
 uvx pre-commit run --all-files
 
-# Run tests with coverage
-pytest tests/ --cov=custom_components/4noks_elios4you -v
+# 3. If issues found, fix them and re-run pre-commit
+# 4. Only after pre-commit passes, commit
+git commit -m "your message"
 ```
 
-To install hooks for automatic pre-commit checking:
+To install hooks for automatic pre-commit checking on every commit:
 
 ```bash
 uvx pre-commit install
@@ -790,11 +797,14 @@ git tag -a v0.2.0 -m "Release v0.2.0"
 - [ ] Updated const.py VERSION constant
 - [ ] Created comprehensive release notes in docs/releases/
 - [ ] Updated CHANGELOG.md
-- [ ] Run ruff checks (must pass 100%)
+- [ ] Run pre-commit: `uvx pre-commit run --all-files` (MUST pass)
 - [ ] Commit all changes with descriptive message
+- [ ] Push commit to GitHub
+- [ ] Verify GitHub Actions pass (lint/test/validate)
+- [ ] Present RRC to user and get approval
 - [ ] Create annotated git tag
-- [ ] Push commit and tag to GitHub
-- [ ] Verify GitHub release is created automatically
+- [ ] Push tag to GitHub
+- [ ] Create GitHub release
 
 ### Development Approach
 
