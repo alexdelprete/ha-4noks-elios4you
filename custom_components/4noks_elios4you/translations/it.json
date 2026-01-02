@@ -105,27 +105,11 @@
     },
     "recovery_success": {
       "title": "{device_name} e tornato operativo",
-      "description": "Il dispositivo Elios4You sta rispondendo nuovamente.\n\n**Inizio problema:** {started_at}\n**Script eseguito:** {script_executed_at}\n**Ora ripristino:** {ended_at}\n**Tempo di inattivita:** {downtime}\n\nLo script di recupero **{script_name}** e stato eseguito.",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Conferma Ripristino",
-            "description": "Clicca Invia per chiudere questa notifica."
-          }
-        }
-      }
+      "description": "Il dispositivo Elios4You sta rispondendo nuovamente.\n\n**Inizio problema:** {started_at}\n**Script eseguito:** {script_executed_at}\n**Ora ripristino:** {ended_at}\n**Tempo di inattivita:** {downtime}\n\nLo script di recupero **{script_name}** e stato eseguito."
     },
     "recovery_success_no_script": {
       "title": "{device_name} e tornato operativo",
-      "description": "Il dispositivo Elios4You sta rispondendo nuovamente.\n\n**Inizio problema:** {started_at}\n**Ora ripristino:** {ended_at}\n**Tempo di inattivita:** {downtime}",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Conferma Ripristino",
-            "description": "Clicca Invia per chiudere questa notifica."
-          }
-        }
-      }
+      "description": "Il dispositivo Elios4You sta rispondendo nuovamente.\n\n**Inizio problema:** {started_at}\n**Ora ripristino:** {ended_at}\n**Tempo di inattivita:** {downtime}"
     }
   },
   "exceptions": {

@@ -22,7 +22,7 @@ from .const import (
     MANUFACTURER,
     MODEL,
 )
-from .helpers import log_debug, log_error
+from .helpers import log_debug
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -174,7 +174,7 @@ class Elios4YouAPI:
             transport = self._writer.get_extra_info("transport")
             if transport is not None and transport.is_closing():
                 return False
-        except Exception:
+        except (AttributeError, OSError):
             # If we can't determine state, assume connection is invalid
             return False
 
@@ -405,14 +405,32 @@ class Elios4YouAPI:
                 "Success",
                 output_keys=list(output.keys()),
             )
-            return output
-
         except TimeoutError:
             log_debug(_LOGGER, "_async_send_command", "Operation timed out")
             return None
-        except Exception as ex:
-            log_debug(_LOGGER, "_async_send_command", "Failed with error", error=ex)
+        except (ValueError, IndexError, AttributeError) as ex:
+            log_debug(_LOGGER, "_async_send_command", "Failed to parse response", error=ex)
             return None
+        else:
+            return output
+
+    async def _require_data(self, cmd: str) -> dict:
+        """Get data with retry, raising TelnetCommandError if it fails.
+
+        Args:
+            cmd: Telnet command to execute (@dat, @sta, @inf)
+
+        Returns:
+            Parsed response dict
+
+        Raises:
+            TelnetCommandError: If command fails after retries
+        """
+        result = await self._get_data_with_retry(cmd)
+        if result is None:
+            await self._safe_close()
+            raise TelnetCommandError(cmd, f"Failed to retrieve {cmd} data")
+        return result
 
     async def _get_data_with_retry(
         self,
@@ -517,11 +535,7 @@ class Elios4YouAPI:
                 await self._ensure_connected()
 
                 log_debug(_LOGGER, "async_get_data", "Fetching device data")
-                dat_parsed = await self._get_data_with_retry("@dat")
-                if dat_parsed is None:
-                    # Force reconnect on next attempt
-                    await self._safe_close()
-                    raise TelnetCommandError("@dat", "Failed to retrieve @dat data")
+                dat_parsed = await self._require_data("@dat")
 
                 log_debug(_LOGGER, "async_get_data", "Parsing @dat data")
                 for key, value in dat_parsed.items():
@@ -544,10 +558,7 @@ class Elios4YouAPI:
                         )
                         continue
 
-                sta_parsed = await self._get_data_with_retry("@sta")
-                if sta_parsed is None:
-                    await self._safe_close()
-                    raise TelnetCommandError("@sta", "Failed to retrieve @sta data")
+                sta_parsed = await self._require_data("@sta")
 
                 log_debug(_LOGGER, "async_get_data", "Parsing @sta data")
                 for key, value in sta_parsed.items():
@@ -563,10 +574,7 @@ class Elios4YouAPI:
                             value=value,
                         )
 
-                inf_parsed = await self._get_data_with_retry("@inf")
-                if inf_parsed is None:
-                    await self._safe_close()
-                    raise TelnetCommandError("@inf", "Failed to retrieve @inf data")
+                inf_parsed = await self._require_data("@inf")
 
                 log_debug(_LOGGER, "async_get_data", "Parsing @inf data")
                 for key, value in inf_parsed.items():
@@ -607,7 +615,6 @@ class Elios4YouAPI:
                     "async_get_data",
                     "========== READ CYCLE END (success) ==========",
                 )
-                return True
 
             except (TimeoutError, OSError) as err:
                 # Connection error - close and force reconnect on next attempt
@@ -635,21 +642,8 @@ class Elios4YouAPI:
                     "========== READ CYCLE END (command error) ==========",
                 )
                 raise
-            except Exception as err:
-                # Close on any error
-                await self._safe_close()
-                log_error(
-                    _LOGGER,
-                    "async_get_data",
-                    "Unexpected error during data fetch",
-                    error=err,
-                )
-                log_debug(
-                    _LOGGER,
-                    "async_get_data",
-                    "========== READ CYCLE END (unexpected error) ==========",
-                )
-                raise TelnetCommandError("async_get_data", f"Unexpected error: {err}") from err
+            else:
+                return True
 
     async def telnet_set_relay(self, state: str) -> bool:
         """Send Telnet Commands and process output.
@@ -698,9 +692,7 @@ class Elios4YouAPI:
 
                 # if we had a valid response we process data
                 if rel_parsed:
-                    rel_output = {}
-                    for key, value in rel_parsed.items():
-                        rel_output[key] = value
+                    rel_output = dict(rel_parsed.items())
                     log_debug(
                         _LOGGER,
                         "telnet_set_relay",
@@ -753,9 +745,9 @@ class Elios4YouAPI:
                 # Already closed by _ensure_connected failure
                 log_debug(_LOGGER, "telnet_set_relay", "Connection failed")
                 set_relay = False
-            except Exception as ex:
+            except OSError as ex:
                 await self._safe_close()
-                log_debug(_LOGGER, "telnet_set_relay", "Failed with error", error=ex)
+                log_debug(_LOGGER, "telnet_set_relay", "Connection error", error=ex)
                 set_relay = False
 
         log_debug(_LOGGER, "telnet_set_relay", "End telnet_set_relay", result=set_relay)

@@ -31,19 +31,18 @@ async def async_setup_entry(
     # This gets the data update coordinator from hass.data as specified in your __init__.py
     coordinator = config_entry.runtime_data.coordinator
 
-    # Add defined switches
-    switches = []
-    for switch in SWITCH_ENTITIES:
-        if coordinator.api.data[switch["key"]] is not None:
-            switches.append(
-                Elios4YouSwitch(
-                    coordinator,
-                    switch["name"],
-                    switch["key"],
-                    switch["icon"],
-                    switch["device_class"],
-                )
-            )
+    # Add defined switches using list comprehension
+    switches = [
+        Elios4YouSwitch(
+            coordinator,
+            switch["name"],
+            switch["key"],
+            switch["icon"],
+            switch["device_class"],
+        )
+        for switch in SWITCH_ENTITIES
+        if coordinator.api.data[switch["key"]] is not None
+    ]
 
     async_add_entities(switches)
 
@@ -136,7 +135,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
-        return True if self._is_on == 1 else False
+        return self._is_on == 1
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""

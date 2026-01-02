@@ -105,27 +105,11 @@
     },
     "recovery_success": {
       "title": "{device_name} on taastunud",
-      "description": "Teie Elios4You seade vastab jalle.\n\n**Rike algas:** {started_at}\n**Skript kaivitatatud:** {script_executed_at}\n**Taastumise aeg:** {ended_at}\n**Kogu seisuaeg:** {downtime}\n\nTaastamisskript **{script_name}** kaivitati.",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Kinnita taastumine",
-            "description": "Teate sulgemiseks klopsake Saada."
-          }
-        }
-      }
+      "description": "Teie Elios4You seade vastab jalle.\n\n**Rike algas:** {started_at}\n**Skript kaivitatatud:** {script_executed_at}\n**Taastumise aeg:** {ended_at}\n**Kogu seisuaeg:** {downtime}\n\nTaastamisskript **{script_name}** kaivitati."
     },
     "recovery_success_no_script": {
       "title": "{device_name} on taastunud",
-      "description": "Teie Elios4You seade vastab jalle.\n\n**Rike algas:** {started_at}\n**Taastumise aeg:** {ended_at}\n**Kogu seisuaeg:** {downtime}",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Kinnita taastumine",
-            "description": "Teate sulgemiseks klopsake Saada."
-          }
-        }
-      }
+      "description": "Teie Elios4You seade vastab jalle.\n\n**Rike algas:** {started_at}\n**Taastumise aeg:** {ended_at}\n**Kogu seisuaeg:** {downtime}"
     }
   },
   "exceptions": {

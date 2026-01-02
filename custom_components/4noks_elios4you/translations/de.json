@@ -105,27 +105,11 @@
     },
     "recovery_success": {
       "title": "{device_name} ist wieder erreichbar",
-      "description": "Ihr Elios4You-Gerat antwortet wieder.\n\n**Fehler begann:** {started_at}\n**Skript ausgefuhrt:** {script_executed_at}\n**Wiederherstellungszeit:** {ended_at}\n**Gesamtausfallzeit:** {downtime}\n\nDas Wiederherstellungsskript **{script_name}** wurde ausgefuhrt.",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Wiederherstellung bestatigen",
-            "description": "Klicken Sie auf Senden, um diese Benachrichtigung zu schliessen."
-          }
-        }
-      }
+      "description": "Ihr Elios4You-Gerat antwortet wieder.\n\n**Fehler begann:** {started_at}\n**Skript ausgefuhrt:** {script_executed_at}\n**Wiederherstellungszeit:** {ended_at}\n**Gesamtausfallzeit:** {downtime}\n\nDas Wiederherstellungsskript **{script_name}** wurde ausgefuhrt."
     },
     "recovery_success_no_script": {
       "title": "{device_name} ist wieder erreichbar",
-      "description": "Ihr Elios4You-Gerat antwortet wieder.\n\n**Fehler begann:** {started_at}\n**Wiederherstellungszeit:** {ended_at}\n**Gesamtausfallzeit:** {downtime}",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Wiederherstellung bestatigen",
-            "description": "Klicken Sie auf Senden, um diese Benachrichtigung zu schliessen."
-          }
-        }
-      }
+      "description": "Ihr Elios4You-Gerat antwortet wieder.\n\n**Fehler begann:** {started_at}\n**Wiederherstellungszeit:** {ended_at}\n**Gesamtausfallzeit:** {downtime}"
     }
   },
   "exceptions": {

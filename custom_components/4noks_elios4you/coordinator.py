@@ -205,7 +205,6 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
 
             # Reset failure counter on success
             self._consecutive_failures = 0
-            return self.last_update_status
         except Exception as ex:
             self.last_update_status = False
             self._consecutive_failures += 1
@@ -268,7 +267,9 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
                 if self._recovery_script:
                     await self._execute_recovery_script()
 
-            raise UpdateFailed() from ex
+            raise UpdateFailed from ex
+
+        return self.last_update_status
 
     async def _execute_recovery_script(self) -> None:
         """Execute the configured recovery script."""

@@ -105,27 +105,11 @@
     },
     "recovery_success": {
       "title": "{device_name} on palautunut",
-      "description": "Elios4You-laitteesi vastaa jalkeen.\n\n**Vika alkoi:** {started_at}\n**Skripti suoritettu:** {script_executed_at}\n**Palautumisaika:** {ended_at}\n**Kokonaiskatkosaika:** {downtime}\n\nPalautusskripti **{script_name}** suoritettiin.",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Vahvista palautuminen",
-            "description": "Napsauta Laheta sulkeaksesi taman ilmoituksen."
-          }
-        }
-      }
+      "description": "Elios4You-laitteesi vastaa jalkeen.\n\n**Vika alkoi:** {started_at}\n**Skripti suoritettu:** {script_executed_at}\n**Palautumisaika:** {ended_at}\n**Kokonaiskatkosaika:** {downtime}\n\nPalautusskripti **{script_name}** suoritettiin."
     },
     "recovery_success_no_script": {
       "title": "{device_name} on palautunut",
-      "description": "Elios4You-laitteesi vastaa jalkeen.\n\n**Vika alkoi:** {started_at}\n**Palautumisaika:** {ended_at}\n**Kokonaiskatkosaika:** {downtime}",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Vahvista palautuminen",
-            "description": "Napsauta Laheta sulkeaksesi taman ilmoituksen."
-          }
-        }
-      }
+      "description": "Elios4You-laitteesi vastaa jalkeen.\n\n**Vika alkoi:** {started_at}\n**Palautumisaika:** {ended_at}\n**Kokonaiskatkosaika:** {downtime}"
     }
   },
   "exceptions": {
