@@ -174,7 +174,7 @@ class Elios4YouAPI:
             transport = self._writer.get_extra_info("transport")
             if transport is not None and transport.is_closing():
                 return False
-        except Exception:  # noqa: BLE001
+        except (AttributeError, OSError):
             # If we can't determine state, assume connection is invalid
             return False
 
@@ -642,21 +642,6 @@ class Elios4YouAPI:
                     "========== READ CYCLE END (command error) ==========",
                 )
                 raise
-            except Exception as err:
-                # Catch any unexpected errors and wrap in TelnetCommandError
-                await self._safe_close()
-                log_debug(
-                    _LOGGER,
-                    "async_get_data",
-                    "Unexpected error during data retrieval",
-                    error=err,
-                )
-                log_debug(
-                    _LOGGER,
-                    "async_get_data",
-                    "========== READ CYCLE END (unexpected error) ==========",
-                )
-                raise TelnetCommandError("async_get_data", f"Unexpected error: {err}") from err
             else:
                 return True
 
@@ -763,14 +748,6 @@ class Elios4YouAPI:
             except OSError as ex:
                 await self._safe_close()
                 log_debug(_LOGGER, "telnet_set_relay", "Connection error", error=ex)
-                set_relay = False
-            except ValueError as ex:
-                await self._safe_close()
-                log_debug(_LOGGER, "telnet_set_relay", "Value parsing error", error=ex)
-                set_relay = False
-            except Exception as ex:  # noqa: BLE001
-                await self._safe_close()
-                log_debug(_LOGGER, "telnet_set_relay", "Unexpected error", error=ex)
                 set_relay = False
 
         log_debug(_LOGGER, "telnet_set_relay", "End telnet_set_relay", result=set_relay)
