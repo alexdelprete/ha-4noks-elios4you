@@ -17,7 +17,13 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.selector import EntitySelector, EntitySelectorConfig
+from homeassistant.helpers.selector import (
+    EntitySelector,
+    EntitySelectorConfig,
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+)
 
 from .api import Elios4YouAPI, TelnetCommandError, TelnetConnectionError
 from .const import (
@@ -270,29 +276,40 @@ class Elios4YouOptionsFlow(OptionsFlowWithReload):
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONF_SCAN_INTERVAL,
-                        default=current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                    ): vol.All(
-                        vol.Coerce(int),
-                        vol.Clamp(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
-                    ),
-                    vol.Required(
-                        CONF_ENABLE_REPAIR_NOTIFICATION,
-                        default=enable_repair,
-                    ): cv.boolean,
-                    vol.Required(
-                        CONF_FAILURES_THRESHOLD,
-                        default=failures_threshold,
-                    ): vol.All(
-                        vol.Coerce(int),
-                        vol.Clamp(min=MIN_FAILURES_THRESHOLD, max=MAX_FAILURES_THRESHOLD),
-                    ),
+                    # 1. Recovery script (right after variables description)
                     vol.Optional(
                         CONF_RECOVERY_SCRIPT,
                         default=recovery_script,
                     ): EntitySelector(
                         EntitySelectorConfig(domain="script"),
+                    ),
+                    # 2. Enable repair notifications checkbox
+                    vol.Required(
+                        CONF_ENABLE_REPAIR_NOTIFICATION,
+                        default=enable_repair,
+                    ): cv.boolean,
+                    # 3. Failures threshold as input box (not slider)
+                    vol.Required(
+                        CONF_FAILURES_THRESHOLD,
+                        default=failures_threshold,
+                    ): NumberSelector(
+                        NumberSelectorConfig(
+                            min=MIN_FAILURES_THRESHOLD,
+                            max=MAX_FAILURES_THRESHOLD,
+                            mode=NumberSelectorMode.BOX,
+                        )
+                    ),
+                    # 4. Polling period at bottom
+                    vol.Required(
+                        CONF_SCAN_INTERVAL,
+                        default=current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                    ): NumberSelector(
+                        NumberSelectorConfig(
+                            min=MIN_SCAN_INTERVAL,
+                            max=MAX_SCAN_INTERVAL,
+                            mode=NumberSelectorMode.BOX,
+                            unit_of_measurement="seconds",
+                        )
                     ),
                 },
             ),
