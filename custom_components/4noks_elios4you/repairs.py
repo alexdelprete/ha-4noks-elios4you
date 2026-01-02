@@ -3,10 +3,16 @@
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
-import logging
+from __future__ import annotations
 
-from homeassistant.core import HomeAssistant
+import logging
+from typing import TYPE_CHECKING
+
+from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
 from homeassistant.helpers import issue_registry as ir
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
@@ -16,6 +22,25 @@ _LOGGER = logging.getLogger(__name__)
 ISSUE_CONNECTION_FAILED = "connection_failed"
 ISSUE_RECOVERY_SUCCESS = "recovery_success"
 ISSUE_RECOVERY_SUCCESS_NO_SCRIPT = "recovery_success_no_script"
+
+
+async def async_create_fix_flow(
+    hass: HomeAssistant,
+    issue_id: str,
+    data: dict[str, str | int | float | None] | None,
+) -> RepairsFlow:
+    """Create flow to fix a repair issue.
+
+    This is called by Home Assistant when user clicks on a fixable repair issue.
+    For recovery notifications, we use ConfirmRepairFlow which shows the issue
+    description and a simple "Submit" button to acknowledge/dismiss.
+    """
+    # Recovery notifications just need acknowledgment - use ConfirmRepairFlow
+    if issue_id.startswith((ISSUE_RECOVERY_SUCCESS, ISSUE_RECOVERY_SUCCESS_NO_SCRIPT)):
+        return ConfirmRepairFlow()
+
+    # For any other issues, also use ConfirmRepairFlow as fallback
+    return ConfirmRepairFlow()
 
 
 def create_connection_issue(

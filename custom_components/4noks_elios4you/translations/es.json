@@ -105,11 +105,27 @@
     },
     "recovery_success": {
       "title": "{device_name} se ha recuperado",
-      "description": "Su dispositivo Elios4You esta respondiendo nuevamente.\n\n**Inicio del fallo:** {started_at}\n**Script ejecutado:** {script_executed_at}\n**Hora de recuperacion:** {ended_at}\n**Tiempo de inactividad total:** {downtime}\n\nEl script de recuperacion **{script_name}** fue ejecutado.\n\nPor favor cierre esta notificacion para confirmar."
+      "description": "Su dispositivo Elios4You esta respondiendo nuevamente.\n\n**Inicio del fallo:** {started_at}\n**Script ejecutado:** {script_executed_at}\n**Hora de recuperacion:** {ended_at}\n**Tiempo de inactividad total:** {downtime}\n\nEl script de recuperacion **{script_name}** fue ejecutado.",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Confirmar Recuperacion",
+            "description": "Haga clic en Enviar para cerrar esta notificacion."
+          }
+        }
+      }
     },
     "recovery_success_no_script": {
       "title": "{device_name} se ha recuperado",
-      "description": "Su dispositivo Elios4You esta respondiendo nuevamente.\n\n**Inicio del fallo:** {started_at}\n**Hora de recuperacion:** {ended_at}\n**Tiempo de inactividad total:** {downtime}\n\nPor favor cierre esta notificacion para confirmar."
+      "description": "Su dispositivo Elios4You esta respondiendo nuevamente.\n\n**Inicio del fallo:** {started_at}\n**Hora de recuperacion:** {ended_at}\n**Tiempo de inactividad total:** {downtime}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Confirmar Recuperacion",
+            "description": "Haga clic en Enviar para cerrar esta notificacion."
+          }
+        }
+      }
     }
   },
   "exceptions": {

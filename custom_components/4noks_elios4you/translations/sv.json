@@ -105,11 +105,27 @@
     },
     "recovery_success": {
       "title": "{device_name} har aterstallts",
-      "description": "Din Elios4You-enhet svarar igen.\n\n**Fel startade:** {started_at}\n**Skript kordes:** {script_executed_at}\n**Aterstallningstid:** {ended_at}\n**Total stillestandstid:** {downtime}\n\nAterstallningsskriptet **{script_name}** kordes.\n\nStang denna avisering for att bekrafta."
+      "description": "Din Elios4You-enhet svarar igen.\n\n**Fel startade:** {started_at}\n**Skript kordes:** {script_executed_at}\n**Aterstallningstid:** {ended_at}\n**Total stillestandstid:** {downtime}\n\nAterstallningsskriptet **{script_name}** kordes.",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Bekrafta aterstallning",
+            "description": "Klicka pa Skicka for att stanga denna avisering."
+          }
+        }
+      }
     },
     "recovery_success_no_script": {
       "title": "{device_name} har aterstallts",
-      "description": "Din Elios4You-enhet svarar igen.\n\n**Fel startade:** {started_at}\n**Aterstallningstid:** {ended_at}\n**Total stillestandstid:** {downtime}\n\nStang denna avisering for att bekrafta."
+      "description": "Din Elios4You-enhet svarar igen.\n\n**Fel startade:** {started_at}\n**Aterstallningstid:** {ended_at}\n**Total stillestandstid:** {downtime}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Bekrafta aterstallning",
+            "description": "Klicka pa Skicka for att stanga denna avisering."
+          }
+        }
+      }
     }
   },
   "exceptions": {
