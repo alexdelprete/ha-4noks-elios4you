@@ -211,10 +211,11 @@ Before creating any git tag or GitHub release, you MUST present a Release Readin
 |------|--------|
 | Version in `manifest.json` | ✅ X.Y.Z |
 | Version in `const.py` | ✅ X.Y.Z |
-| Release notes (`docs/releases/vX.Y.Z.md`) | ✅ Created |
+| Release notes file (`docs/releases/vX.Y.Z.md`) | ✅ Created |
 | CHANGELOG.md updated | ✅ Updated |
 | GitHub Actions (lint/test/validate) | ✅ **PASSING** (check latest runs) |
 | Working tree clean | ✅ Clean |
+| Git tag | ✅ vX.Y.Z created/pushed |
 | Commits since last tag | N commits since vX.Y.Z |
 ```
 
