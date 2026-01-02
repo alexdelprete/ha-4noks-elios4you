@@ -45,7 +45,7 @@ repos:
       # Markdown linting
       - id: pymarkdown
         name: pymarkdown
-        entry: pymarkdown scan
+        entry: pymarkdown --config .pymarkdown.json scan
         language: system
         types: [markdown]
         verbose: true
