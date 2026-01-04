@@ -9,6 +9,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-01-04
+
+🔧 **Stability & Test Infrastructure Release** - Improved recovery notifications and comprehensive test coverage
+
+### 🐛 Bug Fixes
+
+- **Recovery notifications:** Changed from repair issues to persistent notifications for better reliability
+  - Notifications now survive Home Assistant restarts
+  - Users must explicitly dismiss to acknowledge recovery
+  - More visible and actionable
+
+### ✅ Test Infrastructure
+
+- **98% code coverage** with 221 passing tests
+- **New test files:**
+  - `test_repairs.py` - Recovery notification tests
+  - `test_device_trigger.py` - Device trigger tests
+- **Improved fixtures:**
+  - Added `hass.loop` and `hass.state` to `mock_hass` fixture
+  - Resolved missing mock attributes causing test failures
+- **CI improvements:**
+  - Created `requirements-dev.txt` for separated dev dependencies
+  - Added JSON linting to lint workflow
+  - Improved test workflow with proper dependency installation
+
+### 📚 Documentation
+
+- **CLAUDE.md:** Added mandatory pre-commit directive, RRC clarifications, download badge format
+
+### ⚠️ Breaking Changes
+
+**None** - Full backward compatibility maintained.
+
+**Full Release Notes:** [docs/releases/v1.2.0.md](docs/releases/v1.2.0.md)
+
+**Full Changelog:** https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.1...v1.2.0
+
+---
+
 ## [1.1.1] - 2026-01-02
 
 ### 🐛 Bug Fixes
@@ -754,7 +793,9 @@ Initial release of the 4-noks Elios4you integration.
 
 ---
 
-[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.1...v1.2.0
+[1.1.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.0.0...v1.1.0
 [1.1.0-beta.2]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.1.0-beta.1...v1.1.0-beta.2
 [1.1.0-beta.1]: https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.0.0...v1.1.0-beta.1
