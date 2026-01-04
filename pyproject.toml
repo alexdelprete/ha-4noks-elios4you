@@ -278,6 +278,7 @@ ignore = [
 "tests/*.py" = ["INP001"]
 "tests/*" = [
     "D",        # Docstring rules
+    "E402",     # Module level import not at top of file (pytest_plugins must be first)
     "S101",     # Use of assert detected
     "SLF001",   # Private member accessed
     "PLR2004",  # Magic value used in comparison

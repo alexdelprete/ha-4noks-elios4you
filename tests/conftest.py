@@ -9,6 +9,11 @@ import asyncio
 from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
+# Register pytest-homeassistant-custom-component plugin
+pytest_plugins = ["pytest_homeassistant_custom_component"]
+
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 import custom_components.fournoks_elios4you as _elios4you_init
 from custom_components.fournoks_elios4you import (
@@ -16,7 +21,6 @@ from custom_components.fournoks_elios4you import (
     config_flow as _elios4you_config_flow,
 )
 from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL
-import pytest
 
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import CoreState, HomeAssistant
@@ -27,6 +31,24 @@ TEST_NAME = "Test Elios4you"
 TEST_PORT = 5001
 TEST_SCAN_INTERVAL = 60
 TEST_SERIAL_NUMBER = "E4U123456789"
+
+
+@pytest.fixture(autouse=True)
+def auto_enable_custom_integrations(
+    enable_custom_integrations: None,
+) -> None:
+    """Enable custom integrations for all tests."""
+
+
+@pytest.fixture
+def mock_setup_entry() -> Generator[AsyncMock]:
+    """Override async_setup_entry."""
+    with patch.object(
+        _elios4you_init,
+        "async_setup_entry",
+        return_value=True,
+    ) as mock_setup:
+        yield mock_setup
 
 
 @pytest.fixture
@@ -131,20 +153,3 @@ def mock_elios4you_api_config_flow(
         api_instance.async_get_data = AsyncMock(return_value=True)
         api_instance.check_port = MagicMock(return_value=True)
         yield mock_api
-
-
-@pytest.fixture
-def mock_setup_entry() -> Generator[AsyncMock]:
-    """Mock async_setup_entry."""
-    with patch.object(
-        _elios4you_init,
-        "async_setup_entry",
-        return_value=True,
-    ) as mock_setup:
-        yield mock_setup
-
-
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations):
-    """Enable custom integrations for all tests."""
-    return

@@ -23,7 +23,9 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Install dependencies
-        run: uv pip install -e ".[dev]" --system
+        run: |
+          uv pip install pytest-homeassistant-custom-component --system
+          uv pip install -r requirements-dev.txt --system
 
       # Create symlink with valid Python name for imports
       # (4noks_elios4you starts with a digit, which is invalid for Python imports)

@@ -5,6 +5,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
@@ -17,6 +18,7 @@ from custom_components.fournoks_elios4you.config_flow import (
 )
 from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL, DOMAIN
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
@@ -25,17 +27,25 @@ from homeassistant.data_entry_flow import FlowResultType
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL, TEST_SERIAL_NUMBER
 
-# Skip reason for tests requiring full integration loading
-SKIP_INTEGRATION_LOADING = (
-    "Skipped: HA integration loading fails in CI for modules with numeric prefix (4noks_elios4you)"
-)
+
+@pytest.fixture(name="integration_setup", autouse=True)
+def integration_setup_fixture() -> Generator[None]:
+    """Mock integration entry setup to avoid loading the full integration."""
+    with patch(
+        "custom_components.fournoks_elios4you.async_setup_entry",
+        return_value=True,
+    ):
+        yield
 
 
-@pytest.mark.skip(reason=SKIP_INTEGRATION_LOADING)
+# =============================================================================
+# Integration Tests (Using real hass fixture)
+# =============================================================================
+
+
 async def test_user_flow_success(
     hass: HomeAssistant,
-    mock_elios4you_api_config_flow,
-    mock_setup_entry,
+    mock_elios4you_api_config_flow: MagicMock,
 ) -> None:
     """Test successful user flow creates entry."""
     result = await hass.config_entries.flow.async_init(
@@ -66,10 +76,9 @@ async def test_user_flow_success(
     }
 
 
-@pytest.mark.skip(reason=SKIP_INTEGRATION_LOADING)
 async def test_user_flow_already_configured(
     hass: HomeAssistant,
-    mock_elios4you_api_config_flow,
+    mock_elios4you_api_config_flow: MagicMock,
 ) -> None:
     """Test flow aborts when host already configured."""
     # Create existing entry
@@ -80,6 +89,7 @@ async def test_user_flow_already_configured(
             CONF_HOST: TEST_HOST,
             CONF_PORT: TEST_PORT,
         },
+        unique_id=TEST_SERIAL_NUMBER,
     )
     entry.add_to_hass(hass)
 
@@ -101,7 +111,6 @@ async def test_user_flow_already_configured(
     assert result["errors"] == {CONF_HOST: "already_configured"}
 
 
-@pytest.mark.skip(reason=SKIP_INTEGRATION_LOADING)
 async def test_user_flow_invalid_host(
     hass: HomeAssistant,
 ) -> None:
@@ -124,14 +133,13 @@ async def test_user_flow_invalid_host(
     assert result["errors"] == {CONF_HOST: "invalid_host"}
 
 
-@pytest.mark.skip(reason=SKIP_INTEGRATION_LOADING)
 async def test_user_flow_cannot_connect(
     hass: HomeAssistant,
-    mock_elios4you_api_config_flow,
+    mock_elios4you_api_config_flow: MagicMock,
 ) -> None:
     """Test flow shows error when cannot connect."""
     mock_elios4you_api_config_flow.return_value.async_get_data = AsyncMock(
-        side_effect=Exception("Connection failed")
+        side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 10, "Connection failed")
     )
 
     result = await hass.config_entries.flow.async_init(
@@ -152,10 +160,9 @@ async def test_user_flow_cannot_connect(
     assert result["errors"] == {CONF_HOST: "cannot_connect"}
 
 
-@pytest.mark.skip(reason=SKIP_INTEGRATION_LOADING)
 async def test_options_flow(
     hass: HomeAssistant,
-    mock_elios4you_api,
+    mock_elios4you_api: MagicMock,
 ) -> None:
     """Test options flow allows changing scan interval."""
     entry = MockConfigEntry(
@@ -168,6 +175,7 @@ async def test_options_flow(
         options={
             CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
         },
+        unique_id=TEST_SERIAL_NUMBER,
     )
     entry.add_to_hass(hass)
 
@@ -186,56 +194,6 @@ async def test_options_flow(
     assert result["data"] == {
         CONF_SCAN_INTERVAL: 120,
     }
-
-
-# Helper class for tests
-class MockConfigEntry(config_entries.ConfigEntry):
-    """Mock ConfigEntry for testing."""
-
-    def __init__(
-        self,
-        domain: str,
-        data: dict,
-        options: dict | None = None,
-        unique_id: str | None = None,
-        entry_id: str = "test",
-        version: int = 2,
-    ) -> None:
-        """Initialize mock config entry."""
-        super().__init__(
-            data=data,
-            disabled_by=None,
-            discovery_keys={},
-            domain=domain,
-            entry_id=entry_id,
-            minor_version=1,
-            options=options or {},
-            pref_disable_new_entities=False,
-            pref_disable_polling=False,
-            source=config_entries.SOURCE_USER,
-            subentries_data={},  # Required for HA 2025.10+
-            title=data.get(CONF_NAME, "Test"),
-            unique_id=unique_id or TEST_SERIAL_NUMBER,
-            version=version,
-        )
-        self._hass = None
-
-    def add_to_hass(self, hass) -> None:
-        """Add config entry to Home Assistant."""
-        self._hass = hass
-        hass.config_entries._entries[self.entry_id] = self
-        if self.domain not in hass.data:
-            hass.data[self.domain] = {}
-
-    @property
-    def runtime_data(self):
-        """Return runtime data."""
-        return getattr(self, "_runtime_data", None)
-
-    @runtime_data.setter
-    def runtime_data(self, value):
-        """Set runtime data."""
-        self._runtime_data = value
 
 
 # =============================================================================
