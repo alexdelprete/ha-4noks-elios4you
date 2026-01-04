@@ -5,22 +5,18 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
-from custom_components.fournoks_elios4you.const import DOMAIN
+from custom_components.fournoks_elios4you.const import DOMAIN, NOTIFICATION_RECOVERY
 from custom_components.fournoks_elios4you.repairs import (
     ISSUE_CONNECTION_FAILED,
-    ISSUE_RECOVERY_SUCCESS,
-    ISSUE_RECOVERY_SUCCESS_NO_SCRIPT,
-    async_create_fix_flow,
     create_connection_issue,
     create_recovery_notification,
     delete_connection_issue,
 )
 import pytest
 
-from homeassistant.components.repairs import ConfirmRepairFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 
@@ -142,13 +138,9 @@ class TestIssueConstants:
         """Test ISSUE_CONNECTION_FAILED constant value."""
         assert ISSUE_CONNECTION_FAILED == "connection_failed"
 
-    def test_issue_recovery_success_value(self) -> None:
-        """Test ISSUE_RECOVERY_SUCCESS constant value."""
-        assert ISSUE_RECOVERY_SUCCESS == "recovery_success"
-
-    def test_issue_recovery_success_no_script_value(self) -> None:
-        """Test ISSUE_RECOVERY_SUCCESS_NO_SCRIPT constant value."""
-        assert ISSUE_RECOVERY_SUCCESS_NO_SCRIPT == "recovery_success_no_script"
+    def test_notification_recovery_value(self) -> None:
+        """Test NOTIFICATION_RECOVERY constant value."""
+        assert NOTIFICATION_RECOVERY == "recovery"
 
     def test_issue_id_format(self) -> None:
         """Test issue ID format is correct."""
@@ -157,163 +149,210 @@ class TestIssueConstants:
         assert expected == "connection_failed_test_123"
 
 
-class TestAsyncCreateFixFlow:
-    """Tests for async_create_fix_flow function."""
-
-    @pytest.mark.asyncio
-    async def test_create_fix_flow_recovery_success(self, hass: HomeAssistant) -> None:
-        """Test fix flow returns ConfirmRepairFlow for recovery_success."""
-        issue_id = f"{ISSUE_RECOVERY_SUCCESS}_entry_123"
-        data = None
-
-        flow = await async_create_fix_flow(hass, issue_id, data)
-
-        assert isinstance(flow, ConfirmRepairFlow)
-
-    @pytest.mark.asyncio
-    async def test_create_fix_flow_recovery_success_no_script(self, hass: HomeAssistant) -> None:
-        """Test fix flow returns ConfirmRepairFlow for recovery_success_no_script."""
-        issue_id = f"{ISSUE_RECOVERY_SUCCESS_NO_SCRIPT}_entry_456"
-        data = None
-
-        flow = await async_create_fix_flow(hass, issue_id, data)
-
-        assert isinstance(flow, ConfirmRepairFlow)
-
-    @pytest.mark.asyncio
-    async def test_create_fix_flow_other_issue(self, hass: HomeAssistant) -> None:
-        """Test fix flow returns ConfirmRepairFlow for other issues."""
-        issue_id = "some_other_issue_789"
-        data = None
-
-        flow = await async_create_fix_flow(hass, issue_id, data)
-
-        # Falls back to ConfirmRepairFlow
-        assert isinstance(flow, ConfirmRepairFlow)
-
-    @pytest.mark.asyncio
-    async def test_create_fix_flow_with_data(self, hass: HomeAssistant) -> None:
-        """Test fix flow works when data is provided."""
-        issue_id = f"{ISSUE_RECOVERY_SUCCESS}_entry_abc"
-        data = {"device_name": "Test Device", "downtime": "5m 23s"}
-
-        flow = await async_create_fix_flow(hass, issue_id, data)
-
-        assert isinstance(flow, ConfirmRepairFlow)
-
-
 class TestCreateRecoveryNotification:
-    """Tests for create_recovery_notification function."""
+    """Tests for create_recovery_notification function.
+
+    Recovery notifications use persistent_notification service instead of
+    repair issues to ensure full message with timestamps displays properly.
+    """
 
     def test_create_recovery_notification_with_script(self, hass: HomeAssistant) -> None:
         """Test creating recovery notification with script info."""
         entry_id = "test_entry_recovery"
 
-        with patch.object(ir, "async_create_issue") as mock_create:
-            create_recovery_notification(
-                hass,
-                entry_id,
-                device_name=TEST_NAME,
-                started_at="10:30:00",
-                ended_at="10:35:23",
-                downtime="5m 23s",
-                script_name="script.restart_wifi",
-                script_executed_at="10:31:00",
-            )
+        # Mock hass.async_create_task and hass.services.async_call
+        mock_async_call = AsyncMock()
+        hass.services = MagicMock()
+        hass.services.async_call = mock_async_call
+        hass.async_create_task = MagicMock()
 
-            mock_create.assert_called_once()
-            call_args = mock_create.call_args
+        create_recovery_notification(
+            hass,
+            entry_id,
+            device_name=TEST_NAME,
+            started_at="10:30:00",
+            ended_at="10:35:23",
+            downtime="5m 23s",
+            script_name="script.restart_wifi",
+            script_executed_at="10:31:00",
+        )
 
-            # Check domain and issue ID
-            assert call_args[0][0] == hass
-            assert call_args[0][1] == DOMAIN
-            expected_issue_id = f"{ISSUE_RECOVERY_SUCCESS}_{entry_id}"
-            assert call_args[0][2] == expected_issue_id
-
-            # Check keyword arguments
-            kwargs = call_args[1]
-            assert kwargs["is_fixable"] is True
-            assert kwargs["is_persistent"] is True
-            assert kwargs["severity"] == ir.IssueSeverity.WARNING
-            assert kwargs["translation_key"] == ISSUE_RECOVERY_SUCCESS
-
-            # Check placeholders include script info
-            placeholders = kwargs["translation_placeholders"]
-            assert placeholders["device_name"] == TEST_NAME
-            assert placeholders["started_at"] == "10:30:00"
-            assert placeholders["ended_at"] == "10:35:23"
-            assert placeholders["downtime"] == "5m 23s"
-            assert placeholders["script_name"] == "script.restart_wifi"
-            assert placeholders["script_executed_at"] == "10:31:00"
+        # Verify async_create_task was called
+        hass.async_create_task.assert_called_once()
 
     def test_create_recovery_notification_without_script(self, hass: HomeAssistant) -> None:
         """Test creating recovery notification without script info."""
         entry_id = "test_entry_no_script"
 
-        with patch.object(ir, "async_create_issue") as mock_create:
-            create_recovery_notification(
-                hass,
-                entry_id,
-                device_name=TEST_NAME,
-                started_at="14:00:00",
-                ended_at="14:02:30",
-                downtime="2m 30s",
-                script_name=None,
-                script_executed_at=None,
-            )
+        # Mock hass.async_create_task and hass.services.async_call
+        mock_async_call = AsyncMock()
+        hass.services = MagicMock()
+        hass.services.async_call = mock_async_call
+        hass.async_create_task = MagicMock()
 
-            mock_create.assert_called_once()
-            call_args = mock_create.call_args
+        create_recovery_notification(
+            hass,
+            entry_id,
+            device_name=TEST_NAME,
+            started_at="14:00:00",
+            ended_at="14:02:30",
+            downtime="2m 30s",
+            script_name=None,
+            script_executed_at=None,
+        )
 
-            # Check issue ID uses no_script variant
-            expected_issue_id = f"{ISSUE_RECOVERY_SUCCESS_NO_SCRIPT}_{entry_id}"
-            assert call_args[0][2] == expected_issue_id
+        # Verify async_create_task was called
+        hass.async_create_task.assert_called_once()
 
-            kwargs = call_args[1]
-            assert kwargs["translation_key"] == ISSUE_RECOVERY_SUCCESS_NO_SCRIPT
-
-            # Check placeholders don't include script info
-            placeholders = kwargs["translation_placeholders"]
-            assert placeholders["device_name"] == TEST_NAME
-            assert placeholders["started_at"] == "14:00:00"
-            assert placeholders["ended_at"] == "14:02:30"
-            assert placeholders["downtime"] == "2m 30s"
-            assert "script_name" not in placeholders
-            assert "script_executed_at" not in placeholders
-
-    def test_create_recovery_notification_unique_per_entry(self, hass: HomeAssistant) -> None:
+    def test_create_recovery_notification_unique_id_per_entry(self, hass: HomeAssistant) -> None:
         """Test each entry gets unique recovery notification ID."""
         entry_id_1 = "entry_aaa"
         entry_id_2 = "entry_bbb"
 
-        with patch.object(ir, "async_create_issue") as mock_create:
-            create_recovery_notification(hass, entry_id_1, TEST_NAME, "10:00:00", "10:05:00", "5m")
-            create_recovery_notification(hass, entry_id_2, TEST_NAME, "11:00:00", "11:03:00", "3m")
+        expected_id_1 = f"{DOMAIN}_{NOTIFICATION_RECOVERY}_{entry_id_1}"
+        expected_id_2 = f"{DOMAIN}_{NOTIFICATION_RECOVERY}_{entry_id_2}"
 
-            # Should have 2 different issue IDs
-            issue_id_1 = mock_create.call_args_list[0][0][2]
-            issue_id_2 = mock_create.call_args_list[1][0][2]
+        # The notification IDs should be different
+        assert expected_id_1 != expected_id_2
+        assert entry_id_1 in expected_id_1
+        assert entry_id_2 in expected_id_2
 
-            assert issue_id_1 != issue_id_2
-            assert entry_id_1 in issue_id_1
-            assert entry_id_2 in issue_id_2
+    @pytest.mark.asyncio
+    async def test_create_recovery_notification_service_call(self, hass: HomeAssistant) -> None:
+        """Test recovery notification calls persistent_notification service."""
+        entry_id = "test_service_call"
 
-    def test_create_recovery_notification_is_fixable(self, hass: HomeAssistant) -> None:
-        """Test recovery notification is fixable (user can dismiss)."""
-        entry_id = "fixable_entry"
+        # Create a mock for the service call
+        mock_async_call = AsyncMock()
+        hass.services = MagicMock()
+        hass.services.async_call = mock_async_call
 
-        with patch.object(ir, "async_create_issue") as mock_create:
-            create_recovery_notification(hass, entry_id, TEST_NAME, "09:00:00", "09:01:00", "1m")
+        # Capture the coroutine passed to async_create_task
+        captured_coro = None
 
-            kwargs = mock_create.call_args[1]
-            assert kwargs["is_fixable"] is True
+        def capture_task(coro):
+            nonlocal captured_coro
+            captured_coro = coro
+            return MagicMock()
 
-    def test_create_recovery_notification_is_persistent(self, hass: HomeAssistant) -> None:
-        """Test recovery notification survives HA restart."""
-        entry_id = "persistent_entry"
+        hass.async_create_task = capture_task
 
-        with patch.object(ir, "async_create_issue") as mock_create:
-            create_recovery_notification(hass, entry_id, TEST_NAME, "08:00:00", "08:10:00", "10m")
+        create_recovery_notification(
+            hass,
+            entry_id,
+            device_name=TEST_NAME,
+            started_at="10:00:00",
+            ended_at="10:05:00",
+            downtime="5m",
+            script_name=None,
+            script_executed_at=None,
+        )
 
-            kwargs = mock_create.call_args[1]
-            assert kwargs["is_persistent"] is True
+        # Await the captured coroutine to trigger the service call
+        assert captured_coro is not None
+        await captured_coro
+
+        # Verify the service call
+        mock_async_call.assert_called_once()
+        call_args = mock_async_call.call_args
+
+        assert call_args.kwargs["domain"] == "persistent_notification"
+        assert call_args.kwargs["service"] == "create"
+
+        service_data = call_args.kwargs["service_data"]
+        assert service_data["title"] == f"{TEST_NAME} has recovered"
+        assert f"{TEST_NAME}" in service_data["message"]
+        assert "10:00:00" in service_data["message"]
+        assert "10:05:00" in service_data["message"]
+        assert "5m" in service_data["message"]
+        assert service_data["notification_id"] == f"{DOMAIN}_{NOTIFICATION_RECOVERY}_{entry_id}"
+
+    @pytest.mark.asyncio
+    async def test_create_recovery_notification_message_with_script(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Test recovery notification message includes script info when provided."""
+        entry_id = "test_script_message"
+
+        mock_async_call = AsyncMock()
+        hass.services = MagicMock()
+        hass.services.async_call = mock_async_call
+
+        captured_coro = None
+
+        def capture_task(coro):
+            nonlocal captured_coro
+            captured_coro = coro
+            return MagicMock()
+
+        hass.async_create_task = capture_task
+
+        create_recovery_notification(
+            hass,
+            entry_id,
+            device_name=TEST_NAME,
+            started_at="10:30:00",
+            ended_at="10:35:23",
+            downtime="5m 23s",
+            script_name="script.restart_wifi",
+            script_executed_at="10:31:00",
+        )
+
+        assert captured_coro is not None
+        await captured_coro
+
+        service_data = mock_async_call.call_args.kwargs["service_data"]
+        message = service_data["message"]
+
+        # Verify script info is in the message
+        assert "script.restart_wifi" in message
+        assert "10:31:00" in message
+        assert "Script executed" in message
+        assert "Recovery script" in message
+
+    @pytest.mark.asyncio
+    async def test_create_recovery_notification_message_without_script(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Test recovery notification message excludes script info when not provided."""
+        entry_id = "test_no_script_message"
+
+        mock_async_call = AsyncMock()
+        hass.services = MagicMock()
+        hass.services.async_call = mock_async_call
+
+        captured_coro = None
+
+        def capture_task(coro):
+            nonlocal captured_coro
+            captured_coro = coro
+            return MagicMock()
+
+        hass.async_create_task = capture_task
+
+        create_recovery_notification(
+            hass,
+            entry_id,
+            device_name=TEST_NAME,
+            started_at="14:00:00",
+            ended_at="14:02:30",
+            downtime="2m 30s",
+            script_name=None,
+            script_executed_at=None,
+        )
+
+        assert captured_coro is not None
+        await captured_coro
+
+        service_data = mock_async_call.call_args.kwargs["service_data"]
+        message = service_data["message"]
+
+        # Verify script info is NOT in the message
+        assert "Script executed" not in message
+        assert "Recovery script" not in message
+
+        # But basic info should still be there
+        assert TEST_NAME in message
+        assert "14:00:00" in message
+        assert "14:02:30" in message
+        assert "2m 30s" in message
