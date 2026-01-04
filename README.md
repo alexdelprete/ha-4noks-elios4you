@@ -85,18 +85,48 @@ Change runtime options without restarting Home Assistant:
 | **Failures before notification** | Number of consecutive failures before triggering repair notification (1-10) | 3 |
 | **Polling period** | Frequency in seconds to read data and update sensors (30-600) | 60 |
 
-#### Recovery Script Example
+#### Recovery Script
 
-You can configure a script that automatically runs when the device becomes unreachable. For example, to restart your WiFi access point:
+You can configure a script that automatically runs when the device becomes unreachable. This is useful for automated recovery actions like restarting your WiFi router or power-cycling network equipment.
 
+**Setup:**
 1. Create a script in Home Assistant (e.g., `script.restart_wifi`)
 2. In the integration's Options flow, select the script from the dropdown
 3. When failures exceed the threshold, the script will execute automatically
 
-The script receives these variables:
-- `device_name` - The configured device name
-- `host` - The device IP address  
-- `port` - The device TCP port
+**Available Variables:**
+
+The script receives these variables that you can use in your automation:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `device_name` | The configured device name | "Elios4you Pro" |
+| `host` | IP address or hostname | "192.168.1.100" |
+| `port` | TCP port number | 5001 |
+| `serial_number` | Device serial number | "E4U123456789" |
+| `mac_address` | Device MAC address | "AA:BB:CC:DD:EE:FF" |
+| `failures_count` | Number of consecutive failures | 3 |
+
+**Example Script:**
+
+```yaml
+script:
+  restart_elios_wifi:
+    alias: "Restart Elios WiFi AP"
+    sequence:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.wifi_ap_power
+      - delay:
+          seconds: 10
+      - service: switch.turn_on
+        target:
+          entity_id: switch.wifi_ap_power
+      - service: notify.mobile_app
+        data:
+          title: "Elios4you Recovery"
+          message: "Restarted WiFi AP for {{ device_name }} after {{ failures_count }} failures"
+```
 
 ### Reconfigure Flow (3-dot menu > Reconfigure)
 Change connection settings - the integration will automatically reload:
