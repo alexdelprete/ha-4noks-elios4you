@@ -77,7 +77,26 @@ Configuration is done via config flow right after adding the integration. The in
 
 ### Options Flow (Configure button)
 Change runtime options without restarting Home Assistant:
-- **Polling period**: frequency, in seconds, to read the registers and update the sensors (30-300 seconds)
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| **Recovery script** | Optional script to execute when device stops responding. Useful for automated recovery actions like restarting your WiFi router. Available variables: `device_name`, `host`, `port` | None |
+| **Enable repair notifications** | Show persistent notifications when device recovers from failures | Enabled |
+| **Failures before notification** | Number of consecutive failures before triggering repair notification (1-10) | 3 |
+| **Polling period** | Frequency in seconds to read data and update sensors (30-600) | 60 |
+
+#### Recovery Script Example
+
+You can configure a script that automatically runs when the device becomes unreachable. For example, to restart your WiFi access point:
+
+1. Create a script in Home Assistant (e.g., `script.restart_wifi`)
+2. In the integration's Options flow, select the script from the dropdown
+3. When failures exceed the threshold, the script will execute automatically
+
+The script receives these variables:
+- `device_name` - The configured device name
+- `host` - The device IP address  
+- `port` - The device TCP port
 
 ### Reconfigure Flow (3-dot menu > Reconfigure)
 Change connection settings - the integration will automatically reload:
