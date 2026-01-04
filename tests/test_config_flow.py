@@ -16,7 +16,15 @@ from custom_components.fournoks_elios4you.config_flow import (
     Elios4YouOptionsFlow,
     get_host_from_config,
 )
-from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL, DOMAIN
+from custom_components.fournoks_elios4you.const import (
+    CONF_ENABLE_REPAIR_NOTIFICATION,
+    CONF_FAILURES_THRESHOLD,
+    CONF_RECOVERY_SCRIPT,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_ENABLE_REPAIR_NOTIFICATION,
+    DEFAULT_FAILURES_THRESHOLD,
+    DOMAIN,
+)
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -45,7 +53,7 @@ def integration_setup_fixture() -> Generator[None]:
 
 async def test_user_flow_success(
     hass: HomeAssistant,
-    mock_elios4you_api_config_flow: MagicMock,
+    mock_api_data: dict,
 ) -> None:
     """Test successful user flow creates entry."""
     result = await hass.config_entries.flow.async_init(
@@ -54,15 +62,23 @@ async def test_user_flow_success(
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "user"
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            CONF_NAME: TEST_NAME,
-            CONF_HOST: TEST_HOST,
-            CONF_PORT: TEST_PORT,
-            CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
-        },
-    )
+    with patch(
+        "custom_components.fournoks_elios4you.config_flow.Elios4YouAPI",
+        autospec=True,
+    ) as mock_api_class:
+        mock_api = mock_api_class.return_value
+        mock_api.data = mock_api_data
+        mock_api.async_get_data = AsyncMock(return_value=True)
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_NAME: TEST_NAME,
+                CONF_HOST: TEST_HOST,
+                CONF_PORT: TEST_PORT,
+                CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
+            },
+        )
 
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["title"] == TEST_NAME
@@ -78,7 +94,6 @@ async def test_user_flow_success(
 
 async def test_user_flow_already_configured(
     hass: HomeAssistant,
-    mock_elios4you_api_config_flow: MagicMock,
 ) -> None:
     """Test flow aborts when host already configured."""
     # Create existing entry
@@ -135,26 +150,30 @@ async def test_user_flow_invalid_host(
 
 async def test_user_flow_cannot_connect(
     hass: HomeAssistant,
-    mock_elios4you_api_config_flow: MagicMock,
 ) -> None:
     """Test flow shows error when cannot connect."""
-    mock_elios4you_api_config_flow.return_value.async_get_data = AsyncMock(
-        side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 10, "Connection failed")
-    )
-
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            CONF_NAME: TEST_NAME,
-            CONF_HOST: TEST_HOST,
-            CONF_PORT: TEST_PORT,
-            CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
-        },
-    )
+    with patch(
+        "custom_components.fournoks_elios4you.config_flow.Elios4YouAPI",
+        autospec=True,
+    ) as mock_api_class:
+        mock_api = mock_api_class.return_value
+        mock_api.async_get_data = AsyncMock(
+            side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 10, "Connection failed")
+        )
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_NAME: TEST_NAME,
+                CONF_HOST: TEST_HOST,
+                CONF_PORT: TEST_PORT,
+                CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
+            },
+        )
 
     assert result["type"] == FlowResultType.FORM
     assert result["errors"] == {CONF_HOST: "cannot_connect"}
@@ -162,7 +181,6 @@ async def test_user_flow_cannot_connect(
 
 async def test_options_flow(
     hass: HomeAssistant,
-    mock_elios4you_api: MagicMock,
 ) -> None:
     """Test options flow allows changing scan interval."""
     entry = MockConfigEntry(
@@ -174,6 +192,9 @@ async def test_options_flow(
         },
         options={
             CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
+            CONF_ENABLE_REPAIR_NOTIFICATION: DEFAULT_ENABLE_REPAIR_NOTIFICATION,
+            CONF_FAILURES_THRESHOLD: DEFAULT_FAILURES_THRESHOLD,
+            CONF_RECOVERY_SCRIPT: "",
         },
         unique_id=TEST_SERIAL_NUMBER,
     )
@@ -183,17 +204,19 @@ async def test_options_flow(
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "init"
 
+    # Provide all required fields for the options schema
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
             CONF_SCAN_INTERVAL: 120,
+            CONF_ENABLE_REPAIR_NOTIFICATION: DEFAULT_ENABLE_REPAIR_NOTIFICATION,
+            CONF_FAILURES_THRESHOLD: DEFAULT_FAILURES_THRESHOLD,
+            CONF_RECOVERY_SCRIPT: "",
         },
     )
 
     assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert result["data"] == {
-        CONF_SCAN_INTERVAL: 120,
-    }
+    assert result["data"][CONF_SCAN_INTERVAL] == 120
 
 
 # =============================================================================
