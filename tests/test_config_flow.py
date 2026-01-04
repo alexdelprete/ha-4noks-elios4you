@@ -39,8 +39,9 @@ from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL, TEST_
 @pytest.fixture(name="integration_setup", autouse=True)
 def integration_setup_fixture() -> Generator[None]:
     """Mock integration entry setup to avoid loading the full integration."""
+    # Patch at the actual module path (not symlink) where HA loads the integration
     with patch(
-        "custom_components.fournoks_elios4you.async_setup_entry",
+        "custom_components.4noks_elios4you.async_setup_entry",
         return_value=True,
     ):
         yield
@@ -62,8 +63,9 @@ async def test_user_flow_success(
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "user"
 
+    # Patch at the actual module path (not symlink) where HA loads the integration
     with patch(
-        "custom_components.fournoks_elios4you.config_flow.Elios4YouAPI",
+        "custom_components.4noks_elios4you.config_flow.Elios4YouAPI",
         autospec=True,
     ) as mock_api_class:
         mock_api = mock_api_class.return_value
@@ -156,8 +158,9 @@ async def test_user_flow_cannot_connect(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
+    # Patch at the actual module path (not symlink) where HA loads the integration
     with patch(
-        "custom_components.fournoks_elios4you.config_flow.Elios4YouAPI",
+        "custom_components.4noks_elios4you.config_flow.Elios4YouAPI",
         autospec=True,
     ) as mock_api_class:
         mock_api = mock_api_class.return_value
