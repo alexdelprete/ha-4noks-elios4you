@@ -317,9 +317,146 @@ logger:
 
 Restart Home Assistant and check the logs in **Settings > System > Logs**.
 
+### Getting the Full Debug Log
+
+When reporting issues, a full debug log is essential for diagnosis. Follow these steps to capture a complete log:
+
+#### Step 1: Enable Debug Logging
+
+Add the logger configuration above to your `configuration.yaml` file, then restart Home Assistant.
+
+#### Step 2: Reproduce the Issue
+
+After restart, wait for the issue to occur or manually trigger it. For connection problems, this usually happens within 1-2 polling cycles (60-120 seconds by default).
+
+#### Step 3: Download the Full Log
+
+**Method A: Via Home Assistant UI**
+
+1. Go to **Settings > System > Logs**
+2. Click the **Download Full Log** button (top right corner)
+3. Save the `home-assistant.log` file
+
+**Method B: Direct File Access**
+
+Access the log file directly from your Home Assistant config directory:
+
+- **Home Assistant OS/Supervised**: `/config/home-assistant.log`
+- **Docker**: `<config_mount>/home-assistant.log`
+- **Core**: `~/.homeassistant/home-assistant.log`
+
+#### Step 4: Filter Relevant Entries
+
+The full log contains entries from all integrations. To extract only Elios4you entries:
+
+**Linux/macOS:**
+
+```bash
+grep "4noks_elios4you" home-assistant.log > elios4you_debug.log
+```
+
+**Windows PowerShell:**
+
+```powershell
+Select-String -Path home-assistant.log -Pattern "4noks_elios4you" | Out-File elios4you_debug.log
+```
+
+**Windows Command Prompt:**
+
+```cmd
+findstr "4noks_elios4you" home-assistant.log > elios4you_debug.log
+```
+
+#### Understanding Log Messages
+
+The integration uses structured logging with this format:
+
+```
+(function_name) [context_key=value]: message
+```
+
+**Example log entries:**
+
+```
+DEBUG (async_get_data) [host=192.168.1.100, port=5001]: Fetching data from device
+DEBUG (_async_send_command) [cmd=@dat]: Sending command
+ERROR (async_get_data) [host=192.168.1.100]: TelnetConnectionError - Connection timed out
+```
+
+**Key functions to look for:**
+
+| Function | What it logs |
+|----------|--------------|
+| `async_get_data` | Data polling cycles |
+| `_ensure_connected` | Connection establishment |
+| `_async_send_command` | Telnet command execution |
+| `_safe_close` | Connection cleanup |
+| `telnet_set_relay` | Relay switch commands |
+| `async_setup_entry` | Integration startup |
+| `async_unload_entry` | Integration shutdown |
+
+#### Temporary Debug Logging (No Restart Required)
+
+For quick debugging without restarting, use the **Logger** integration service:
+
+1. Go to **Developer Tools > Services**
+2. Select service: `logger.set_level`
+3. Enter this YAML:
+
+```yaml
+service: logger.set_level
+data:
+  custom_components.4noks_elios4you: debug
+```
+
+4. Click **Call Service**
+
+Debug logging is now enabled until the next restart. To disable:
+
+```yaml
+service: logger.set_level
+data:
+  custom_components.4noks_elios4you: info
+```
+
 ### Repair Notifications
 
 The integration uses Home Assistant's repair system to notify you of connection issues. If the device becomes unreachable, you'll see a repair notification in **Settings > System > Repairs** with troubleshooting steps.
+
+### Common Issues
+
+#### Sensors Show "Unavailable"
+
+**Cause:** The device is not responding to telnet commands.
+
+**Solutions:**
+
+1. Verify the device is powered on and connected to the network
+2. Check that the IP address is correct in the integration configuration
+3. Ensure no firewall is blocking port 5001
+4. Try pinging the device: `ping <device_ip>`
+5. Verify the device's WiFi connection is stable
+
+#### Device Becomes "Deaf" Periodically
+
+**Cause:** The device's embedded system can become overwhelmed by too many connections.
+
+**Solutions:**
+
+1. Ensure only one integration instance is polling the device
+2. Close the official Elios4you mobile app when not in use
+3. Increase the polling interval to 120 seconds or more in Options
+4. Configure a recovery script to restart your WiFi access point
+
+#### Connection Errors After HA Restart
+
+**Cause:** The device may have stale connections from the previous session.
+
+**Solutions:**
+
+1. Wait 2-3 minutes for old connections to time out
+2. If issues persist, power cycle the Elios4you device
+3. Check for other services polling the device (Node-RED, etc.)
 
 ### Opening an Issue
 
