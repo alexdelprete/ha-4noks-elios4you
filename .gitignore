@@ -1,23 +1,84 @@
-# artifacts
-__pycache__
-.pytest*
-*.egg-info
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
 build/
-*/build/*
-*/dist/*
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
+# PyInstaller
+*.manifest
+*.spec
 
-# misc
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
 .coverage
-.vscode
-.claude
+.coverage.*
+.cache
+nosetests.xml
 coverage.xml
-enforce_branch_protection.sh
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+pytest*.xml
+
+# Translations
+*.mo
+*.pot
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.zed/
 
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
 
-# mypy workaround junction (symlink to 4noks_elios4you for type checking)
-custom_components/fournoks_elios4you
-NUL
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.log
+.ruff_cache/
+settings.local.json
+uv.lock
+nul
