@@ -189,6 +189,7 @@ In addition to the shared Do's and Don'ts:
 
 <!-- BEGIN SHARED:repo-sync -->
 <!-- Synced by repo-sync on 2026-02-11 -->
+
 ## Context7 for Documentation
 
 Always use Context7 MCP tools automatically (without being asked) when:

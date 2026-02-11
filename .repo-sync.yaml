@@ -38,7 +38,6 @@ vars:
   ruff_lint_extra_ignores: ["ASYNC109", "ASYNC110", "N999", "PLW1641", "TC006", "UP046", "UP047", "UP049"]
   ruff_lint_extra_perfile_ignores:
     "custom_components/4noks_elios4you/api.py": ["S101", "TRY301"]
-    "custom_components/4noks_elios4you/coordinator.py": ["DTZ005"]
   ruff_tests_extra_ignores: ["INP001", "E402"]
   pymarkdown_line_length: 180
   pymarkdown_strict_md013: true

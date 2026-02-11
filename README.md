@@ -2,6 +2,7 @@
 
 <!-- BEGIN SHARED:repo-sync:badges -->
 <!-- Synced by repo-sync on 2026-02-11 -->
+
 [![GitHub Release](https://img.shields.io/github/v/release/alexdelprete/ha-4noks-elios4you?style=for-the-badge)](https://github.com/alexdelprete/ha-4noks-elios4you/releases)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-donate-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/alexdelprete)
 [![Tests](https://img.shields.io/github/actions/workflow/status/alexdelprete/ha-4noks-elios4you/test.yml?style=for-the-badge&label=Tests)](https://github.com/alexdelprete/ha-4noks-elios4you/actions/workflows/test.yml)
@@ -56,6 +57,7 @@ This integration uses a fully async telnet implementation via `telnetlib3` to co
 
 <!-- BEGIN SHARED:repo-sync:installation -->
 <!-- Synced by repo-sync on 2026-02-11 -->
+
 ## Installation
 
 ### HACS (Recommended)
@@ -520,6 +522,7 @@ ruff check . --fix
 
 <!-- BEGIN SHARED:repo-sync:contributing -->
 <!-- Synced by repo-sync on 2026-02-11 -->
+
 ## Contributing
 
 Contributions are welcome! Please follow these steps:
@@ -544,6 +547,7 @@ _If you like this integration, I'll gladly accept some quality coffee, but pleas
 
 <!-- BEGIN SHARED:repo-sync:license -->
 <!-- Synced by repo-sync on 2026-02-11 -->
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

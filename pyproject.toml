@@ -67,6 +67,7 @@ dev = [
 # <!-- BEGIN SHARED:repo-sync -->
 # Synced by repo-sync on 2026-02-11
 
+
 [tool.codespell]
 skip = "*.json"
 quiet-level = 3
@@ -261,9 +262,6 @@ ignore = [
 "custom_components/4noks_elios4you/api.py" = [
     "S101",
     "TRY301",
-]
-"custom_components/4noks_elios4you/coordinator.py" = [
-    "DTZ005",
 ]
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]
