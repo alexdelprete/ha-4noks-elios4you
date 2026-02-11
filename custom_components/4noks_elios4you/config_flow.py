@@ -166,6 +166,9 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
                 },
             ),
             errors=errors,
+            description_placeholders={
+                "docs_url": "https://github.com/alexdelprete/ha-4noks-elios4you",
+            },
         )
 
     async def async_step_reconfigure(

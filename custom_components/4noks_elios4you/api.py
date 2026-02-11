@@ -9,7 +9,7 @@ import logging
 import socket
 import time
 
-import telnetlib3  # type: ignore[import-untyped]
+import telnetlib3
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -243,7 +243,7 @@ class Elios4YouAPI:
             # - connect_minwait: Minimum wait for telnet option negotiation (default 2.0s)
             # - connect_maxwait: Maximum wait for negotiation (default 3.0s)
             # We set low values since Elios4You doesn't use telnet option negotiation
-            self._reader, self._writer = await asyncio.wait_for(
+            self._reader, self._writer = await asyncio.wait_for(  # type: ignore[assignment]
                 telnetlib3.open_connection(
                     host=self._host,
                     port=self._port,

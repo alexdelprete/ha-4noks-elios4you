@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Elios4You Connection Configuration",
-        "description": "If you need help with the configuration go to: https://github.com/alexdelprete/ha-4noks-elios4you",
+        "description": "If you need help with the configuration go to: {docs_url}",
         "data": {
           "name": "Custom Name of the device (used for sensors' prefix)",
           "host": "IP or hostname",
