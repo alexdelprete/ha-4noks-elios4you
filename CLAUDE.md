@@ -188,7 +188,7 @@ In addition to the shared Do's and Don'ts:
 - Modify production code to make tests pass - always update tests to match intended code behavior
 
 <!-- BEGIN SHARED:repo-sync -->
-<!-- Synced by repo-sync on 2026-02-10 -->
+<!-- Synced by repo-sync on 2026-02-11 -->
 ## Context7 for Documentation
 
 Always use Context7 MCP tools automatically (without being asked) when:
