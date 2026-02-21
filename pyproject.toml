@@ -4,7 +4,7 @@ version = "0.3.0"
 description = "Home Assistant custom integration for 4-noks Elios4you energy monitoring devices using Telnet"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.13"
+requires-python = ">=3.13.2"
 authors = [{ name = "alexdelprete" }]
 keywords = ["home-assistant", "4noks", "elios4you", "telnet", "energy", "monitoring"]
 classifiers = [
@@ -65,7 +65,7 @@ dev = [
 ]
 
 # <!-- BEGIN SHARED:repo-sync -->
-# Synced by repo-sync on 2026-02-11
+# Synced by repo-sync on 2026-02-20
 
 
 [tool.codespell]
