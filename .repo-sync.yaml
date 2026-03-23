@@ -24,7 +24,6 @@ vars:
 
   # -- Workflow tuning --
   jsonlint_flags: ""
-  pymarkdown_config: "--config .pymarkdown.json"
   version_grep_pattern: "VERSION = "
 
   # -- Dependabot --
@@ -39,8 +38,6 @@ vars:
   ruff_lint_extra_perfile_ignores:
     "custom_components/4noks_elios4you/api.py": ["S101", "TRY301"]
   ruff_tests_extra_ignores: ["INP001", "E402"]
-  pymarkdown_line_length: 180
-  pymarkdown_strict_md013: true
 
   # -- Extras --
   requirements_extra_deps: ["telnetlib3>=2.0.4"]
@@ -50,6 +47,7 @@ vars:
 
 copy_files:
   - .gitattributes
+  - .pymarkdownlint.json
   - .github/workflows/dbautomerge.yml
   - .github/FUNDING.yml
   - LICENSE
