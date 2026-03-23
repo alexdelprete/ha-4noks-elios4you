@@ -13,25 +13,40 @@
 
 _This project is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by 4-noks / Astrel Group_
 
-# Introduction
+## Introduction
 
-HA Custom Component to integrate data from [4-noks Elios4you](https://www.4-noks.com/product-categories/solar-photovoltaic-en/elios4you-en/?lang=en) products.
-Tested personally on my [Elios4you Pro](https://www.4-noks.com/shop/elios4you-en/elios4you-pro/?lang=en) to monitor tha main 3-phase 6kw line, plus my 7.5kW photovoltaic system.
+HA Custom Component to integrate data from
+[4-noks Elios4you](https://www.4-noks.com/product-categories/solar-photovoltaic-en/elios4you-en/?lang=en)
+products.
+Tested personally on my
+[Elios4you Pro](https://www.4-noks.com/shop/elios4you-en/elios4you-pro/?lang=en)
+to monitor tha main 3-phase 6kw line, plus my 7.5kW photovoltaic system.
 
 ![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/70bb7791-8d01-4fc2-bef6-9a9110558c0b)
 
-Elio4you is a great product, it provides very reliable measurements, but it has no documented local API to get the energy data. Luckily, 3y ago I found [this great article](https://www.hackster.io/daveVertu/reverse-engineering-elios4you-photovoltaic-monitoring-device-458aa0) by Davide Vertuani, that reversed-engineered how the official mobile app communicated with the device to fetch data, and found out it's a tcp connection on port 5001, through which the app sent specific commands to which the device replies with data. That was a great find by Davide, and I initially used Node-RED to create a quick integration like Davide suggested in the article: I completed a full integration in 1 day and was rock solid, Node-RED is fantastic. :)
+Elio4you is a great product, it provides very reliable measurements, but it has no documented
+local API to get the energy data. Luckily, 3y ago I found
+[this great article](https://www.hackster.io/daveVertu/reverse-engineering-elios4you-photovoltaic-monitoring-device-458aa0)
+by Davide Vertuani, that reversed-engineered how the official mobile app communicated with the
+device to fetch data, and found out it's a tcp connection on port 5001, through which the app
+sent specific commands to which the device replies with data. That was a great find by Davide,
+and I initially used Node-RED to create a quick integration like Davide suggested in the article:
+I completed a full integration in 1 day and was rock solid, Node-RED is fantastic. :)
 
 ![image](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/46eb022f-1da0-48eb-ad70-46832bfa2f4e)
 
-One month ago I decided to port the Node-RED integration to an HA Custom Component, because in the last 2 years I developed my first HA component to monitor ABB/FIMER inverters, and now I'm quite knowledgable on custom component developement (learned a lot thanks to the dev community and studying some excellent integrations).
+One month ago I decided to port the Node-RED integration to an HA Custom Component, because in
+the last 2 years I developed my first HA component to monitor ABB/FIMER inverters, and now I'm
+quite knowledgable on custom component developement (learned a lot thanks to the dev community
+and studying some excellent integrations).
 
 So finally here we are with the first official version of the HA custom integration for Elios4you devices. :)
 
 ### Features
 
 - Installation/Configuration through Config Flow UI
-- Sensor entities for all data provided by the device (I don't even know what some of the ones in the diagnostic category specifically represent)
+- Sensor entities for all data provided by the device (I don't even know what some of the ones
+  in the diagnostic category specifically represent)
 - Switch entity to control the device internal relay
 - Configuration options: Name, hostname, tcp port, polling period
 - Options flow: change polling period at runtime without restart
@@ -53,7 +68,8 @@ This integration uses a fully async telnet implementation via `telnetlib3` to co
 
 ### Known Limitations
 
-- **Single device per integration instance**: Each Elios4you device requires a separate integration instance. To monitor multiple devices, add the integration multiple times.
+- **Single device per integration instance**: Each Elios4you device requires a separate
+  integration instance. To monitor multiple devices, add the integration multiple times.
 
 <!-- BEGIN SHARED:repo-sync:installation -->
 <!-- Synced by repo-sync on 2026-02-20 -->
@@ -79,9 +95,10 @@ This integration uses a fully async telnet implementation via `telnetlib3` to co
 
 <!-- END SHARED:repo-sync:installation -->
 
-# Installation through HACS
+## Installation through HACS
 
-This integration is available in [HACS][hacs] official repository. Click this button to open HA directly on the integration page so you can easily install it:
+This integration is available in [HACS][hacs] official repository. Click this button to open
+HA directly on the integration page so you can easily install it:
 
 [![Quick installation link](https://my.home-assistant.io/badges/hacs_repository.svg)][my-hacs]
 
@@ -94,27 +111,35 @@ This integration is available in [HACS][hacs] official repository. Click this bu
 4. Search for and select '4-noks Elios4You' (if the integration is not found, do a hard-refresh (ctrl+F5) in the browser)
 5. Proceed with the configuration
 
-# Manual Installation
+## Manual Installation
 
-Download the source code archive from the release page. Unpack the archive and copy the contents of custom_components folder to your home-assistant config/custom_components folder. Restart Home Assistant, and then the integration can be added and configured through the native integration setup UI. If you don't see it in the native integrations list, press ctrl-F5 to refresh the browser while you're on that page and retry.
+Download the source code archive from the release page. Unpack the archive and copy the
+contents of custom_components folder to your home-assistant config/custom_components folder.
+Restart Home Assistant, and then the integration can be added and configured through the native
+integration setup UI. If you don't see it in the native integrations list, press ctrl-F5 to
+refresh the browser while you're on that page and retry.
 
-# Configuration
+## Configuration
 
-Configuration is done via config flow right after adding the integration. The integration provides two ways to modify settings after initial setup:
+Configuration is done via config flow right after adding the integration. The integration
+provides two ways to modify settings after initial setup:
 
 ### Options Flow (Configure button)
+
 Change runtime options without restarting Home Assistant:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| **Recovery script** | Optional script to execute when device stops responding. Useful for automated recovery actions like restarting your WiFi router. Available variables: `device_name`, `host`, `port` | None |
+| **Recovery script** | Script to run when device stops responding. See Recovery Script below | None |
 | **Enable repair notifications** | Show persistent notifications when device recovers from failures | Enabled |
 | **Failures before notification** | Number of consecutive failures before triggering repair notification (1-10) | 3 |
 | **Polling period** | Frequency in seconds to read data and update sensors (30-600) | 60 |
 
 #### Recovery Script
 
-You can configure a script that automatically runs when the device becomes unreachable. This is useful for automated recovery actions like restarting your WiFi router or power-cycling network equipment.
+You can configure a script that automatically runs when the device becomes unreachable. This
+is useful for automated recovery actions like restarting your WiFi router or power-cycling
+network equipment.
 
 **Setup:**
 1. Create a script in Home Assistant (e.g., `script.restart_wifi`)
@@ -156,19 +181,24 @@ script:
 ```
 
 ### Reconfigure Flow (3-dot menu > Reconfigure)
+
 Change connection settings - the integration will automatically reload:
 - **Custom name**: custom name for the device, used as prefix for sensors created by the component
-- **IP/hostname**: IP/hostname of the device - this is used as unique_id, if you change it you will lose historical data (tip: use hostname so you can change IP without losing data)
+- **IP/hostname**: IP/hostname of the device - this is used as unique_id, if you change it
+  you will lose historical data (tip: use hostname so you can change IP without losing data)
 - **TCP port**: TCP port of the device. tcp/5001 is the only known working port, but left configurable
 
-<img style="border: 5px solid #767676;border-radius: 10px;max-width: 500px;width: 50%;box-sizing: border-box;" src="https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/cbe045c6-8753-4c52-9d50-97de983d18b0" alt="Config">
+![Config](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/cbe045c6-8753-4c52-9d50-97de983d18b0)
 
-# Sensor view
-<img style="border: 5px solid #767676;border-radius: 10px;max-width: 500px;width: 75%;box-sizing: border-box;" src="https://raw.githubusercontent.com/alexdelprete/ha-4noks-elios4you/master/gfxfiles/elios4you_sensors.gif" alt="Config">
+## Sensor view
 
-# Device Triggers
+![Config](https://raw.githubusercontent.com/alexdelprete/ha-4noks-elios4you/master/gfxfiles/elios4you_sensors.gif)
 
-The integration provides device triggers that allow you to create automations based on device connection events. These triggers fire when the Elios4you device experiences connectivity issues or recovers from them.
+## Device Triggers
+
+The integration provides device triggers that allow you to create automations based on device
+connection events. These triggers fire when the Elios4you device experiences connectivity
+issues or recovers from them.
 
 ### Available Triggers
 
@@ -227,7 +257,7 @@ When the device recovers from a failure, the integration creates a persistent re
 
 These notifications appear in **Settings > System > Repairs** and require user acknowledgment to dismiss.
 
-# Automation Examples
+## Automation Examples
 
 Here are some practical automation examples using the Elios4you sensors.
 
@@ -354,7 +384,8 @@ Add the logger configuration above to your `configuration.yaml` file, then resta
 
 #### Step 2: Reproduce the Issue
 
-After restart, wait for the issue to occur or manually trigger it. For connection problems, this usually happens within 1-2 polling cycles (60-120 seconds by default).
+After restart, wait for the issue to occur or manually trigger it. For connection problems,
+this usually happens within 1-2 polling cycles (60-120 seconds by default).
 
 #### Step 3: Download the Full Log
 
@@ -398,13 +429,13 @@ findstr "4noks_elios4you" home-assistant.log > elios4you_debug.log
 
 The integration uses structured logging with this format:
 
-```
+```text
 (function_name) [context_key=value]: message
 ```
 
 **Example log entries:**
 
-```
+```text
 DEBUG (async_get_data) [host=192.168.1.100, port=5001]: Fetching data from device
 DEBUG (_async_send_command) [cmd=@dat]: Sending command
 ERROR (async_get_data) [host=192.168.1.100]: TelnetConnectionError - Connection timed out
@@ -430,11 +461,11 @@ For quick debugging without restarting, use the **Logger** integration service:
 2. Select service: `logger.set_level`
 3. Enter this YAML:
 
-```yaml
-service: logger.set_level
-data:
-  custom_components.4noks_elios4you: debug
-```
+   ```yaml
+   service: logger.set_level
+   data:
+     custom_components.4noks_elios4you: debug
+   ```
 
 4. Click **Call Service**
 
@@ -448,7 +479,9 @@ data:
 
 ### Repair Notifications
 
-The integration uses Home Assistant's repair system to notify you of connection issues. If the device becomes unreachable, you'll see a repair notification in **Settings > System > Repairs** with troubleshooting steps.
+The integration uses Home Assistant's repair system to notify you of connection issues. If
+the device becomes unreachable, you'll see a repair notification in
+**Settings > System > Repairs** with troubleshooting steps.
 
 ### Common Issues
 

@@ -30,18 +30,21 @@ The GitHub MCP server does not provide a tool to fetch workflow run logs directl
 
    ```bash
    gh run list --repo alexdelprete/ha-4noks-elios4you --workflow=test.yml --limit 1 --json databaseId,status,conclusion
+
    ```
 
 2. **Fetch the logs** using the run ID:
 
    ```bash
    gh run view <run_id> --repo alexdelprete/ha-4noks-elios4you --log
+
    ```
 
 3. **Filter for specific output** (e.g., coverage percentage):
 
    ```bash
    gh run view <run_id> --repo alexdelprete/ha-4noks-elios4you --log 2>&1 | grep "TOTAL"
+
    ```
 
 **Example - Get latest test coverage:**
@@ -52,13 +55,17 @@ gh run list --repo alexdelprete/ha-4noks-elios4you --workflow=test.yml --limit 1
 
 # Step 2: Fetch coverage from logs (replace <run_id> with actual ID)
 gh run view <run_id> --repo alexdelprete/ha-4noks-elios4you --log 2>&1 | grep "TOTAL"
+
 ```
 
 ## Project Overview
 
-This is a Home Assistant custom integration for **4-noks Elios4you** energy monitoring devices using Telnet protocol. The device monitors power/energy consumption and photovoltaic production.
+This is a Home Assistant custom integration for **4-noks Elios4you** energy monitoring devices using Telnet protocol.
+The device monitors power/energy consumption and photovoltaic production.
 
-This integration is based on and aligned with [ha-sinapsi-alfa](https://github.com/alexdelprete/ha-sinapsi-alfa) and [ha-abb-powerone-pvi-sunspec](https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec), sharing similar architecture and code quality standards.
+This integration is based on and aligned with [ha-sinapsi-alfa](https://github.com/alexdelprete/ha-sinapsi-alfa) and
+[ha-abb-powerone-pvi-sunspec](https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec), sharing similar architecture
+and code quality standards.
 
 ## Code Architecture
 
@@ -119,9 +126,10 @@ This integration is based on and aligned with [ha-sinapsi-alfa](https://github.c
 - Maintain 95%+ code coverage per file
 - **Tests run in CI only** - Due to complex HA dependencies, run tests via GitHub Actions
 
-#### Running Tests
+### Running Tests
 
-Due to the package name starting with a digit (`4noks_elios4you`), which is invalid for Python imports, tests use a symlink workaround. The CI workflow handles this automatically.
+Due to the package name starting with a digit (`4noks_elios4you`), which is invalid for Python imports, tests use a
+symlink workaround. The CI workflow handles this automatically.
 
 **Testing via CI (Recommended):**
 Push your changes and let GitHub Actions run the tests. The workflow:
@@ -135,19 +143,23 @@ Push your changes and let GitHub Actions run the tests. The workflow:
 - CI environment is pre-configured and consistent
 - Faster feedback loop for most development workflows
 
-#### Running ty Type Checker
+### Running ty Type Checker
 
-The ty type checker validates Python type annotations. Due to the package name starting with a digit (`4noks_elios4you`), which is invalid for Python imports, we use a symlink workaround:
+The ty type checker validates Python type annotations. Due to the package name starting with a digit
+(`4noks_elios4you`), which is invalid for Python imports, we use a symlink workaround:
 
 **In CI (GitHub Actions):**
 The workflow creates a symlink `fournoks_elios4you -> 4noks_elios4you` and runs ty against it:
+
 ```bash
 ln -s 4noks_elios4you custom_components/fournoks_elios4you
 ty check -vv --python $(which python) custom_components/fournoks_elios4you
 rm custom_components/fournoks_elios4you
+
 ```
 
 **Locally (Linux/macOS):**
+
 ```bash
 # Install dev dependencies
 pip install -e ".[dev]"
@@ -156,14 +168,17 @@ pip install -e ".[dev]"
 ln -s 4noks_elios4you custom_components/fournoks_elios4you
 ty check --python $(which python) custom_components/fournoks_elios4you
 rm custom_components/fournoks_elios4you
+
 ```
 
 **Locally (Windows):**
+
 ```powershell
 # Create symlink (requires admin or Developer Mode)
 New-Item -ItemType SymbolicLink -Path "custom_components\fournoks_elios4you" -Target "4noks_elios4you"
 ty check custom_components/fournoks_elios4you
 Remove-Item custom_components\fournoks_elios4you
+
 ```
 
 All commands must pass without errors before committing.
@@ -668,7 +683,7 @@ When a release fixes a specific GitHub issue:
 
 ---
 
-# Release History
+## Release History
 
 ## v1.0.0 - First Stable Release
 
@@ -680,7 +695,8 @@ When a release fixes a specific GitHub issue:
 
 ### Overview
 
-First stable v1.0.0 release marking the integration as production-ready. This milestone represents the culmination of extensive development and testing since v0.2.0.
+First stable v1.0.0 release marking the integration as production-ready. This milestone represents the culmination of
+extensive development and testing since v0.2.0.
 
 ### Key Achievements
 
@@ -727,11 +743,13 @@ First stable v1.0.0 release marking the integration as production-ready. This mi
 
 ### Overview
 
-Migrated from mypy to [ty](https://github.com/astral-sh/ty) (Astral's new Rust-based Python type checker) for faster type checking in CI.
+Migrated from mypy to [ty](https://github.com/astral-sh/ty) (Astral's new Rust-based Python type checker) for faster
+type checking in CI.
 
 ### The Digit-Prefix Problem
 
-The package name `4noks_elios4you` starts with a digit, which is not a valid Python identifier. This causes type checkers to fail when resolving relative imports like `.const`, `.api`, `.helpers`.
+The package name `4noks_elios4you` starts with a digit, which is not a valid Python identifier. This causes type
+checkers to fail when resolving relative imports like `.const`, `.api`, `.helpers`.
 
 **Solution:** Use a symlink workaround in CI:
 1. Create symlink: `ln -s 4noks_elios4you custom_components/fournoks_elios4you`
@@ -782,37 +800,47 @@ Comprehensive test suite achieving **98% code coverage** across the integration:
 **Testing Patterns Established:**
 
 1. **Numeric Module Import Workaround:**
+
    ```python
    import importlib
    _elios4you_api = importlib.import_module("custom_components.4noks_elios4you.api")
+
    ```
 
 2. **PropertyMock for Read-Only Properties:**
+
    ```python
    with patch.object(
        type(flow), "config_entry", new_callable=PropertyMock, return_value=mock_entry
    ):
        result = await flow.async_step_init(None)
+
    ```
 
 3. **Unique ID Mocking for Config Flow:**
+
    ```python
    flow.async_set_unique_id = AsyncMock()
    flow._abort_if_unique_id_configured = MagicMock()
+
    ```
 
 ### Bug Fix: `async_remove_config_entry_device`
 
 **Problem:** The function incorrectly checked device identifiers:
+
 ```python
 # WRONG - identifiers is a set of tuples, not strings
 if DOMAIN in device_entry.identifiers:
+
 ```
 
 **Fix:** Proper tuple check per HA best practices:
+
 ```python
 # CORRECT - check first element of each tuple
 if any(identifier[0] == DOMAIN for identifier in device_entry.identifiers):
+
 ```
 
 **Reference:** [HA Integration Quality Scale - Stale Devices](https://developers.home-assistant.io/docs/core/integration-quality-scale/rules/stale-devices/)
@@ -837,7 +865,8 @@ if any(identifier[0] == DOMAIN for identifier in device_entry.identifiers):
 
 ### Overview
 
-This release migrates from bundled synchronous `telnetlib` to `telnetlib3` async client. This eliminates event loop blocking during telnet I/O operations, ensuring Home Assistant remains responsive during polling cycles.
+This release migrates from bundled synchronous `telnetlib` to `telnetlib3` async client. This eliminates event loop
+blocking during telnet I/O operations, ensuring Home Assistant remains responsive during polling cycles.
 
 ### Problem Identified
 
@@ -847,7 +876,8 @@ This release migrates from bundled synchronous `telnetlib` to `telnetlib3` async
 - Home Assistant responsiveness degraded during polling cycles
 
 **Root Cause:**
-The bundled synchronous `telnetlib.Telnet` class performs blocking I/O. Even though `async_get_data()` was marked as `async`, the internal `telnet_get_data()` method called synchronous `read_until()`, which blocked the entire event loop.
+The bundled synchronous `telnetlib.Telnet` class performs blocking I/O. Even though `async_get_data()` was marked as
+`async`, the internal `telnet_get_data()` method called synchronous `read_until()`, which blocked the entire event loop.
 
 ### Solution Implemented
 
@@ -950,6 +980,7 @@ class Elios4YouAPI:
         await self._writer.drain()
         response = await self._async_read_until(b"ready...", self._timeout)
         # Parse response...
+
 ```
 
 ### Testing Recommendations
@@ -976,7 +1007,9 @@ class Elios4YouAPI:
 
 ### Overview
 
-This beta release addresses a critical runtime issue where the Elios4You device becomes "deaf" (unresponsive to telnet commands) 50-60 times per day. The fix implements connection pooling to prevent socket exhaustion on the embedded device.
+This beta release addresses a critical runtime issue where the Elios4You device becomes "deaf" (unresponsive to telnet
+commands) 50-60 times per day. The fix implements connection pooling to prevent socket exhaustion on the embedded
+device.
 
 ### Problem Identified
 
@@ -1055,6 +1088,7 @@ This beta release addresses a critical runtime issue where the Elios4You device 
 - Always use socket-specific timeouts, not global
 
 **Pattern: Connection Pooling for Telnet:**
+
 ```python
 class Elios4YouAPI:
     CONNECTION_REUSE_TIMEOUT: float = 25.0
@@ -1067,6 +1101,7 @@ class Elios4YouAPI:
         async with self._connection_lock:
             self._ensure_connected()
             # ... operations ...
+
 ```
 
 **Full Release Notes:** [docs/releases/v0.3.0-beta.1.md](docs/releases/v0.3.0-beta.1.md)
@@ -1083,13 +1118,16 @@ class Elios4YouAPI:
 
 ### Overview
 
-This is the **official stable release** of v0.2.0, marking the successful completion of the beta testing cycle. This release includes all improvements from beta.1, beta.2, and beta.3, plus dependency updates to ensure compatibility with Home Assistant 2025.10.x and Python 3.13.
+This is the **official stable release** of v0.2.0, marking the successful completion of the beta testing cycle. This
+release includes all improvements from beta.1, beta.2, and beta.3, plus dependency updates to ensure compatibility with
+Home Assistant 2025.10.x and Python 3.13.
 
 ### What Was Accomplished
 
 All changes from the beta cycle are now production-ready:
 
-- ✅ **From beta.1:** Critical bug fixes (sensor availability, unload errors, async/await), custom exceptions, type hints, code quality (100% ruff compliance)
+- ✅ **From beta.1:** Critical bug fixes (sensor availability, unload errors, async/await), custom exceptions, type
+  hints, code quality (100% ruff compliance)
 - ✅ **From beta.2:** Hotfix for integration unload (added `close()` method)
 - ✅ **From beta.3:** Architecture alignment (logging system, helpers.py, core refactoring)
 - ✅ **New in v0.2.0:** Updated dependencies for HA 2025.10.x and Python 3.13 compatibility
@@ -1179,6 +1217,7 @@ When creating release notes, we follow this pattern:
 - Git tag - Marks the release in version control and triggers GitHub release
 
 **Example for v0.2.0:**
+
 ```python
 # In manifest.json
 "version": "0.2.0"
@@ -1188,6 +1227,7 @@ VERSION = "0.2.0"
 
 # Git tag
 git tag -a v0.2.0 -m "Release v0.2.0"
+
 ```
 
 **Release Checklist:**
@@ -1284,7 +1324,9 @@ git tag -a v0.2.0 -m "Release v0.2.0"
 
 ### Overview
 
-This release continues the alignment with ABB Power-One PVI SunSpec v4.1.5, focusing on architecture patterns and logging standardization across the entire codebase. This was a comprehensive internal refactoring with no user-facing feature changes.
+This release continues the alignment with ABB Power-One PVI SunSpec v4.1.5, focusing on architecture patterns and
+logging standardization across the entire codebase. This was a comprehensive internal refactoring with no user-facing
+feature changes.
 
 ### What Was Accomplished
 
@@ -1303,6 +1345,7 @@ This release continues the alignment with ABB Power-One PVI SunSpec v4.1.5, focu
 #### 1. Standardized Logging System
 
 **Created `helpers.py` Module:**
+
 ```python
 def log_debug(logger: logging.Logger, context: str, message: str, **kwargs: Any) -> None:
     """Standardized debug logging with context."""
@@ -1311,6 +1354,7 @@ def log_debug(logger: logging.Logger, context: str, message: str, **kwargs: Any)
         context_parts = [f"{k}={v}" for k, v in kwargs.items()]
         context_str += f" [{', '.join(context_parts)}]"
     logger.debug("%s: %s", context_str, message)
+
 ```
 
 **Migration Pattern:**
@@ -1326,6 +1370,7 @@ def log_debug(logger: logging.Logger, context: str, message: str, **kwargs: Any)
 #### 2. Core Integration Lifecycle Refactoring
 
 **RuntimeData Simplification:**
+
 ```python
 # OLD
 @dataclass
@@ -1337,9 +1382,11 @@ class RuntimeData:
 @dataclass
 class RuntimeData:
     coordinator: DataUpdateCoordinator  # Clean and simple
+
 ```
 
 **Update Listener Pattern:**
+
 ```python
 # OLD (3 lines)
 update_listener = config_entry.add_update_listener(async_reload_entry)
@@ -1349,9 +1396,11 @@ config_entry.runtime_data = RuntimeData(coordinator, update_listener)
 # NEW (1 line)
 config_entry.async_on_unload(config_entry.add_update_listener(async_reload_entry))
 config_entry.runtime_data = RuntimeData(coordinator)
+
 ```
 
 **Device Registry Function:**
+
 ```python
 # OLD
 async def async_update_device_registry(...):
@@ -1363,9 +1412,11 @@ async def async_update_device_registry(...):
 def async_update_device_registry(...):
     # Correctly marked as sync with @callback
     device_registry.async_get_or_create(...)
+
 ```
 
 **Reload Entry Function:**
+
 ```python
 # OLD
 async def async_reload_entry(...):
@@ -1375,11 +1426,13 @@ async def async_reload_entry(...):
 @callback
 def async_reload_entry(...):
     hass.config_entries.async_schedule_reload(...)  # Non-blocking
+
 ```
 
 #### 3. Migration Infrastructure
 
 Added future-proof migration function:
+
 ```python
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old config entries."""
@@ -1389,6 +1442,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     # Example pattern included in comments
 
     return True
+
 ```
 
 ### Files Modified Summary
@@ -1512,7 +1566,9 @@ Now that the architecture is fully aligned with ABB v4.1.5, future enhancements 
 
 ## Overview
 
-This document provides transparency about how Claude AI assisted in the development of v0.2.0-beta.1. The goal was to align the 4noks-elios4you integration with the code quality, reliability improvements, and best practices from the ABB Power-One PVI SunSpec integration v4.1.5.
+This document provides transparency about how Claude AI assisted in the development of v0.2.0-beta.1. The goal was to
+align the 4noks-elios4you integration with the code quality, reliability improvements, and best practices from the ABB
+Power-One PVI SunSpec integration v4.1.5.
 
 ### What Was Accomplished
 
@@ -1544,7 +1600,10 @@ The 4noks-elios4you integration was originally based on the ABB Power-One PVI Su
 
 The user (@alexdelprete) requested:
 
-> "this project is based on https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec, but it doesn't use pymodbus to get data, it uses telnet protocol. I want you to analyze all its codebase and compare it to https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec, particularly the v4.1.5 that contains a lot of fixes and improvements and propose a plan to align it."
+> "this project is based on <https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec>, but it doesn't use pymodbus
+> to get data, it uses telnet protocol. I want you to analyze all its codebase and compare it to
+> <https://github.com/alexdelprete/ha-abb-powerone-pvi-sunspec>, particularly the v4.1.5 that contains a lot of fixes
+> and improvements and propose a plan to align it."
 
 ### Why This Approach Works
 
@@ -1609,7 +1668,9 @@ This revealed the sensor availability fix was the most critical improvement.
 These fixes directly impact functionality and user experience:
 
 #### 1. Sensor Availability Fix
+
 **The Core Problem:**
+
 ```python
 # OLD CODE (Elios4you v0.1.0)
 async def async_get_data(self):
@@ -1621,6 +1682,7 @@ async def async_get_data(self):
             return False  # ⚠️ Silent failure!
     else:
         raise ConnectionError(...)  # Only if check_port fails
+
 ```
 
 **Why This Was Wrong:**
@@ -1630,6 +1692,7 @@ async def async_get_data(self):
 - Users saw "1.5kW production" at midnight!
 
 **The Fix:**
+
 ```python
 # NEW CODE (v0.2.0-beta.1)
 async def async_get_data(self) -> bool:
@@ -1643,6 +1706,7 @@ async def async_get_data(self) -> bool:
         raise TelnetConnectionError(...) from err  # Propagate!
     except Exception as err:
         raise TelnetCommandError(...) from err
+
 ```
 
 **Key Decisions:**
@@ -1654,13 +1718,16 @@ async def async_get_data(self) -> bool:
 #### 2. Integration Unload Fix
 
 **The Problem:**
+
 ```python
 # OLD CODE
 if config_entry.entry_id in hass.data[DOMAIN]:
     hass.data[DOMAIN].pop(config_entry.entry_id)  # KeyError if not present!
+
 ```
 
 **The Fix:**
+
 ```python
 # NEW CODE - Let HA core handle cleanup
 if unload_ok:
@@ -1670,36 +1737,45 @@ if unload_ok:
             coordinator.api.close()
     except Exception as err:
         _LOGGER.error("Error closing API connection: %s", err)
+
 ```
 
 #### 3. Reload Function Fix
 
 **The Problem:**
+
 ```python
 # OLD CODE
 async def async_reload_entry(...):
     await hass.config_entries.async_schedule_reload(...)  # Wrong method!
+
 ```
 
 **The Fix:**
+
 ```python
 # NEW CODE
 async def async_reload_entry(...) -> None:  # Added return type
     await hass.config_entries.async_reload(config_entry.entry_id)
+
 ```
 
 #### 4. Dependency Cleanup
 
 **The Problem:**
+
 ```python
 # config_flow.py
 from pymodbus.exceptions import ConnectionException  # Wrong!
+
 ```
 
 **The Fix:**
+
 ```python
 # config_flow.py
 from .api import TelnetConnectionError, TelnetCommandError
+
 ```
 
 ### Phase 2: Code Quality Improvements
@@ -1718,6 +1794,7 @@ class TelnetConnectionError(Exception):
         self.timeout = timeout
         self.message = message or f"Failed to connect to {host}:{port} (timeout: {timeout}s)"
         super().__init__(self.message)
+
 ```
 
 Benefits:
@@ -1729,13 +1806,17 @@ Benefits:
 #### Logging Improvements
 
 **Before:**
+
 ```python
 _LOGGER.debug(f"Check_Port: opening socket on {self._host}:{self._port} with a {sock_timeout}s timeout {datetime.now()}")
+
 ```
 
 **After:**
+
 ```python
 _LOGGER.debug("Check_Port: opening socket on %s:%s with %ss timeout", self._host, self._port, sock_timeout)
+
 ```
 
 Benefits:
@@ -1765,6 +1846,7 @@ ruff check custom_components/4noks_elios4you/
 # Ran ruff for formatting
 ruff format custom_components/4noks_elios4you/
 # Result: 2 files reformatted, 6 files left unchanged
+
 ```
 
 #### Manual Review
@@ -1798,21 +1880,25 @@ ruff format custom_components/4noks_elios4you/
 ### Decision 2: When to Raise vs Return
 
 **Old Pattern:**
+
 ```python
 try:
     # operation
     return True/False
 except:
     return False
+
 ```
 
 **New Pattern:**
+
 ```python
 try:
     # operation
     return True
 except KnownError as err:
     raise SpecificException(...) from err
+
 ```
 
 **Reasoning:**
@@ -1910,7 +1996,9 @@ except KnownError as err:
 ### Critical Tests (Must Do)
 
 1. **Device Offline Test** ⭐ **MOST IMPORTANT**
-   ```
+
+   ```text
+
    Action: Disconnect Elios4you device from network
    Expected: Sensors show "unavailable" state
    Expected: No stale data displayed
@@ -1919,37 +2007,44 @@ except KnownError as err:
    Action: Reconnect device
    Expected: Sensors recover and show current values
    Expected: No errors in logs
+
    ```
 
 2. **Integration Reload Test**
-   ```
+
+   ```text
+
    Action: Reload integration via UI
    Expected: Clean reload with no errors
    Expected: No KeyError in logs
    Expected: Sensors continue working
+
    ```
 
 3. **Integration Unload Test**
-   ```
+
+   ```text
+
    Action: Remove integration
    Expected: Clean unload with no errors
    Expected: No KeyError in logs
    Expected: API connection properly closed
+
    ```
 
 ### Normal Operation Tests
 
-4. **Sensor Updates**
+1. **Sensor Updates**
    - Verify all sensors update at configured interval
    - Check data accuracy against device display
    - Verify calculated sensors (self-consumption) are correct
 
-5. **Switch Entity**
+2. **Switch Entity**
    - Test relay ON/OFF commands
    - Verify state updates immediately
    - Check error handling if command fails
 
-6. **Config Flow**
+3. **Config Flow**
    - Test adding new integration instance
    - Verify connection validation works
    - Check error messages are clear and helpful
@@ -1957,24 +2052,24 @@ except KnownError as err:
 
 ### Edge Cases
 
-7. **Intermittent Connection**
+1. **Intermittent Connection**
    - Simulate flaky network
    - Verify sensors alternate between available/unavailable correctly
 
-8. **Invalid Responses**
+2. **Invalid Responses**
    - Test with device returning malformed data
    - Verify graceful error handling
 
-9. **Multiple Instances**
+3. **Multiple Instances**
    - Test with multiple Elios4you devices
    - Verify no interference between instances
 
 ### Performance Tests
 
-10. **Long-term Stability**
-    - Monitor for 24+ hours
-    - Check for memory leaks
-    - Verify day/night transitions handle correctly
+1. **Long-term Stability**
+   - Monitor for 24+ hours
+   - Check for memory leaks
+   - Verify day/night transitions handle correctly
 
 ---
 
@@ -2216,7 +2311,8 @@ This release demonstrates how AI-assisted development can:
 
 ## Transparency Statement
 
-This release was developed with significant assistance from Claude AI (Anthropic's Sonnet 4.5 model) via the Claude Code VSCode extension. All code changes were:
+This release was developed with significant assistance from Claude AI (Anthropic's Sonnet 4.5 model) via the Claude Code
+VSCode extension. All code changes were:
 
 - Analyzed and reviewed by human developer (@alexdelprete)
 - Based on proven patterns from existing working code
@@ -2230,9 +2326,9 @@ The AI acted as a development assistant, not an autonomous developer. Human over
 
 ## Contact & Support
 
-- **GitHub Repository:** https://github.com/alexdelprete/ha-4noks-elios4you
-- **Issues:** https://github.com/alexdelprete/ha-4noks-elios4you/issues
-- **Community Forum:** https://community.home-assistant.io/t/custom-component-4-noks-elios4you-data-integration/692883
+- **GitHub Repository:** <https://github.com/alexdelprete/ha-4noks-elios4you>
+- **Issues:** <https://github.com/alexdelprete/ha-4noks-elios4you/issues>
+- **Community Forum:** <https://community.home-assistant.io/t/custom-component-4-noks-elios4you-data-integration/692883>
 - **Developer:** @alexdelprete
 
 ---
