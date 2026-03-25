@@ -65,7 +65,7 @@ dev = [
 ]
 
 # <!-- BEGIN SHARED:repo-sync -->
-# Synced by repo-sync on 2026-03-23
+# Synced by repo-sync on 2026-03-25
 
 
 [tool.codespell]
@@ -76,8 +76,6 @@ ignore-words-list = "hass"
 [tool.pytest.ini_options]
 addopts = """
   --timeout=20
-  --cov=custom_components.4noks_elios4you
-  --cov-report=term-missing
 """
 testpaths = ["tests"]
 asyncio_mode = "auto"
