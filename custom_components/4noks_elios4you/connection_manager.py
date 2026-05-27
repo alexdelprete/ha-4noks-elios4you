@@ -299,11 +299,18 @@ class ConnectionManager:
             )
 
             last_reason = "unknown"
+            # If the final failure was a connect-level problem, re-raise the
+            # original TelnetConnectionError so the coordinator categorises it
+            # correctly (device_unreachable vs device_not_responding). Cleared
+            # whenever a later attempt fails at the command level instead.
+            last_connect_err: TelnetConnectionError | None = None
+
             for attempt in range(self._max_retries + 1):
                 try:
                     raw = await self._attempt(cmd)
                 except _RetryableError as err:
                     last_reason = err.reason
+                    last_connect_err = None
                     log_debug(
                         _LOGGER,
                         f"{LOG_PREFIX}.execute",
@@ -315,6 +322,7 @@ class ConnectionManager:
                     )
                 except TelnetConnectionError as err:
                     last_reason = f"connect_failed: {err.message}"
+                    last_connect_err = err
                     log_debug(
                         _LOGGER,
                         f"{LOG_PREFIX}.execute",
@@ -333,7 +341,6 @@ class ConnectionManager:
                     await asyncio.sleep(self._retry_delay)
 
             # All attempts exhausted
-            self._metrics.commands_failed += 1
             self._record_failure(last_reason)
             log_warning(
                 _LOGGER,
@@ -344,6 +351,11 @@ class ConnectionManager:
                 reason=last_reason,
                 consecutive_failures=self._metrics.consecutive_failures,
             )
+            if last_connect_err is not None:
+                # Connect-level failure: surface as TelnetConnectionError. Don't
+                # bump commands_failed — connect failures live in their own counter.
+                raise last_connect_err
+            self._metrics.commands_failed += 1
             raise TelnetCommandError(cmd, last_reason)
 
     async def close(self) -> None:
