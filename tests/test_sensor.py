@@ -7,11 +7,11 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL, DOMAIN, SENSOR_ENTITIES
 from custom_components.fournoks_elios4you.sensor import Elios4YouSensor, async_setup_entry
-import pytest
-
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, UnitOfEnergy, UnitOfPower
 from homeassistant.core import HomeAssistant

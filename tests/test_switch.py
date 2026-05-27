@@ -7,11 +7,11 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL, DOMAIN, SWITCH_ENTITIES
 from custom_components.fournoks_elios4you.switch import Elios4YouSwitch, async_setup_entry
-import pytest
-
 from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant

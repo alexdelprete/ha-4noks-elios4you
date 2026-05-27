@@ -28,7 +28,6 @@ from custom_components.fournoks_elios4you.const import (
     DOMAIN,
 )
 from custom_components.fournoks_elios4you.coordinator import Elios4YouCoordinator
-
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr

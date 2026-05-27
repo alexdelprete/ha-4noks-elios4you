@@ -8,6 +8,9 @@ from __future__ import annotations
 from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
+import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 from custom_components.fournoks_elios4you import config_flow as _elios4you_config_flow
 from custom_components.fournoks_elios4you.api import TelnetCommandError, TelnetConnectionError
@@ -25,9 +28,6 @@ from custom_components.fournoks_elios4you.const import (
     DEFAULT_FAILURES_THRESHOLD,
     DOMAIN,
 )
-import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant

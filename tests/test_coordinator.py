@@ -8,6 +8,8 @@ from __future__ import annotations
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 from custom_components.fournoks_elios4you import coordinator as _elios4you_coordinator
 from custom_components.fournoks_elios4you.api import TelnetCommandError, TelnetConnectionError
@@ -21,8 +23,6 @@ from custom_components.fournoks_elios4you.const import (
     MIN_SCAN_INTERVAL,
 )
 from custom_components.fournoks_elios4you.coordinator import Elios4YouCoordinator
-import pytest
-
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import UpdateFailed

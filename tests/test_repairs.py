@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 from custom_components.fournoks_elios4you.const import DOMAIN, NOTIFICATION_RECOVERY
 from custom_components.fournoks_elios4you.repairs import (
@@ -15,8 +17,6 @@ from custom_components.fournoks_elios4you.repairs import (
     create_recovery_notification,
     delete_connection_issue,
 )
-import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 

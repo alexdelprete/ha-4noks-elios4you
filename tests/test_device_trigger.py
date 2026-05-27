@@ -7,6 +7,9 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+import voluptuous as vol
+
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 from custom_components.fournoks_elios4you.const import DOMAIN
 from custom_components.fournoks_elios4you.device_trigger import (
@@ -15,9 +18,6 @@ from custom_components.fournoks_elios4you.device_trigger import (
     async_attach_trigger,
     async_get_triggers,
 )
-import pytest
-import voluptuous as vol
-
 from homeassistant.components.homeassistant.triggers import event as event_trigger
 from homeassistant.const import CONF_DEVICE_ID, CONF_DOMAIN, CONF_PLATFORM, CONF_TYPE
 from homeassistant.core import HomeAssistant
