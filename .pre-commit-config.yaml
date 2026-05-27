@@ -51,9 +51,21 @@ repos:
         verbose: true
 
       # Type checking (devcontainer only — requires HA deps installed)
+      #
+      # The Python package starts with a digit (e.g. `4noks_elios4you`),
+      # so `ty` cannot import it directly. The canonical workaround is the
+      # `fournoks_elios4you` symlink; the hook creates and removes it
+      # per invocation so the working tree stays clean and the symlink never
+      # shows up in `git status`. CI workflows already do the same dance.
       - id: ty
         name: ty
-        entry: ty check --python /usr/local/bin/python custom_components/fournoks_elios4you
+        entry: >-
+          bash -c '
+          ln -s 4noks_elios4you custom_components/fournoks_elios4you &&
+          ty check --python /usr/local/bin/python custom_components/fournoks_elios4you;
+          status=$?;
+          rm -f custom_components/fournoks_elios4you;
+          exit $status'
         language: system
         pass_filenames: false
         types: [python]

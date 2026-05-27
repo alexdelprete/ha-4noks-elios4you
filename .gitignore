@@ -82,4 +82,7 @@ Thumbs.db
 settings.local.json
 uv.lock
 nul
-.devcontainer-lock.json
+
+# Symlink workaround for the digit-prefixed package name. Created on-demand
+# by the `ty` pre-commit hook and the CI lint/test steps; never committed.
+custom_components/fournoks_elios4you
