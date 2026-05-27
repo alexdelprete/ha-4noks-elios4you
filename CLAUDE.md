@@ -15,6 +15,7 @@
 3. Run `git status` to see uncommitted work
 
 **Key mandatory workflows documented here:**
+
 - **Pre-commit checks** - Run `uvx pre-commit run --all-files` BEFORE every commit
 - Release documentation (CHANGELOG.md + docs/releases/)
 - Version bumping (manifest.json + const.py)
@@ -133,11 +134,13 @@ symlink workaround. The CI workflow handles this automatically.
 
 **Testing via CI (Recommended):**
 Push your changes and let GitHub Actions run the tests. The workflow:
+
 1. Creates symlink: `ln -s 4noks_elios4you custom_components/fournoks_elios4you`
 2. Runs pytest with coverage
 3. Removes symlink after tests complete
 
 **Why CI-only testing?**
+
 - `pytest-homeassistant-custom-component` has complex dependencies
 - Symlink creation on Windows requires admin privileges or Developer Mode
 - CI environment is pre-configured and consistent
@@ -752,6 +755,7 @@ The package name `4noks_elios4you` starts with a digit, which is not a valid Pyt
 checkers to fail when resolving relative imports like `.const`, `.api`, `.helpers`.
 
 **Solution:** Use a symlink workaround in CI:
+
 1. Create symlink: `ln -s 4noks_elios4you custom_components/fournoks_elios4you`
 2. Run ty against the symlink: `ty check -vv --python $(which python) custom_components/fournoks_elios4you`
 3. Remove symlink after checking
@@ -784,11 +788,13 @@ checkers to fail when resolving relative imports like `.const`, `.api`, `.helper
 Comprehensive test suite achieving **98% code coverage** across the integration:
 
 **Test Statistics:**
+
 - 188 tests passing
 - 7 tests skipped (platform loading tests incompatible with numeric module prefix)
 - Coverage: 98% overall (`__init__.py` at 82% due to skipped platform tests)
 
 **Test Files Created:**
+
 - `tests/conftest.py` - Shared fixtures and test configuration
 - `tests/test_api.py` - API layer tests (connection, commands, errors)
 - `tests/test_config_flow.py` - Config flow, options flow, reconfigure tests
@@ -848,6 +854,7 @@ if any(identifier[0] == DOMAIN for identifier in device_entry.identifiers):
 ### CI/CD Enhancements
 
 **GitHub Actions Workflows:**
+
 - `test.yml` - Runs pytest with coverage, uploads to Codecov
 - `lint.yml` - Runs ruff format, ruff check, ty type checker
 - `validate.yml` - Runs hassfest and HACS validation
@@ -871,6 +878,7 @@ blocking during telnet I/O operations, ensuring Home Assistant remains responsiv
 ### Problem Identified
 
 **Symptoms:**
+
 - `read_until()` blocked the event loop for up to 5 seconds per command
 - Other integrations, automations, and UI updates would freeze during telnet I/O
 - Home Assistant responsiveness degraded during polling cycles
@@ -905,6 +913,7 @@ The bundled synchronous `telnetlib.Telnet` class performs blocking I/O. Even tho
 ### Preserved Features
 
 All existing functionality preserved:
+
 - ✅ Connection pooling (25-second reuse window)
 - ✅ Command retry logic (3 retries, 300ms delay)
 - ✅ Race condition prevention via asyncio.Lock
@@ -927,11 +936,13 @@ All existing functionality preserved:
 ### Development Approach
 
 **Analysis Phase:**
+
 - Identified event loop blocking from sync `read_until()`
 - Researched async telnet alternatives (telnetlib3, aiotelnet, asyncio-telnet)
 - Chose telnetlib3 (already a dependency, actively maintained, stable)
 
 **Implementation Phase:**
+
 1. Created migration plan (`idempotent-tickling-crown.md`)
 2. Rewrote api.py with async telnetlib3 client
 3. Added `_async_read_until()` helper for stream-based reading
@@ -941,6 +952,7 @@ All existing functionality preserved:
 7. Validated with ruff (100% compliance)
 
 **Quality Assurance:**
+
 - Net reduction of 680 lines (+194 / -874)
 - Removed 672 lines of bundled telnetlib
 - 100% Ruff compliance maintained
@@ -1014,12 +1026,14 @@ device.
 ### Problem Identified
 
 **Symptoms:**
+
 - Device becomes unresponsive 50-60 times per day
 - Device is pingable but telnet doesn't respond
 - All entities become stale
 - Only fix is WiFi reconnection
 
 **Root Causes (Deep Analysis):**
+
 1. **Socket Exhaustion** - 2 sockets per poll (check_port + connection) = ~120 sockets/hour
 2. **No Connection Reuse** - Fresh connection every 30-60 seconds
 3. **TIME_WAIT Accumulation** - Sockets linger 2 minutes, overwhelms device
@@ -1063,11 +1077,13 @@ device.
 ### Development Approach
 
 **Analysis Phase:**
+
 - Deep analysis of codebase for socket/connection issues
 - Compared with ha-sinapsi-alfa for patterns
 - Created detailed plan (saved at `C:\Users\aless\.claude\plans\generic-doodling-wren.md`)
 
 **Implementation Phase:**
+
 1. Added connection lock and tracking infrastructure
 2. Implemented connection reuse methods
 3. Refactored async_get_data() and telnet_set_relay()
@@ -1076,12 +1092,14 @@ device.
 6. Removed redundant update listener
 
 **Quality Assurance:**
+
 - Ruff validation (100% compliance)
 - Fixed SIM105 linting errors with contextlib.suppress()
 
 ### Lessons Learned
 
 **Socket Exhaustion on Embedded Devices:**
+
 - Embedded devices have limited socket backlog
 - TIME_WAIT accumulation can exhaust resources
 - Connection pooling is essential for frequent polling
@@ -1137,6 +1155,7 @@ All changes from the beta cycle are now production-ready:
 This release includes updates synced from today's commits (Oct 15, 2025) in the reference ABB Power-One PVI SunSpec repository:
 
 **Commits Applied:**
+
 1. **1668962** - "Fix lint workflow: upgrade to Python 3.13 for HA 2025.10.2 compatibility"
    - Updated `.github/workflows/lint.yml` to use Python 3.13
    - Reason: HA 2025.10.2 requires Python >=3.13.2
@@ -1147,6 +1166,7 @@ This release includes updates synced from today's commits (Oct 15, 2025) in the 
    - Note: Kept telnetlib3>=2.0.4 (no updates needed, different from pymodbus)
 
 **Process:**
+
 1. Cloned ABB repository and reviewed recent commits
 2. Identified applicable changes (dependency updates, Python version)
 3. Adapted changes for Elios4you integration (telnet vs modbus differences)
@@ -1177,12 +1197,14 @@ When creating release notes, we follow this pattern:
    - Maintain consistency between CHANGELOG and detailed release notes
 
 **Why This Matters:**
+
 - Users on stable versions (v0.1.0) need to see everything that changed when upgrading to v0.2.0
 - Beta testers need incremental notes to validate specific changes
 - Clear documentation prevents confusion and missed features/fixes
 - Provides historical record of project evolution
 
 **This Practice Was Applied:**
+
 - `docs/releases/v0.2.0.md` includes ALL changes from v0.1.0 → v0.2.0
 - `docs/releases/v0.2.0-beta.X.md` files contain incremental changes
 - CHANGELOG.md follows the same pattern
@@ -1191,6 +1213,7 @@ When creating release notes, we follow this pattern:
 ### Files Modified Summary
 
 **Code Changes:**
+
 1. `.github/workflows/lint.yml` - Python 3.13 update
 2. `requirements.txt` - Dependency updates
 3. `hacs.json` - HA requirement update
@@ -1198,6 +1221,7 @@ When creating release notes, we follow this pattern:
 5. `custom_components/4noks_elios4you/const.py` - VERSION constant 0.2.0
 
 **Documentation Changes:**
+
 1. `docs/releases/v0.2.0.md` - Comprehensive official release notes (NEW)
 2. `CHANGELOG.md` - v0.2.0 summary with all changes since v0.1.0
 3. `CLAUDE.md` - This section documenting the release process
@@ -1212,6 +1236,7 @@ When creating release notes, we follow this pattern:
 3. **Git tag** - When pushing the release
 
 **Why This Matters:**
+
 - `manifest.json` - Used by Home Assistant and HACS for version tracking
 - `const.py` VERSION - Displayed in logs and startup message for debugging
 - Git tag - Marks the release in version control and triggers GitHub release
@@ -1231,6 +1256,7 @@ git tag -a v0.2.0 -m "Release v0.2.0"
 ```
 
 **Release Checklist:**
+
 - [ ] Updated manifest.json version
 - [ ] Updated const.py VERSION constant
 - [ ] Created comprehensive release notes in docs/releases/
@@ -1247,12 +1273,14 @@ git tag -a v0.2.0 -m "Release v0.2.0"
 ### Development Approach
 
 **Analysis Phase:**
+
 - Monitored ABB Power-One repository for updates
 - Identified today's commits (Oct 15, 2025)
 - Analyzed applicability to Elios4you integration
 - Planned comprehensive release documentation
 
 **Implementation Phase:**
+
 1. Updated GitHub workflow for Python 3.13
 2. Updated development dependencies
 3. Updated HACS configuration
@@ -1260,12 +1288,14 @@ git tag -a v0.2.0 -m "Release v0.2.0"
 5. Created comprehensive release documentation
 
 **Documentation Phase:**
+
 1. Created `docs/releases/v0.2.0.md` with ALL changes since v0.1.0
 2. Updated CHANGELOG.md with complete summary
 3. Updated CLAUDE.md with release process and best practices
 4. Updated `docs/releases/README.md` with documentation standards
 
 **Quality Assurance:**
+
 - Ruff validation (100% compliance maintained)
 - Documentation consistency verified
 - Version numbers updated everywhere
@@ -1301,12 +1331,14 @@ git tag -a v0.2.0 -m "Release v0.2.0"
 ### Future Considerations
 
 **Staying Aligned with ABB Power-One:**
+
 - Monitor ABB repository regularly for updates
 - Apply relevant patterns and fixes promptly
 - Maintain documentation of what's been synced
 - Continue benefiting from battle-tested improvements
 
 **Ongoing Maintenance:**
+
 - Watch for Home Assistant core updates
 - Keep dependencies current
 - Monitor community feedback
@@ -1358,10 +1390,12 @@ def log_debug(logger: logging.Logger, context: str, message: str, **kwargs: Any)
 ```
 
 **Migration Pattern:**
+
 - **Old:** `_LOGGER.debug(f"Connecting to {host}:{port}")`
 - **New:** `log_debug(_LOGGER, "async_connect", "Connecting to device", host=host, port=port)`
 
 **Benefits:**
+
 - Always know which function logged the message
 - Structured context data (searchable, filterable)
 - No f-strings in logging (better performance)
@@ -1499,12 +1533,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 ### Development Approach
 
 **Analysis Phase:**
+
 - Compared `__init__.py` between both integrations line-by-line
 - Identified key differences in patterns and structure
 - Examined helpers.py from ABB integration
 - Created detailed comparison matrix
 
 **Implementation Phase:**
+
 1. Created helpers.py with standardized logging
 2. Updated __init__.py structure and decorators
 3. Migrated logging across all 6 Python files
@@ -1512,6 +1548,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 5. Validated with ruff (100% compliance maintained)
 
 **Quality Assurance:**
+
 - No breaking changes
 - Zero new warnings
 - All existing functionality preserved
@@ -1536,12 +1573,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 ### Lessons Learned
 
 **What Worked Well:**
+
 - Systematic file-by-file approach
 - Using ABB v4.1.5 as reference throughout
 - Breaking work into logical phases (helpers → __init__ → all other files)
 - Todo list tracking for complex multi-file refactoring
 
 **What Could Be Improved:**
+
 - Could have split into multiple smaller releases
 - More inline comments explaining pattern choices
 - Unit tests would validate refactoring safety
@@ -1549,6 +1588,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 ### Future Considerations
 
 Now that the architecture is fully aligned with ABB v4.1.5, future enhancements can benefit from:
+
 - Consistent patterns across both integrations
 - Easier maintenance when HA patterns evolve
 - Shared learning between the two projects
@@ -1608,6 +1648,7 @@ The user (@alexdelprete) requested:
 ### Why This Approach Works
 
 Using a proven reference implementation (ABB v4.1.5) as a template allowed us to:
+
 - Apply battle-tested fixes to similar problems
 - Maintain consistency across the developer's integrations
 - Avoid reinventing solutions to already-solved problems
@@ -1620,12 +1661,14 @@ Using a proven reference implementation (ABB v4.1.5) as a template allowed us to
 ### Step 1: Comprehensive Codebase Analysis
 
 **Elios4you Integration:**
+
 - Read all Python files in `custom_components/4noks_elios4you/`
 - Analyzed: `__init__.py`, `api.py`, `coordinator.py`, `sensor.py`, `switch.py`, `config_flow.py`, `const.py`
 - Examined `manifest.json` for dependencies and configuration
 - Reviewed project structure and telnet implementation
 
 **ABB Power-One Integration v4.1.5:**
+
 - Fetched and analyzed via WebFetch tool:
   - `__init__.py` - Integration lifecycle management
   - `coordinator.py` - Data update coordinator patterns
@@ -1652,6 +1695,7 @@ Created a detailed comparison matrix:
 ### Step 3: Release Notes Analysis
 
 Analyzed ABB v4.1.5 release notes to understand:
+
 - **Why** each fix was important
 - **How** it was implemented
 - **What** testing was done (6 beta releases)
@@ -1686,6 +1730,7 @@ async def async_get_data(self):
 ```
 
 **Why This Was Wrong:**
+
 - Exceptions inside the `try` block were caught and returned `False`
 - Coordinator didn't know device was offline
 - Sensors kept displaying last known values
@@ -1710,6 +1755,7 @@ async def async_get_data(self) -> bool:
 ```
 
 **Key Decisions:**
+
 - Create telnet-specific exceptions (not reuse pymodbus ones)
 - Always raise on failure (never return `False`)
 - Include context in exceptions (host, port, command)
@@ -1798,6 +1844,7 @@ class TelnetConnectionError(Exception):
 ```
 
 Benefits:
+
 - Debugging is easier (know exactly what failed)
 - Better error messages in logs
 - Can catch specific errors if needed
@@ -1820,6 +1867,7 @@ _LOGGER.debug("Check_Port: opening socket on %s:%s with %ss timeout", self._host
 ```
 
 Benefits:
+
 - Faster (no f-string formatting if debug disabled)
 - No redundant timestamps (HA adds them automatically)
 - Cleaner log output
@@ -1828,6 +1876,7 @@ Benefits:
 #### Type Hints
 
 Added comprehensive type hints throughout:
+
 - All function signatures
 - Return types
 - Parameter types
@@ -1864,6 +1913,7 @@ ruff format custom_components/4noks_elios4you/
 ### Decision 1: Custom Exceptions vs Reusing pymodbus Exceptions
 
 **Options Considered:**
+
 1. Keep using generic `ConnectionError`
 2. Import and adapt pymodbus exceptions
 3. Create telnet-specific exceptions
@@ -1871,6 +1921,7 @@ ruff format custom_components/4noks_elios4you/
 **Decision:** Create telnet-specific exceptions
 
 **Reasoning:**
+
 - Telnet protocol has different failure modes than Modbus
 - Clearer code when reading `TelnetConnectionError` vs generic errors
 - No unnecessary dependency on pymodbus
@@ -1902,6 +1953,7 @@ except KnownError as err:
 ```
 
 **Reasoning:**
+
 - Coordinator expects exceptions for unavailable state
 - Exceptions provide better error context
 - Follows Home Assistant patterns
@@ -1913,6 +1965,7 @@ except KnownError as err:
 **Decision:** Remove manual `hass.data[DOMAIN]` management
 
 **Reasoning:**
+
 - HA core handles `runtime_data` cleanup automatically
 - Reduces chance of KeyError
 - Less code to maintain
@@ -1924,6 +1977,7 @@ except KnownError as err:
 **Decision:** Don't refactor telnet implementation unless necessary
 
 **Reasoning:**
+
 - Telnet code works and is device-specific
 - Focus on alignment, not rewrite
 - Preserve knowledge of Elios4you protocol
@@ -1935,6 +1989,7 @@ except KnownError as err:
 **Decision:** Release as v0.2.0-beta.1, not v0.2.0
 
 **Reasoning:**
+
 - Significant changes to error handling
 - Need real-world testing with devices
 - ABB v4.1.5 had 6 beta releases for similar changes
@@ -2080,6 +2135,7 @@ except KnownError as err:
 **Issue:** The Elios4you telnet protocol is undocumented and reverse-engineered.
 
 **Solution:**
+
 - Carefully preserved existing telnet implementation
 - Only modified error handling paths
 - Didn't change protocol commands or parsing logic
@@ -2089,6 +2145,7 @@ except KnownError as err:
 **Issue:** ABB uses Modbus, Elios4you uses telnet - can't directly copy code.
 
 **Solution:**
+
 - Understood the *principles* behind ABB fixes
 - Adapted the patterns for telnet communication
 - Created telnet-specific exception classes
@@ -2099,6 +2156,7 @@ except KnownError as err:
 **Issue:** Users have existing configs and automations.
 
 **Solution:**
+
 - Only changed internal implementation
 - Maintained all public APIs
 - Kept all sensor entities unchanged
@@ -2113,6 +2171,7 @@ except KnownError as err:
 
 **Lines Changed:** ~150 lines modified/added
 **Key Changes:**
+
 - Added exception classes (lines 17-36)
 - Rewrote `async_get_data()` (lines 196-295)
 - Improved `check_port()` logging
@@ -2126,6 +2185,7 @@ except KnownError as err:
 
 **Lines Changed:** ~50 lines modified/removed
 **Key Changes:**
+
 - Simplified `async_unload_entry()` (lines 111-133)
 - Fixed `async_reload_entry()` (lines 136-140)
 - Removed commented code (25 lines deleted)
@@ -2139,6 +2199,7 @@ except KnownError as err:
 
 **Lines Changed:** ~15 lines modified
 **Key Changes:**
+
 - Removed pymodbus import (line 21 deleted)
 - Added custom exception imports (line 22)
 - Updated `get_unique_id()` type hints and exception handling (lines 74-88)
@@ -2150,6 +2211,7 @@ except KnownError as err:
 
 **Lines Changed:** 1 line
 **Key Changes:**
+
 - Version: 0.1.0 → 0.2.0-beta.1
 
 **Risk Level:** None

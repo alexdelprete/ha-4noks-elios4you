@@ -87,6 +87,7 @@ recovery actions like restarting your WiFi router or power-cycling network equip
 **Configuration:** In Options flow, select a script entity to run when failures exceed the configured threshold.
 
 **Available variables for script:**
+
 - `device_name` - The configured device name
 - `host` - The device IP address
 - `port` - The device TCP port
@@ -147,6 +148,7 @@ Rearranged the options flow dialog for better UX:
 #### Min-Max Validation in Field Labels
 
 All numeric input fields now display their validation ranges:
+
 - TCP port: `(1-65535)`
 - Polling Period: `(30-600)`
 - Failures threshold: `(1-10)`
@@ -154,6 +156,7 @@ All numeric input fields now display their validation ranges:
 ### 🌐 Translations
 
 All 10 languages fully updated with new features:
+
 - English, Italian, German, Spanish, French, Portuguese, Estonian, Finnish, Norwegian, Swedish
 
 ### 📦 Files Changed
@@ -193,6 +196,7 @@ Rearranged the options flow dialog for better UX:
 | 4 | Polling Period | Moved to bottom |
 
 **Technical changes:**
+
 - Changed `failures_threshold` from `vol.Clamp` slider to `NumberSelector` with `mode=BOX`
 - Changed `scan_interval` to `NumberSelector` with `unit_of_measurement="seconds"`
 - Reordered schema fields for logical grouping
@@ -266,6 +270,7 @@ Please dismiss this notification to acknowledge.
 ### 🌐 Translations
 
 All 10 languages updated with new strings:
+
 - English, Italian, German, Spanish, French, Portuguese, Estonian, Finnish, Norwegian, Swedish
 
 ### ⚠️ Breaking Changes
@@ -394,11 +399,13 @@ testing, achieving **Home Assistant Quality Scale Gold tier compliance**.
 ### 🐛 Problem Solved
 
 **Before (Sync Blocking):**
+
 - `read_until()` could block the event loop for up to 5 seconds per command
 - Other integrations, automations, and UI updates would freeze during telnet I/O
 - Home Assistant responsiveness degraded during polling cycles
 
 **After (Async Non-Blocking):**
+
 - All telnet I/O operations yield control to the event loop
 - Other tasks run while waiting for device responses
 - Home Assistant remains responsive during polling
@@ -436,6 +443,7 @@ testing, achieving **Home Assistant Quality Scale Gold tier compliance**.
 ### ✅ Preserved Features
 
 All existing functionality is preserved:
+
 - ✅ Connection pooling (25-second reuse window)
 - ✅ Command retry logic (3 retries, 300ms delay)
 - ✅ Race condition prevention via asyncio.Lock
@@ -503,6 +511,7 @@ The device became "deaf" due to socket exhaustion on the embedded Elios4You devi
 persistence, this overwhelmed the device's limited socket backlog.
 
 **Solution:**
+
 - Eliminated redundant `check_port()` call before each connection
 - Implemented 25-second connection reuse window
 - Added asyncio.Lock to serialize all telnet operations
@@ -607,6 +616,7 @@ dependency updates for Home Assistant 2025.10.x compatibility.
 ### 🎯 ABB Power-One v4.1.5 Alignment
 
 Successfully adopted the following patterns:
+
 - Contextual helper logging functions
 - Custom exception classes with context
 - `@callback` decorator for sync operations
@@ -621,12 +631,14 @@ Successfully adopted the following patterns:
 **None** for existing users. This is a code quality and bug fix release with full backward compatibility.
 
 **For new installations:**
+
 - Requires Home Assistant 2025.10.0 or newer
 - Requires Python 3.13 or newer
 
 ### 📝 Beta Testing Cycle
 
 This stable release is the result of thorough beta testing:
+
 - v0.2.0-beta.1 (2025-10-12) - Critical bug fixes and code quality
 - v0.2.0-beta.2 (2025-10-12) - Hotfix for unload error
 - v0.2.0-beta.3 (2025-10-13) - Architecture alignment
@@ -691,6 +703,7 @@ This stable release is the result of thorough beta testing:
 ### 🎯 ABB Power-One v4.1.5 Alignment
 
 Successfully adopted the following patterns:
+
 - Contextual helper logging functions
 - `@callback` decorator for sync operations
 - Non-blocking reload with `async_schedule_reload()`
@@ -734,6 +747,7 @@ Successfully adopted the following patterns:
 - Now cleanly closes telnet connection during integration unload
 
 **Files Changed:**
+
 - `custom_components/4noks_elios4you/api.py` - Added close() method
 
 **All improvements from v0.2.0-beta.1 are included in this release.**

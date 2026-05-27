@@ -142,6 +142,7 @@ is useful for automated recovery actions like restarting your WiFi router or pow
 network equipment.
 
 **Setup:**
+
 1. Create a script in Home Assistant (e.g., `script.restart_wifi`)
 2. In the integration's Options flow, select the script from the dropdown
 3. When failures exceed the threshold, the script will execute automatically
@@ -183,6 +184,7 @@ script:
 ### Reconfigure Flow (3-dot menu > Reconfigure)
 
 Change connection settings - the integration will automatically reload:
+
 - **Custom name**: custom name for the device, used as prefix for sensors created by the component
 - **IP/hostname**: IP/hostname of the device - this is used as unique_id, if you change it
   you will lose historical data (tip: use hostname so you can change IP without losing data)
