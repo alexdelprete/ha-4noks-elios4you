@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🏗️ Architecture
+
+- **Extracted `ConnectionManager`** (`connection_manager.py`) — the connection lifecycle is now
+  an explicit state machine (`DISCONNECTED → CONNECTING → READY → BACKOFF`, terminal `CLOSED`)
+  that owns the single TCP/telnet session and serialises every command. `api.py` is now a
+  thin parser/orchestrator on top of it; public API unchanged.
+
+### 🚀 Reliability (device-deafness mitigations)
+
+- **Reuse window raised to 90 s** (was 25 s) — the same TCP session now persists across the
+  default 60 s poll cadence instead of churning a fresh socket every minute.
+- **Retries dropped from 3 to 1** per command — caps the worst-case connect-storm on a flaky
+  cycle at ~6 SYNs instead of ~12.
+- **TCP RST on error close** (`transport.abort()`) — when a command fails the socket is dropped
+  with RST so the device frees its slot immediately rather than waiting out CLOSE_WAIT.
+- **Bounded `wait_closed()`** — a misbehaving device can no longer hang the integration on close.
+- **Exponential backoff** (5 s → 60 s) after 3 consecutive failures — while in backoff the
+  manager refuses to even attempt a new connection, giving the device room to recover.
+
+### 📊 Diagnostics
+
+- **12 new diagnostic sensors** under the device's Diagnostic section: `Connection State`,
+  `Connection Consecutive Failures`, `Connection Backoff Remaining`, `Connection Silent Timeouts`,
+  `Connection Forced Aborts`, `Connection Reuse Hits`, `Connection Connects Succeeded`,
+  `Connection Connect Failures`, `Connection Commands Sent / Failed / Retried`, and
+  `Connection Last Error`. `Connection State` and `Connection Consecutive Failures` are enabled
+  by default; the rest are opt-in.
+- **Downloadable diagnostics** now include a `connection_manager` section with the full
+  metrics snapshot.
+
+### 🔧 Logging
+
+- **Structured `(ConnMgr.*)` log prefix** for every state transition, connect attempt, retry,
+  close, and backoff event. Target it directly via
+  `custom_components.4noks_elios4you.connection_manager: debug` to see manager-only logs.
+
+### 🧹 Code Quality
+
+- **Type-checker cleanup**: dropped all `# type: ignore` comments. `DataUpdateCoordinator[bool]`
+  and `CoordinatorEntity[Elios4YouCoordinator]` are now properly parameterised, and the
+  Unicode telnetlib3 variants are `cast()` at the assignment site.
+- Dropped the no-longer-used `check_port()` method and the unused `as_diagnostics()` helper.
+
+### 📚 Documentation
+
+- README updated with the new architecture, log format, and diagnostic sensors.
+- All pre-existing pymarkdown MD032 violations (CLAUDE.md, CHANGELOG.md, README.md, and the
+  full docs/releases/ history) are fixed — Lint CI is green again.
+
+### ⚠️ Breaking Changes
+
+**None** — `api.py`'s public surface (`async_get_data`, `telnet_set_relay`, `close`,
+`data`, `name`, `host`) is unchanged. Existing config entries, sensors, and automations
+continue to work without modification.
+
 ---
 
 ## [1.2.0] - 2026-01-04

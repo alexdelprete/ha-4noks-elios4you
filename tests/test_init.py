@@ -28,8 +28,11 @@ from custom_components.fournoks_elios4you.const import (
     DOMAIN,
 )
 from custom_components.fournoks_elios4you.coordinator import Elios4YouCoordinator
+import pytest
+
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
 
@@ -78,6 +81,44 @@ async def test_async_setup_entry_success(
 
     assert result is True
     assert entry.runtime_data is not None
+
+
+async def test_async_setup_entry_raises_not_ready_when_sn_empty(
+    hass: HomeAssistant,
+    mock_elios4you_api,
+) -> None:
+    """If the device returns no serial number, setup should raise ConfigEntryNotReady."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_NAME: TEST_NAME,
+            CONF_HOST: TEST_HOST,
+            CONF_PORT: TEST_PORT,
+        },
+        options={
+            CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
+        },
+    )
+    entry.add_to_hass(hass)
+
+    # Force the API mock to report an empty serial number so the sn-check fails.
+    api_instance = mock_elios4you_api.return_value
+    api_instance.data = {**api_instance.data, "sn": ""}
+
+    with (
+        patch.object(
+            _elios4you_coordinator,
+            "Elios4YouAPI",
+            return_value=api_instance,
+        ),
+        patch.object(
+            Elios4YouCoordinator,
+            "async_config_entry_first_refresh",
+            new_callable=AsyncMock,
+        ),
+        pytest.raises(ConfigEntryNotReady),
+    ):
+        await async_setup_entry(hass, entry)
 
 
 async def test_async_unload_entry(
@@ -183,6 +224,42 @@ async def test_migration_v1_to_v3_no_scan_interval(
     assert entry.options.get(CONF_ENABLE_REPAIR_NOTIFICATION) == DEFAULT_ENABLE_REPAIR_NOTIFICATION
     assert entry.options.get(CONF_FAILURES_THRESHOLD) == DEFAULT_FAILURES_THRESHOLD
     assert entry.options.get(CONF_RECOVERY_SCRIPT) == DEFAULT_RECOVERY_SCRIPT
+
+
+async def test_migration_v2_to_v3_preserves_existing_repair_options(
+    hass: HomeAssistant,
+) -> None:
+    """v2→v3: existing repair options should NOT be overwritten with defaults.
+
+    This exercises the False branches of the three ``if key not in new_options``
+    guards in the migration step.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_NAME: TEST_NAME,
+            CONF_HOST: TEST_HOST,
+            CONF_PORT: TEST_PORT,
+        },
+        options={
+            CONF_SCAN_INTERVAL: 90,
+            CONF_ENABLE_REPAIR_NOTIFICATION: False,  # already set, different from default
+            CONF_FAILURES_THRESHOLD: 7,  # already set
+            CONF_RECOVERY_SCRIPT: "script.my_recovery",  # already set
+        },
+        version=2,
+    )
+    entry.add_to_hass(hass)
+
+    result = await async_migrate_entry(hass, entry)
+
+    assert result is True
+    assert entry.version == 3
+    # All user-set values preserved — none overwritten with defaults
+    assert entry.options.get(CONF_SCAN_INTERVAL) == 90
+    assert entry.options.get(CONF_ENABLE_REPAIR_NOTIFICATION) is False
+    assert entry.options.get(CONF_FAILURES_THRESHOLD) == 7
+    assert entry.options.get(CONF_RECOVERY_SCRIPT) == "script.my_recovery"
 
 
 async def test_migration_v2_to_v3(

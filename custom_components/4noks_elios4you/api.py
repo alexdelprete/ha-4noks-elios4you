@@ -16,12 +16,10 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from homeassistant.core import HomeAssistant
 
 from .connection_manager import (
-    RESPONSE_SEPARATOR,
     ConnectionManager,
     ConnectionUnavailableError,
     TelnetCommandError,
@@ -366,18 +364,3 @@ class Elios4YouAPI:
 
         # Initial diagnostic snapshot so sensors created at startup have values.
         self._update_diagnostic_data()
-
-    # ------------------------------------------------------------------ #
-    # Misc helpers (used by diagnostics output)
-    # ------------------------------------------------------------------ #
-
-    def as_diagnostics(self) -> dict[str, Any]:
-        """Return a serializable snapshot for diagnostics download."""
-        return {
-            "data": dict(self.data),
-            "connection_manager": self.connection_manager.metrics_snapshot(),
-        }
-
-
-# Re-exports used by tests / external callers
-_RESPONSE_SEPARATOR = RESPONSE_SEPARATOR

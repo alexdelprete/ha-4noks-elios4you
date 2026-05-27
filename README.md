@@ -58,13 +58,33 @@ So finally here we are with the first official version of the HA custom integrat
 
 ### Technical Architecture
 
-This integration uses a fully async telnet implementation via `telnetlib3` to communicate with the Elios4you device:
+The integration is split into two layers that talk to the device via `telnetlib3`:
 
-- **Async I/O**: All telnet operations are fully async, preventing Home Assistant event loop blocking
-- **Connection Pooling**: Connections are reused for up to 25 seconds to prevent socket exhaustion on the embedded device
-- **Command Retry**: Failed commands are retried up to 3 times with 300ms delay for resilience
-- **Race Condition Prevention**: `asyncio.Lock` serializes all telnet operations between polling and switch commands
-- **Graceful Error Handling**: Custom exceptions (`TelnetConnectionError`, `TelnetCommandError`) provide clear error context
+- **`api.py`** — a thin protocol/parser. It formats the `@dat` / `@sta` / `@inf` / `@rel`
+  commands, parses the responses, and exposes the data that backs every sensor.
+- **`connection_manager.py`** — owns the single TCP connection to the device, serialises every
+  command, and decides when to reconnect, retry, abort, or back off.
+
+The split exists because the Elios4you's embedded TCP stack has very few socket slots and
+becomes unresponsive ("deaf") if it's hammered with reconnects. The `ConnectionManager` enforces
+gentle behaviour through an explicit state machine
+(`DISCONNECTED → CONNECTING → READY → BACKOFF`, terminal `CLOSED` on unload):
+
+- **Async I/O** — every operation yields to the Home Assistant event loop; no blocking calls
+- **Connection reuse** — the same TCP session is kept open for up to 90 s, so the default 60 s
+  poll cadence usually shares one socket instead of opening a new one each time
+- **Single retry** on transient command failures (silent timeout, mid-command transport error);
+  the manager closes the failed socket with **TCP RST** (`transport.abort()`) so the device frees
+  its slot immediately instead of waiting out CLOSE_WAIT
+- **Bounded close** — `wait_closed()` is capped so a misbehaving device cannot hang the integration
+- **Exponential backoff** after 3 consecutive failures (5 s → 60 s). While in backoff, the
+  manager refuses to even attempt a new connection, giving the device a chance to recover
+- **Serialised access** — a single `asyncio.Lock` means polls and switch commands never race
+- **Structured logging** — every state transition and connection event is logged with the
+  `(ConnMgr.*)` prefix (see Troubleshooting below)
+- **Diagnostic sensors** — 12 metrics (state, consecutive failures, silent timeouts, forced
+  aborts, reuse hits, etc.) are exposed as opt-in sensors under the device's Diagnostic
+  section so you can watch what the manager is doing without enabling debug logs
 
 ### Known Limitations
 
@@ -438,22 +458,45 @@ The integration uses structured logging with this format:
 **Example log entries:**
 
 ```text
-DEBUG (async_get_data) [host=192.168.1.100, port=5001]: Fetching data from device
-DEBUG (_async_send_command) [cmd=@dat]: Sending command
+DEBUG (async_get_data): ========== READ CYCLE START ==========
+DEBUG (ConnMgr.transition) [from_state=disconnected, to_state=connecting, reason=open_new]: State change
+DEBUG (ConnMgr._ensure_connected) [host=192.168.1.100, port=5001, timeout=5.0]: Opening new connection
+INFO  (ConnMgr._ensure_connected) [host=192.168.1.100, port=5001]: Connection established
+DEBUG (ConnMgr.execute) [cmd=@dat, state=ready, attempts=2]: Command requested
+DEBUG (ConnMgr._can_reuse) [age_seconds=58.3, reuse_window=90.0]: Connection exceeded reuse window
+DEBUG (ConnMgr._close_safely) [previous_state=ready]: Connection aborted (RST sent)
+WARN  (ConnMgr._record_failure) [consecutive_failures=3, backoff_seconds=5.0, last_error=silent_timeout]: Entering BACKOFF
 ERROR (async_get_data) [host=192.168.1.100]: TelnetConnectionError - Connection timed out
 ```
 
-**Key functions to look for:**
+**Key prefixes to look for:**
 
-| Function | What it logs |
-|----------|--------------|
-| `async_get_data` | Data polling cycles |
-| `_ensure_connected` | Connection establishment |
-| `_async_send_command` | Telnet command execution |
-| `_safe_close` | Connection cleanup |
-| `telnet_set_relay` | Relay switch commands |
-| `async_setup_entry` | Integration startup |
-| `async_unload_entry` | Integration shutdown |
+| Prefix | What it logs |
+|--------|--------------|
+| `(ConnMgr.transition)` | State machine transitions (DISCONNECTED → READY → BACKOFF …) |
+| `(ConnMgr._ensure_connected)` | Connection open / reuse decisions |
+| `(ConnMgr._close_safely)` | Connection close (RST on errors, FIN on unload) |
+| `(ConnMgr.execute)` | Per-command lifecycle: send, retry, success/failure |
+| `(ConnMgr._record_failure)` | Failure counters + entering backoff |
+| `(async_get_data)` | Top-level read cycle (calls @dat / @sta / @inf) |
+| `(telnet_set_relay)` | Relay switch commands |
+| `(async_setup_entry)` | Integration startup |
+| `(async_unload_entry)` | Integration shutdown |
+
+To target only the connection manager (skip the higher-level integration logs):
+
+```yaml
+logger:
+  default: warning
+  logs:
+    custom_components.4noks_elios4you.connection_manager: debug
+```
+
+**Diagnostic sensors (no log analysis required):** the integration exposes 12 opt-in sensors
+under the device's Diagnostic section: `Connection State`, `Connection Consecutive Failures`,
+`Connection Silent Timeouts`, `Connection Forced Aborts`, `Connection Reuse Hits`,
+`Connection Backoff Remaining`, and others. Enable the ones you want to watch from the device
+page — they make recurring problems visible without grepping logs.
 
 #### Temporary Debug Logging (No Restart Required)
 

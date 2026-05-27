@@ -17,8 +17,6 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock
 
-import pytest
-
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 from custom_components.fournoks_elios4you.api import (
     Elios4YouAPI,
@@ -26,6 +24,7 @@ from custom_components.fournoks_elios4you.api import (
     TelnetConnectionError,
 )
 from custom_components.fournoks_elios4you.const import CONN_TIMEOUT, MANUFACTURER, MODEL
+import pytest
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SERIAL_NUMBER
 
@@ -304,3 +303,85 @@ class TestClose:
         api.connection_manager.close.assert_awaited_once()
         # Diagnostic snapshot was refreshed (cm_state present)
         assert "cm_state" in api.data
+
+
+class TestCommandParseError:
+    """A malformed manager response surfaces as TelnetCommandError(parse_error)."""
+
+    @pytest.mark.asyncio
+    async def test_parse_error_raises_telnet_command_error(self, mock_hass) -> None:
+        """If _parse can't split a line, _command should raise TelnetCommandError."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        # Response is well-framed but the data line is broken (no separator).
+        api.connection_manager.execute = AsyncMock(
+            return_value="@inf\nsn ABC123_no_equals_sign\n\nready..."
+        )
+
+        with pytest.raises(TelnetCommandError) as exc:
+            await api._command("@inf")
+        assert "parse_error" in exc.value.message
+
+
+class TestMergeBranches:
+    """Cover the @dat utc_time / int branches and the @sta value-error branch."""
+
+    @pytest.mark.asyncio
+    async def test_merge_dat_skips_utc_time_and_parses_ints(self, mock_hass) -> None:
+        """@dat: utc_time is skipped, non-energy/power values are parsed as int."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+
+        dat_raw = (
+            "@dat\n"
+            "0;produced_power;2.5\n"
+            "1;consumed_power;1.8\n"
+            "2;sold_power;0.7\n"
+            "3;produced_energy;100\n"
+            "4;sold_energy;30\n"
+            "5;produced_energy_f1;50\n"
+            "6;produced_energy_f2;30\n"
+            "7;produced_energy_f3;20\n"
+            "8;sold_energy_f1;15\n"
+            "9;sold_energy_f2;10\n"
+            "10;sold_energy_f3;5\n"
+            "11;utc_time;2026-05-27T10:00:00\n"
+            "12;alarm_1;0\n"
+            "\nready..."
+        )
+        sta_raw = "@sta\n0;daily_peak;3.2\n\nready..."
+        inf_raw = f"@inf\nsn={TEST_SERIAL_NUMBER}\nfwtop=1.0\nfwbtm=2.0\nhwver=3.0\n\nready..."
+
+        api.connection_manager.execute = AsyncMock(side_effect=[dat_raw, sta_raw, inf_raw])
+        assert await api.async_get_data() is True
+        # utc_time should be ignored (stays as the seeded empty string)
+        assert api.data["utc_time"] == ""
+        # alarm_1 should be parsed as int through the else-branch
+        assert api.data["alarm_1"] == 0
+        assert isinstance(api.data["alarm_1"], int)
+
+    @pytest.mark.asyncio
+    async def test_merge_sta_skips_bad_value(self, mock_hass) -> None:
+        """@sta: a non-float value is logged and skipped, not raised."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+
+        dat_raw = (
+            "@dat\n"
+            "0;produced_power;2.5\n"
+            "1;consumed_power;1.8\n"
+            "2;sold_power;0.7\n"
+            "3;produced_energy;100\n"
+            "4;sold_energy;30\n"
+            "5;produced_energy_f1;50\n"
+            "6;produced_energy_f2;30\n"
+            "7;produced_energy_f3;20\n"
+            "8;sold_energy_f1;15\n"
+            "9;sold_energy_f2;10\n"
+            "10;sold_energy_f3;5\n"
+            "\nready..."
+        )
+        # daily_peak deliberately unparseable as float; monthly_peak is fine.
+        sta_raw = "@sta\n0;daily_peak;not_a_float\n1;monthly_peak;4.5\n\nready..."
+        inf_raw = f"@inf\nsn={TEST_SERIAL_NUMBER}\nfwtop=1.0\nfwbtm=2.0\nhwver=3.0\n\nready..."
+
+        api.connection_manager.execute = AsyncMock(side_effect=[dat_raw, sta_raw, inf_raw])
+        assert await api.async_get_data() is True
+        assert api.data["monthly_peak"] == 4.5

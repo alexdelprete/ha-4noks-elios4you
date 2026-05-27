@@ -14,8 +14,6 @@ from __future__ import annotations
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
 from custom_components.fournoks_elios4you.connection_manager import (
     RESPONSE_SEPARATOR,
     ConnectionManager,
@@ -25,6 +23,7 @@ from custom_components.fournoks_elios4you.connection_manager import (
     TelnetConnectionError,
     _RetryableError,
 )
+import pytest
 
 TEST_HOST = "192.168.1.100"
 TEST_PORT = 5001
@@ -434,3 +433,136 @@ def test_retryable_error_keeps_reason() -> None:
     err = _RetryableError("some reason")
     assert err.reason == "some reason"
     assert str(err) == "some reason"
+
+
+# ---------------------------------------------------------------------- #
+# State machine internals (_transition)
+# ---------------------------------------------------------------------- #
+
+
+def test_transition_to_same_state_is_noop() -> None:
+    """Transitioning to the current state should not bump state_since."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT)
+    before = mgr.metrics.state_since
+    mgr._transition(ConnectionState.DISCONNECTED, reason="self-loop")
+    assert mgr.metrics.state_since == before
+
+
+# ---------------------------------------------------------------------- #
+# _can_reuse() branches
+# ---------------------------------------------------------------------- #
+
+
+def test_can_reuse_false_when_writer_is_closing() -> None:
+    """A closing writer means we cannot reuse the connection."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT)
+    writer = _make_writer()
+    writer.is_closing = MagicMock(return_value=True)
+    mgr._writer = writer
+    mgr._last_activity = __import__("time").time()
+    assert mgr._can_reuse() is False
+
+
+def test_can_reuse_false_when_transport_is_closing() -> None:
+    """A writer that's open but whose transport is closing is not reusable."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT)
+    writer = _make_writer()
+    writer.get_extra_info.return_value.is_closing = MagicMock(return_value=True)
+    mgr._writer = writer
+    mgr._last_activity = __import__("time").time()
+    assert mgr._can_reuse() is False
+
+
+def test_can_reuse_false_on_exception_during_check() -> None:
+    """OSError while inspecting the writer means we should not trust it."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT)
+    writer = MagicMock()
+    writer.is_closing = MagicMock(side_effect=OSError("boom"))
+    mgr._writer = writer
+    assert mgr._can_reuse() is False
+
+
+def test_can_reuse_false_when_age_exceeds_reuse_window() -> None:
+    """A writer older than reuse_window is dropped (logs and returns False)."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT, reuse_window=1.0)
+    mgr._writer = _make_writer()
+    mgr._last_activity = 0.0  # epoch — definitely older than 1 second
+    assert mgr._can_reuse() is False
+
+
+@pytest.mark.asyncio
+async def test_ensure_connected_closes_stale_writer_first() -> None:
+    """When the reuse window has expired, the old socket is aborted before reconnect."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT, reuse_window=1.0)
+    stale = _make_writer()
+    mgr._writer = stale
+    mgr._reader = _make_reader([])
+    mgr._last_activity = 0.0  # forces _can_reuse() → False via age check
+
+    new_reader = _make_reader([f"@dat\n0;a;1\n\n{RESPONSE_SEPARATOR}"])
+    new_writer = _make_writer()
+
+    with patch(
+        "telnetlib3.open_connection",
+        new_callable=AsyncMock,
+        return_value=(new_reader, new_writer),
+    ):
+        await mgr.execute("@dat")
+
+    # Stale writer's transport was aborted (RST), then a new connection opened.
+    stale.get_extra_info.return_value.abort.assert_called_once()
+    assert mgr._writer is new_writer
+
+
+# ---------------------------------------------------------------------- #
+# _close_safely fallback
+# ---------------------------------------------------------------------- #
+
+
+@pytest.mark.asyncio
+async def test_close_safely_force_abort_without_transport_falls_back_to_close() -> None:
+    """If there's no underlying transport, abort falls back to writer.close()."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT)
+    writer = _make_writer()
+    writer.get_extra_info = MagicMock(return_value=None)  # no transport
+    mgr._writer = writer
+    mgr._reader = _make_reader([])
+
+    await mgr._close_safely(force_abort=True)
+
+    # No transport to abort → writer.close() called as fallback.
+    writer.close.assert_called_once()
+    assert mgr._writer is None
+    assert mgr.metrics.forced_aborts == 1
+
+
+# ---------------------------------------------------------------------- #
+# _read_until edge cases
+# ---------------------------------------------------------------------- #
+
+
+@pytest.mark.asyncio
+async def test_read_until_returns_partial_on_zero_remaining() -> None:
+    """If the read budget is already exhausted before the first read, return what we have."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT)
+    mgr._reader = _make_reader(["never read"])
+    # Negative timeout → remaining <= 0 on first iteration → bail out
+    result = await mgr._read_until(RESPONSE_SEPARATOR, timeout=-1.0)
+    assert result == ""
+
+
+@pytest.mark.asyncio
+async def test_read_until_handles_timeout_error_from_wait_for() -> None:
+    """A TimeoutError from asyncio.wait_for inside the loop returns the partial buffer."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT)
+
+    async def _slow_read(_size: int) -> str:
+        await asyncio.sleep(60)
+        return "should not get here"
+
+    reader = MagicMock()
+    reader.read = _slow_read
+    mgr._reader = reader
+
+    result = await mgr._read_until(RESPONSE_SEPARATOR, timeout=0.05)
+    assert RESPONSE_SEPARATOR not in result

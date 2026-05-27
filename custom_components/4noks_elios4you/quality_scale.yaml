@@ -21,7 +21,7 @@ rules:
   brands: done # Available in HACS, branding assets submitted
 
   # Rule: Place common patterns in common modules
-  common-modules: done # coordinator.py, helpers.py, api.py
+  common-modules: done # coordinator.py, helpers.py, api.py, connection_manager.py
 
   # Rule: Integration needs to be able to be set up via the UI
   config-flow: done # UI setup via config_flow.py with VERSION = 2
@@ -115,7 +115,7 @@ rules:
   devices: done # Creates device with manufacturer, model, serial number
 
   # Rule: Implements diagnostics
-  diagnostics: done # diagnostics.py provides downloadable debug info
+  diagnostics: done # diagnostics.py + connection_manager metrics snapshot + 12 diagnostic sensors
 
   # Rule: Devices can be discovered
   discovery:
