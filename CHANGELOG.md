@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.3.0-beta.1] - 2026-05-27
+
+🧪 **Beta Release** — ConnectionManager refactor + adaptive backoff to address recurring "device deafness".
+
+Please test this beta on your real device for 2–3 days before it is promoted to stable. The
+two new diagnostic sensors enabled by default (`Connection State` and
+`Connection Consecutive Failures`) make it easy to confirm the integration is healthy at a glance.
+
+**Full Release Notes:** [docs/releases/v1.3.0-beta.1.md](docs/releases/v1.3.0-beta.1.md)
+
+**Full Changelog:** <https://github.com/alexdelprete/ha-4noks-elios4you/compare/v1.2.0...v1.3.0-beta.1>
+
 ### 🏗️ Architecture
 
 - **Extracted `ConnectionManager`** (`connection_manager.py`) — the connection lifecycle is now
