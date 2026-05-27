@@ -92,7 +92,19 @@
       "hw_wifi": { "name": "Wifi HW Version" },
       "s2w_app_version": { "name": "Wifi App Version" },
       "s2w_geps_version": { "name": "Wifi Geps Version" },
-      "s2w_wlan_version": { "name": "Wifi Wlan Version" }
+      "s2w_wlan_version": { "name": "Wifi Wlan Version" },
+      "cm_state": { "name": "Connection State" },
+      "cm_consecutive_failures": { "name": "Connection Consecutive Failures" },
+      "cm_backoff_seconds_remaining": { "name": "Connection Backoff Remaining" },
+      "cm_connects_succeeded": { "name": "Connection Connects Succeeded" },
+      "cm_connect_failures": { "name": "Connection Connect Failures" },
+      "cm_reuse_hits": { "name": "Connection Reuse Hits" },
+      "cm_commands_sent": { "name": "Connection Commands Sent" },
+      "cm_commands_failed": { "name": "Connection Commands Failed" },
+      "cm_commands_retried": { "name": "Connection Commands Retried" },
+      "cm_silent_timeouts": { "name": "Connection Silent Timeouts" },
+      "cm_forced_aborts": { "name": "Connection Forced Aborts" },
+      "cm_last_error": { "name": "Connection Last Error" }
     },
     "switch": {
       "relay_state": { "name": "Relay" }

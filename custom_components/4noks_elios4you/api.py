@@ -1,146 +1,70 @@
-"""API Platform for 4-noks Elios4You.
+"""API layer for 4-noks Elios4you.
+
+This module is a thin protocol wrapper over the :class:`ConnectionManager`.
+It owns no sockets and no retry/backoff logic — that all lives in the
+manager. What lives here:
+
+* The well-known set of commands (``@dat``, ``@sta``, ``@inf``, ``@rel``)
+  and how to parse each one.
+* The high-level read cycle (``async_get_data``) and the relay setter
+  (``telnet_set_relay``) used by the coordinator and the switch entity.
+* The data dictionary that backs every sensor entity in the integration.
 
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
-import asyncio
-from contextlib import suppress
-import logging
-import socket
-import time
+from __future__ import annotations
 
-import telnetlib3
+import logging
+from typing import Any
 
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 
-from .const import (
-    COMMAND_RETRY_COUNT,
-    COMMAND_RETRY_DELAY,
-    CONN_TIMEOUT,
-    DOMAIN,
-    MANUFACTURER,
-    MODEL,
+from .connection_manager import (
+    RESPONSE_SEPARATOR,
+    ConnectionManager,
+    ConnectionUnavailableError,
+    TelnetCommandError,
+    TelnetConnectionError,
 )
+from .const import MANUFACTURER, MODEL
 from .helpers import log_debug
+
+# Re-export the exception types so existing callers
+# (``coordinator``, ``config_flow``, tests) don't need to change imports.
+__all__ = [
+    "ConnectionUnavailableError",
+    "Elios4YouAPI",
+    "TelnetCommandError",
+    "TelnetConnectionError",
+]
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class TelnetConnectionError(HomeAssistantError):
-    """Exception raised when telnet connection fails."""
-
-    def __init__(self, host: str, port: int, timeout: int, message: str = "") -> None:
-        """Initialize the exception."""
-        self.host = host
-        self.port = port
-        self.timeout = timeout
-        self.message = message or f"Failed to connect to {host}:{port} (timeout: {timeout}s)"
-        super().__init__(self.message)
-        self.translation_domain = DOMAIN
-        self.translation_key = "telnet_connection_error"
-        self.translation_placeholders = {
-            "host": host,
-            "port": str(port),
-            "timeout": str(timeout),
-        }
-
-
-class TelnetCommandError(HomeAssistantError):
-    """Exception raised when telnet command fails."""
-
-    def __init__(self, command: str, message: str = "") -> None:
-        """Initialize the exception."""
-        self.command = command
-        self.message = message or f"Command '{command}' failed"
-        super().__init__(self.message)
-        self.translation_domain = DOMAIN
-        self.translation_key = "telnet_command_error"
-        self.translation_placeholders = {
-            "command": command,
-        }
-
-
 class Elios4YouAPI:
-    """Wrapper class for Elios4You telnet communication.
+    """Protocol-level API for an Elios4you device.
 
-    Uses telnetlib3 for fully async I/O to avoid blocking the Home Assistant event loop.
+    Connection lifecycle, serialization, retries, and backoff are owned by
+    :class:`ConnectionManager`; this class only formats commands and parses
+    the device's responses.
     """
 
-    # Connection reuse timeout in seconds - reuse connection if last activity within this window
-    CONNECTION_REUSE_TIMEOUT: float = 25.0
-
     def __init__(self, hass: HomeAssistant, name: str, host: str, port: int) -> None:
-        """Initialize the Elios4You API Client."""
+        """Initialize the API."""
         self._hass = hass
         self._name = name
         self._host = host
         self._port = port
-        self._timeout = CONN_TIMEOUT
-        self._sensors: list[str] = []
         self.data: dict[str, int | float | str] = {}
 
-        # Async telnetlib3 reader/writer streams
-        # Note: telnetlib3 returns TelnetReaderUnicode/TelnetWriterUnicode
-        # which extend asyncio.StreamReader/StreamWriter with telnet protocol handling
-        self._reader: telnetlib3.TelnetReaderUnicode | None = None
-        self._writer: telnetlib3.TelnetWriterUnicode | None = None
+        self.connection_manager = ConnectionManager(host=host, port=port)
 
-        # Connection pooling: prevent socket exhaustion on embedded device
-        self._connection_lock = asyncio.Lock()
-        self._last_activity: float = 0.0
+        self._init_data_keys()
 
-        # Initialize Elios4You data structure before first read
-        self.data["produced_power"] = 1
-        self.data["consumed_power"] = 1
-        self.data["self_consumed_power"] = 1
-        self.data["bought_power"] = 1
-        self.data["sold_power"] = 1
-        self.data["daily_peak"] = 1
-        self.data["monthly_peak"] = 1
-        self.data["produced_energy"] = 1
-        self.data["produced_energy_f1"] = 1
-        self.data["produced_energy_f2"] = 1
-        self.data["produced_energy_f3"] = 1
-        self.data["consumed_energy"] = 1
-        self.data["consumed_energy_f1"] = 1
-        self.data["consumed_energy_f2"] = 1
-        self.data["consumed_energy_f3"] = 1
-        self.data["self_consumed_energy"] = 1
-        self.data["self_consumed_energy_f1"] = 1
-        self.data["self_consumed_energy_f2"] = 1
-        self.data["self_consumed_energy_f3"] = 1
-        self.data["bought_energy"] = 1
-        self.data["bought_energy_f1"] = 1
-        self.data["bought_energy_f2"] = 1
-        self.data["bought_energy_f3"] = 1
-        self.data["sold_energy"] = 1
-        self.data["sold_energy_f1"] = 1
-        self.data["sold_energy_f2"] = 1
-        self.data["sold_energy_f3"] = 1
-        self.data["alarm_1"] = 1
-        self.data["alarm_2"] = 1
-        self.data["power_alarm"] = 1
-        self.data["relay_state"] = 1
-        self.data["pwm_mode"] = 1
-        self.data["pr_ssv"] = 1
-        self.data["rel_ssv"] = 1
-        self.data["rel_mode"] = 1
-        self.data["rel_warning"] = 1
-        self.data["rcap"] = 1
-        self.data["utc_time"] = ""
-        self.data["fwtop"] = ""
-        self.data["fwbtm"] = ""
-        self.data["sn"] = ""
-        self.data["hwver"] = ""
-        self.data["btver"] = ""
-        self.data["hw_wifi"] = ""
-        self.data["s2w_app_version"] = ""
-        self.data["s2w_geps_version"] = ""
-        self.data["s2w_wlan_version"] = ""
-        # custom fields to reuse code structure
-        self.data["manufact"] = MANUFACTURER
-        self.data["model"] = MODEL
+    # ------------------------------------------------------------------ #
+    # Properties used by entities / device registry
+    # ------------------------------------------------------------------ #
 
     @property
     def name(self) -> str:
@@ -149,606 +73,311 @@ class Elios4YouAPI:
 
     @property
     def host(self) -> str:
-        """Return the device name."""
+        """Return the device host."""
         return self._host
 
+    # ------------------------------------------------------------------ #
+    # Public API used by coordinator and switch
+    # ------------------------------------------------------------------ #
+
     async def close(self) -> None:
-        """Close the telnet connection."""
-        await self._safe_close()
-
-    def _is_connection_valid(self) -> bool:
-        """Check if existing connection can be reused.
-
-        Returns True if:
-        - Writer stream exists and is open
-        - Last activity was within CONNECTION_REUSE_TIMEOUT seconds
-        """
-        if self._writer is None:
-            return False
-        # Check if connection is closing - telnetlib3 writer may or may not have is_closing()
-        # Fall back to checking the underlying transport
-        try:
-            if hasattr(self._writer, "is_closing") and self._writer.is_closing():
-                return False
-            # Also check transport if available
-            transport = self._writer.get_extra_info("transport")
-            if transport is not None and transport.is_closing():
-                return False
-        except (AttributeError, OSError):
-            # If we can't determine state, assume connection is invalid
-            return False
-
-        if time.time() - self._last_activity > self.CONNECTION_REUSE_TIMEOUT:
-            log_debug(
-                _LOGGER,
-                "_is_connection_valid",
-                "Connection expired, will reconnect",
-                idle_seconds=round(time.time() - self._last_activity, 1),
-            )
-            return False
-        return True
-
-    async def _safe_close(self) -> None:
-        """Safely close connection with proper cleanup.
-
-        This method:
-        - Closes the writer stream gracefully
-        - Waits for connection to fully close
-        - Resets connection state
-        """
-        if self._writer is not None:
-            with suppress(Exception):
-                self._writer.close()
-                await self._writer.wait_closed()
-            self._writer = None
-            self._reader = None
-            self._last_activity = 0.0
-            log_debug(_LOGGER, "_safe_close", "Connection closed and cleaned up")
-        else:
-            log_debug(_LOGGER, "_safe_close", "No connection to close")
-
-    async def _ensure_connected(self) -> None:
-        """Open connection only if needed, reusing existing connection if valid.
-
-        This method implements connection pooling to prevent socket exhaustion
-        on the embedded Elios4You device.
-
-        Raises:
-            TelnetConnectionError: If connection cannot be established.
-        """
-        if self._is_connection_valid():
-            log_debug(
-                _LOGGER,
-                "_ensure_connected",
-                "Reusing existing connection",
-                idle_seconds=round(time.time() - self._last_activity, 1),
-            )
-            self._last_activity = time.time()
-            return
-
-        # Close any stale connection before opening new one
-        await self._safe_close()
-
-        try:
-            log_debug(
-                _LOGGER,
-                "_ensure_connected",
-                "Opening new connection",
-                host=self._host,
-                port=self._port,
-            )
-            # telnetlib3.open_connection parameters:
-            # - encoding: 'utf-8' for unicode string handling (default is 'utf8')
-            # - encoding_errors: 'replace' to handle invalid chars gracefully
-            # - connect_minwait: Minimum wait for telnet option negotiation (default 2.0s)
-            # - connect_maxwait: Maximum wait for negotiation (default 3.0s)
-            # We set low values since Elios4You doesn't use telnet option negotiation
-            self._reader, self._writer = await asyncio.wait_for(  # type: ignore[assignment]
-                telnetlib3.open_connection(
-                    host=self._host,
-                    port=self._port,
-                    encoding="utf-8",
-                    encoding_errors="replace",
-                    connect_minwait=0.1,  # Don't wait for telnet negotiation
-                    connect_maxwait=0.5,  # Quick timeout on negotiation
-                ),
-                timeout=self._timeout,
-            )
-            self._last_activity = time.time()
-            log_debug(_LOGGER, "_ensure_connected", "Connection established")
-        except (TimeoutError, OSError) as err:
-            log_debug(
-                _LOGGER,
-                "_ensure_connected",
-                "Connection failed",
-                error=str(err),
-            )
-            raise TelnetConnectionError(
-                self._host, self._port, self._timeout, f"Connection failed: {err}"
-            ) from err
-
-    async def _async_read_until(
-        self,
-        separator: str,
-        timeout: float,
-    ) -> str:
-        """Async read until separator found or timeout.
-
-        telnetlib3 provides stream-based I/O without built-in read_until,
-        so we implement our own async version.
-
-        Note: telnetlib3 works with strings (not bytes) - it handles encoding internally.
-
-        Args:
-            separator: String sequence to wait for (e.g., "ready...")
-            timeout: Maximum seconds to wait
-
-        Returns:
-            Buffer containing data up to and including separator,
-            or partial data if timeout/EOF occurs.
-        """
-        buffer = ""
-        loop = asyncio.get_event_loop()
-        end_time = loop.time() + timeout
-
-        while separator not in buffer:
-            remaining = end_time - loop.time()
-            if remaining <= 0:
-                log_debug(
-                    _LOGGER,
-                    "_async_read_until",
-                    "Timeout waiting for separator",
-                    buffer_len=len(buffer),
-                )
-                return buffer  # Timeout - return partial
-
-            try:
-                assert self._reader is not None  # Ensured by caller
-                chunk = await asyncio.wait_for(
-                    self._reader.read(1024),
-                    timeout=remaining,
-                )
-                if not chunk:
-                    log_debug(
-                        _LOGGER,
-                        "_async_read_until",
-                        "EOF received",
-                        buffer_len=len(buffer),
-                    )
-                    return buffer  # EOF
-                buffer += chunk
-            except TimeoutError:
-                log_debug(
-                    _LOGGER,
-                    "_async_read_until",
-                    "asyncio.TimeoutError during read",
-                    buffer_len=len(buffer),
-                )
-                return buffer
-
-        return buffer
-
-    async def _async_send_command(self, cmd: str) -> dict | None:
-        """Send command and read response asynchronously.
-
-        This replaces the synchronous telnet_get_data() method.
-
-        Note: telnetlib3 works with strings (not bytes) - it handles encoding internally.
-
-        Args:
-            cmd: Command to send (e.g., "@dat", "@sta", "@inf", "@rel")
-
-        Returns:
-            Parsed response dict or None if failed
-        """
-        try:
-            cmd_main = cmd[0:4].lower()
-            separator = "ready..."
-
-            log_debug(_LOGGER, "_async_send_command", "Sending command", cmd=cmd)
-
-            # Send command with newline (telnetlib3 expects strings, not bytes)
-            assert self._writer is not None  # Ensured by caller via _ensure_connected
-            self._writer.write(cmd.lower() + "\n")
-            await self._writer.drain()
-
-            # Read until separator
-            log_debug(_LOGGER, "_async_send_command", "Waiting for response")
-            response = await self._async_read_until(separator, self._timeout)
-
-            log_debug(
-                _LOGGER,
-                "_async_send_command",
-                "Response received",
-                response_len=len(response),
-            )
-
-            # Check for silent timeout - incomplete response without separator
-            if not response or "ready..." not in response:
-                log_debug(
-                    _LOGGER,
-                    "_async_send_command",
-                    "Silent timeout - incomplete response",
-                    has_response=bool(response),
-                    has_separator="ready..." in response if response else False,
-                )
-                return None
-
-            # Valid response - process data
-            output = {}
-            lines = response.splitlines()
-
-            # Sometimes the first line is not the command but a line-feed
-            if lines[0].lower() in ["@dat", "@sta", "@inf", "@rel", "@hwr"]:
-                lines_start = 1
-            else:
-                # Skip the possible LF in first line
-                lines_start = 2
-
-            # Skip last two lines (line-feed and read_until separator)
-            lines_end = -2
-
-            # Parse key-value pairs
-            for line in lines[lines_start:lines_end]:
-                if cmd_main in ["@inf", "@rel", "@hwr"]:
-                    # @inf data uses a different separator
-                    key, value = line.split("=")
-                else:
-                    # @dat and @sta share the same data format
-                    key, value = line.split(";")[1:3]
-                # Lower case and replace space with underscore
-                output[key.lower().replace(" ", "_")] = value.strip()
-
-            log_debug(
-                _LOGGER,
-                "_async_send_command",
-                "Success",
-                output_keys=list(output.keys()),
-            )
-        except TimeoutError:
-            log_debug(_LOGGER, "_async_send_command", "Operation timed out")
-            return None
-        except (ValueError, IndexError, AttributeError) as ex:
-            log_debug(_LOGGER, "_async_send_command", "Failed to parse response", error=ex)
-            return None
-        else:
-            return output
-
-    async def _require_data(self, cmd: str) -> dict:
-        """Get data with retry, raising TelnetCommandError if it fails.
-
-        Args:
-            cmd: Telnet command to execute (@dat, @sta, @inf)
-
-        Returns:
-            Parsed response dict
-
-        Raises:
-            TelnetCommandError: If command fails after retries
-        """
-        result = await self._get_data_with_retry(cmd)
-        if result is None:
-            await self._safe_close()
-            raise TelnetCommandError(cmd, f"Failed to retrieve {cmd} data")
-        return result
-
-    async def _get_data_with_retry(
-        self,
-        cmd: str,
-        max_retries: int = COMMAND_RETRY_COUNT,
-    ) -> dict | None:
-        """Execute telnet command with retry logic for transient failures.
-
-        If command fails (returns None due to silent timeout or error),
-        closes connection, reconnects, and retries up to max_retries times.
-
-        Args:
-            cmd: Telnet command to execute (@dat, @sta, @inf, @rel)
-            max_retries: Maximum number of retry attempts
-
-        Returns:
-            Parsed response dict or None if all attempts fail
-        """
-        for attempt in range(max_retries + 1):
-            result = await self._async_send_command(cmd)
-            if result is not None:
-                return result
-
-            if attempt < max_retries:
-                log_debug(
-                    _LOGGER,
-                    "_get_data_with_retry",
-                    "Command failed, retrying",
-                    cmd=cmd,
-                    attempt=attempt + 1,
-                    max_retries=max_retries,
-                )
-                await asyncio.sleep(COMMAND_RETRY_DELAY)
-                # Close stale connection and reconnect for retry
-                await self._safe_close()
-                await self._ensure_connected()
-
-        return None
-
-    def check_port(self) -> bool:
-        """Check if port is available.
-
-        Note: This method is kept for backwards compatibility with tests.
-        The main code now uses _ensure_connected() for connection management.
-        """
-        sock_timeout = 3.0
-        log_debug(
-            _LOGGER,
-            "check_port",
-            "Opening socket",
-            host=self._host,
-            port=self._port,
-            timeout=sock_timeout,
-        )
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            # Use socket-specific timeout instead of global (prevents thread-safety issues)
-            sock.settimeout(sock_timeout)
-            sock_res = sock.connect_ex((self._host, self._port))
-            # True if open, False if not
-            is_open = sock_res == 0
-            if is_open:
-                with suppress(Exception):
-                    sock.shutdown(socket.SHUT_RDWR)
-                log_debug(
-                    _LOGGER,
-                    "check_port",
-                    "Port open",
-                    host=self._host,
-                    port=self._port,
-                )
-            else:
-                log_debug(
-                    _LOGGER,
-                    "check_port",
-                    "Port not available",
-                    host=self._host,
-                    port=self._port,
-                    error=sock_res,
-                )
-            return is_open
-        finally:
-            sock.close()
+        """Close the underlying connection (called on integration unload)."""
+        await self.connection_manager.close()
+        self._update_diagnostic_data()
 
     async def async_get_data(self) -> bool:
-        """Read Data Function.
+        """Run one full read cycle: ``@dat`` + ``@sta`` + ``@inf``.
 
-        Uses connection pooling to prevent socket exhaustion on embedded device.
-        Connection is reused if last activity was within CONNECTION_REUSE_TIMEOUT.
+        Raises:
+            TelnetConnectionError: device unreachable.
+            TelnetCommandError: a command failed after retries.
+            ConnectionUnavailableError: manager is in backoff.
 
-        All I/O operations are fully async - no event loop blocking.
         """
-        # Use lock to prevent race conditions between polling and switch commands
-        async with self._connection_lock:
-            log_debug(
-                _LOGGER,
-                "async_get_data",
-                "========== READ CYCLE START ==========",
-            )
-            try:
-                # Use connection pooling - reuse existing connection if valid
-                await self._ensure_connected()
+        log_debug(_LOGGER, "async_get_data", "========== READ CYCLE START ==========")
 
-                log_debug(_LOGGER, "async_get_data", "Fetching device data")
-                dat_parsed = await self._require_data("@dat")
+        try:
+            dat = await self._command("@dat")
+            self._merge_dat(dat)
 
-                log_debug(_LOGGER, "async_get_data", "Parsing @dat data")
-                for key, value in dat_parsed.items():
-                    # @dat returns only numbers as strings
-                    # power/energy as float all others as int
-                    try:
-                        if ("energy" in key) or ("power" in key):
-                            self.data[key] = round(float(value), 2)
-                        elif key == "utc_time":
-                            pass
-                        else:
-                            self.data[key] = int(value)
-                    except ValueError:
-                        log_debug(
-                            _LOGGER,
-                            "async_get_data",
-                            "Value could not be parsed",
-                            key=key,
-                            value=value,
-                        )
-                        continue
+            sta = await self._command("@sta")
+            self._merge_sta(sta)
 
-                sta_parsed = await self._require_data("@sta")
+            inf = await self._command("@inf")
+            self._merge_inf(inf)
 
-                log_debug(_LOGGER, "async_get_data", "Parsing @sta data")
-                for key, value in sta_parsed.items():
-                    # @sta returns only float numbers as strings
-                    try:
-                        self.data[key] = round(float(value), 2)
-                    except ValueError:
-                        log_debug(
-                            _LOGGER,
-                            "async_get_data",
-                            "Value could not be parsed",
-                            key=key,
-                            value=value,
-                        )
+            self._update_calculated()
+        finally:
+            self._update_diagnostic_data()
 
-                inf_parsed = await self._require_data("@inf")
-
-                log_debug(_LOGGER, "async_get_data", "Parsing @inf data")
-                for key, value in inf_parsed.items():
-                    # @inf returns only strings
-                    self.data[key] = str(value)
-
-                # Calculated sensor to combine TOP/BOTTOM fw versions
-                self.data["swver"] = f"{self.data['fwtop']} / {self.data['fwbtm']}"
-
-                # Calculated sensors for self-consumption sensors
-                self.data["self_consumed_power"] = round(
-                    float(self.data["produced_power"]) - float(self.data["sold_power"]),
-                    2,
-                )
-
-                self.data["self_consumed_energy"] = round(
-                    float(self.data["produced_energy"]) - float(self.data["sold_energy"]),
-                    2,
-                )
-
-                self.data["self_consumed_energy_f1"] = round(
-                    float(self.data["produced_energy_f1"]) - float(self.data["sold_energy_f1"]),
-                    2,
-                )
-                self.data["self_consumed_energy_f2"] = round(
-                    float(self.data["produced_energy_f2"]) - float(self.data["sold_energy_f2"]),
-                    2,
-                )
-                self.data["self_consumed_energy_f3"] = round(
-                    float(self.data["produced_energy_f3"]) - float(self.data["sold_energy_f3"]),
-                    2,
-                )
-
-                # Update last activity time for connection reuse
-                self._last_activity = time.time()
-                log_debug(
-                    _LOGGER,
-                    "async_get_data",
-                    "========== READ CYCLE END (success) ==========",
-                )
-
-            except (TimeoutError, OSError) as err:
-                # Connection error - close and force reconnect on next attempt
-                await self._safe_close()
-                log_debug(
-                    _LOGGER,
-                    "async_get_data",
-                    "Connection or operation timed out",
-                    error=err,
-                )
-                log_debug(
-                    _LOGGER,
-                    "async_get_data",
-                    "========== READ CYCLE END (timeout) ==========",
-                )
-                raise TelnetConnectionError(
-                    self._host, self._port, self._timeout, f"Connection error: {err}"
-                ) from err
-            except (TelnetConnectionError, TelnetCommandError):
-                # Close on error to force fresh connection next time
-                await self._safe_close()
-                log_debug(
-                    _LOGGER,
-                    "async_get_data",
-                    "========== READ CYCLE END (command error) ==========",
-                )
-                raise
-            else:
-                return True
+        log_debug(_LOGGER, "async_get_data", "========== READ CYCLE END (success) ==========")
+        return True
 
     async def telnet_set_relay(self, state: str) -> bool:
-        """Send Telnet Commands and process output.
+        """Set the device relay to ``"on"`` or ``"off"``.
 
-        Uses connection pooling to prevent socket exhaustion on embedded device.
-        Uses same lock as async_get_data() to prevent race conditions.
-
-        All I/O operations are fully async - no event loop blocking.
+        Returns True if the device confirms the requested state, False
+        otherwise. Never raises — caller wants a boolean for the UI.
         """
-        set_relay = False
-
-        to_state: int
         if state.lower() == "on":
             to_state = 1
         elif state.lower() == "off":
             to_state = 0
         else:
-            return set_relay
+            return False
 
-        # Use lock to prevent race conditions between polling and switch commands
-        async with self._connection_lock:
+        try:
+            log_debug(
+                _LOGGER,
+                "telnet_set_relay",
+                "Sending relay command",
+                to_state=to_state,
+            )
+            await self._command(f"@rel 0 {to_state}")
+            rel_parsed = await self._command("@rel")
+            out_mode = int(rel_parsed["rel"])
+        except (TelnetConnectionError, TelnetCommandError, ConnectionUnavailableError) as err:
+            log_debug(_LOGGER, "telnet_set_relay", "Relay command failed", error=str(err))
+            self._update_diagnostic_data()
+            return False
+        except (ValueError, KeyError) as err:
+            # Malformed / unexpected response — fail the service call rather
+            # than crash the caller.
+            log_debug(_LOGGER, "telnet_set_relay", "Relay response malformed", error=str(err))
+            self._update_diagnostic_data()
+            return False
+
+        success = out_mode == to_state
+        if success:
+            # Refresh relay_state immediately to avoid waiting for the next poll.
+            self.data["relay_state"] = out_mode
+        log_debug(
+            _LOGGER,
+            "telnet_set_relay",
+            "Set relay result",
+            to_state=to_state,
+            actual=out_mode,
+            success=success,
+        )
+        self._update_diagnostic_data()
+        return success
+
+    # ------------------------------------------------------------------ #
+    # Internal: command + parse
+    # ------------------------------------------------------------------ #
+
+    async def _command(self, cmd: str) -> dict[str, str]:
+        """Send ``cmd`` and parse its response into a key/value dict.
+
+        Raises:
+            TelnetConnectionError, TelnetCommandError, ConnectionUnavailableError:
+                propagated from the manager.
+            TelnetCommandError: when the response cannot be parsed.
+
+        """
+        raw = await self.connection_manager.execute(cmd)
+        try:
+            return self._parse(cmd, raw)
+        except (ValueError, IndexError) as err:
+            log_debug(
+                _LOGGER,
+                "_command",
+                "Failed to parse response",
+                cmd=cmd,
+                error=str(err),
+            )
+            raise TelnetCommandError(cmd, f"parse_error: {err}") from err
+
+    @staticmethod
+    def _parse(cmd: str, raw: str) -> dict[str, str]:
+        """Parse a raw device response into a dict.
+
+        The device emits one record per line. Format depends on the command:
+
+        * ``@dat`` / ``@sta``: ``index;key;value;...`` — semicolon-separated
+        * ``@inf`` / ``@rel`` / ``@hwr``: ``key=value`` — equals-separated
+
+        The response ends with a line containing ``RESPONSE_SEPARATOR``
+        (preceded by a blank line). The first line is often the echoed
+        command, but sometimes a stray line-feed precedes it.
+        """
+        cmd_main = cmd[0:4].lower()
+        lines = raw.splitlines()
+
+        # First useful line index — skip the echoed command, or one extra if
+        # the device prepended a LF.
+        if lines and lines[0].lower() in ("@dat", "@sta", "@inf", "@rel", "@hwr"):
+            lines_start = 1
+        else:
+            lines_start = 2
+
+        # Last two lines are the blank line and the separator marker.
+        lines_end = -2
+
+        output: dict[str, str] = {}
+        for line in lines[lines_start:lines_end]:
+            if cmd_main in ("@inf", "@rel", "@hwr"):
+                key, value = line.split("=")
+            else:
+                key, value = line.split(";")[1:3]
+            output[key.lower().replace(" ", "_")] = value.strip()
+        return output
+
+    # ------------------------------------------------------------------ #
+    # Internal: data merging
+    # ------------------------------------------------------------------ #
+
+    def _merge_dat(self, parsed: dict[str, str]) -> None:
+        """Merge a parsed ``@dat`` response into ``self.data``."""
+        for key, value in parsed.items():
             try:
-                # Use connection pooling - reuse existing connection if valid
-                await self._ensure_connected()
-
+                if "energy" in key or "power" in key:
+                    self.data[key] = round(float(value), 2)
+                elif key == "utc_time":
+                    continue
+                else:
+                    self.data[key] = int(value)
+            except ValueError:
                 log_debug(
                     _LOGGER,
-                    "telnet_set_relay",
-                    "Sending relay command",
-                    to_state=to_state,
+                    "_merge_dat",
+                    "Value could not be parsed",
+                    key=key,
+                    value=value,
                 )
 
-                # Send set relay command with retry
-                set_result = await self._get_data_with_retry(f"@rel 0 {to_state}")
-                if set_result is None:
-                    log_debug(
-                        _LOGGER,
-                        "telnet_set_relay",
-                        "Set relay command failed after retries",
-                    )
-                    await self._safe_close()
-                    return set_relay
+    def _merge_sta(self, parsed: dict[str, str]) -> None:
+        """Merge a parsed ``@sta`` response into ``self.data``."""
+        for key, value in parsed.items():
+            try:
+                self.data[key] = round(float(value), 2)
+            except ValueError:
+                log_debug(
+                    _LOGGER,
+                    "_merge_sta",
+                    "Value could not be parsed",
+                    key=key,
+                    value=value,
+                )
 
-                # Read relay state with retry
-                rel_parsed = await self._get_data_with_retry("@rel")
+    def _merge_inf(self, parsed: dict[str, str]) -> None:
+        """Merge a parsed ``@inf`` response into ``self.data``."""
+        for key, value in parsed.items():
+            self.data[key] = str(value)
 
-                # if we had a valid response we process data
-                if rel_parsed:
-                    rel_output = dict(rel_parsed.items())
-                    log_debug(
-                        _LOGGER,
-                        "telnet_set_relay",
-                        "Relay output",
-                        rel_output=rel_output,
-                    )
-                    out_mode = int(rel_output["rel"])
-                    log_debug(
-                        _LOGGER,
-                        "telnet_set_relay",
-                        "Sent telnet command",
-                        command=f"@rel 0 {to_state}",
-                        rel=out_mode,
-                    )
-                    if out_mode == to_state:
-                        set_relay = True
-                        # refresh relay_state value to avoid waiting for poll cycle
-                        self.data["relay_state"] = out_mode
-                        log_debug(
-                            _LOGGER,
-                            "telnet_set_relay",
-                            "Set relay success",
-                            to_state=to_state,
-                            rel=out_mode,
-                            relay_state=self.data["relay_state"],
-                        )
-                    else:
-                        set_relay = False
-                        log_debug(
-                            _LOGGER,
-                            "telnet_set_relay",
-                            "Set relay failure",
-                            to_state=to_state,
-                            rel=out_mode,
-                            relay_state=self.data["relay_state"],
-                        )
-                else:
-                    log_debug(_LOGGER, "telnet_set_relay", "rel_parsed is None")
-                    # Force reconnect on next attempt
-                    await self._safe_close()
+    def _update_calculated(self) -> None:
+        """Recompute derived sensors (self-consumption, software version)."""
+        self.data["swver"] = f"{self.data['fwtop']} / {self.data['fwbtm']}"
 
-                # Update last activity time for connection reuse
-                self._last_activity = time.time()
+        self.data["self_consumed_power"] = round(
+            float(self.data["produced_power"]) - float(self.data["sold_power"]),
+            2,
+        )
+        self.data["self_consumed_energy"] = round(
+            float(self.data["produced_energy"]) - float(self.data["sold_energy"]),
+            2,
+        )
+        for tariff in ("f1", "f2", "f3"):
+            self.data[f"self_consumed_energy_{tariff}"] = round(
+                float(self.data[f"produced_energy_{tariff}"])
+                - float(self.data[f"sold_energy_{tariff}"]),
+                2,
+            )
 
-            except TimeoutError:
-                await self._safe_close()
-                log_debug(_LOGGER, "telnet_set_relay", "Connection or operation timed out")
-                set_relay = False
-            except TelnetConnectionError:
-                # Already closed by _ensure_connected failure
-                log_debug(_LOGGER, "telnet_set_relay", "Connection failed")
-                set_relay = False
-            except OSError as ex:
-                await self._safe_close()
-                log_debug(_LOGGER, "telnet_set_relay", "Connection error", error=ex)
-                set_relay = False
+    def _update_diagnostic_data(self) -> None:
+        """Copy current ConnectionManager metrics into ``self.data``.
 
-        log_debug(_LOGGER, "telnet_set_relay", "End telnet_set_relay", result=set_relay)
-        return set_relay
+        Sensors read straight from ``api.data``, so exposing diagnostics is
+        as simple as making sure every metric we want visible lives there
+        under the ``cm_`` prefix.
+        """
+        snapshot = self.connection_manager.metrics_snapshot()
+        for key, value in snapshot.items():
+            self.data[f"cm_{key}"] = value
+
+    # ------------------------------------------------------------------ #
+    # Initialization
+    # ------------------------------------------------------------------ #
+
+    def _init_data_keys(self) -> None:
+        """Seed ``self.data`` so entities can be created before the first poll."""
+        # Power & energy sensors are seeded to 1 (not 0) so that the existing
+        # sensor.py guard ``if coordinator.api.data[key] is not None`` accepts
+        # them at platform setup time. The first real poll overwrites these.
+        numeric_keys = (
+            "produced_power",
+            "consumed_power",
+            "self_consumed_power",
+            "bought_power",
+            "sold_power",
+            "daily_peak",
+            "monthly_peak",
+            "produced_energy",
+            "produced_energy_f1",
+            "produced_energy_f2",
+            "produced_energy_f3",
+            "consumed_energy",
+            "consumed_energy_f1",
+            "consumed_energy_f2",
+            "consumed_energy_f3",
+            "self_consumed_energy",
+            "self_consumed_energy_f1",
+            "self_consumed_energy_f2",
+            "self_consumed_energy_f3",
+            "bought_energy",
+            "bought_energy_f1",
+            "bought_energy_f2",
+            "bought_energy_f3",
+            "sold_energy",
+            "sold_energy_f1",
+            "sold_energy_f2",
+            "sold_energy_f3",
+            "alarm_1",
+            "alarm_2",
+            "power_alarm",
+            "relay_state",
+            "pwm_mode",
+            "pr_ssv",
+            "rel_ssv",
+            "rel_mode",
+            "rel_warning",
+            "rcap",
+        )
+        for key in numeric_keys:
+            self.data[key] = 1
+
+        string_keys = (
+            "utc_time",
+            "fwtop",
+            "fwbtm",
+            "sn",
+            "hwver",
+            "btver",
+            "hw_wifi",
+            "s2w_app_version",
+            "s2w_geps_version",
+            "s2w_wlan_version",
+        )
+        for key in string_keys:
+            self.data[key] = ""
+
+        self.data["manufact"] = MANUFACTURER
+        self.data["model"] = MODEL
+
+        # Initial diagnostic snapshot so sensors created at startup have values.
+        self._update_diagnostic_data()
+
+    # ------------------------------------------------------------------ #
+    # Misc helpers (used by diagnostics output)
+    # ------------------------------------------------------------------ #
+
+    def as_diagnostics(self) -> dict[str, Any]:
+        """Return a serializable snapshot for diagnostics download."""
+        return {
+            "data": dict(self.data),
+            "connection_manager": self.connection_manager.metrics_snapshot(),
+        }
+
+
+# Re-exports used by tests / external callers
+_RESPONSE_SEPARATOR = RESPONSE_SEPARATOR

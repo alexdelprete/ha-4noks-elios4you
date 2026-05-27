@@ -36,7 +36,7 @@ from .repairs import create_connection_issue, create_recovery_notification, dele
 _LOGGER = logging.getLogger(__name__)
 
 
-class Elios4YouCoordinator(DataUpdateCoordinator):
+class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
     """Class to manage fetching data from the API."""
 
     config_entry: ConfigEntry
@@ -69,7 +69,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=f"{DOMAIN} ({config_entry.unique_id})",
-            update_method=self.async_update_data,  # type: ignore[arg-type]
+            update_method=self.async_update_data,
             update_interval=update_interval,
         )
 

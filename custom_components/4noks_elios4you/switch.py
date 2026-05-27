@@ -5,7 +5,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 import asyncio
 import logging
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.core import HomeAssistant, callback
@@ -31,17 +31,21 @@ async def async_setup_entry(
     # This gets the data update coordinator from hass.data as specified in your __init__.py
     coordinator = config_entry.runtime_data.coordinator
 
-    # Add defined switches using list comprehension
+    # Add defined switches using list comprehension. SWITCH_ENTITIES is a list
+    # of heterogeneous dicts (str names/keys/icons + SwitchDeviceClass), so we
+    # cast each entry to ``dict[str, Any]`` to bypass per-value type narrowing
+    # — matches the pattern used in sensor.py.
     switches = [
         Elios4YouSwitch(
             coordinator,
-            switch["name"],
-            switch["key"],
-            switch["icon"],
-            switch["device_class"],
+            switch_def["name"],
+            switch_def["key"],
+            switch_def["icon"],
+            switch_def["device_class"],
         )
         for switch in SWITCH_ENTITIES
-        if coordinator.api.data[switch["key"]] is not None
+        for switch_def in (cast(dict[str, Any], switch),)
+        if coordinator.api.data[switch_def["key"]] is not None
     ]
 
     async_add_entities(switches)
@@ -49,7 +53,7 @@ async def async_setup_entry(
     return True
 
 
-class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
+class Elios4YouSwitch(CoordinatorEntity[Elios4YouCoordinator], SwitchEntity):
     """Switch to set the status of the Wiser Operation Mode (Away/Normal)."""
 
     _attr_has_entity_name = True
@@ -60,7 +64,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
         name: str,
         key: str,
         icon: str,
-        device_class: SwitchDeviceClass | str,
+        device_class: SwitchDeviceClass,
     ) -> None:
         """Initialize the switch."""
         super().__init__(coordinator)
@@ -118,7 +122,7 @@ class Elios4YouSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def device_class(self) -> SwitchDeviceClass:
         """Return the switch device_class."""
-        return self._device_class  # type: ignore[return-value]
+        return self._device_class
 
     @property
     def entity_category(self) -> EntityCategory | None:

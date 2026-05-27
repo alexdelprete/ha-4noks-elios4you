@@ -8,11 +8,11 @@ from __future__ import annotations
 from datetime import timedelta
 from unittest.mock import MagicMock
 
+import pytest
+
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL, DOMAIN, VERSION
 from custom_components.fournoks_elios4you.diagnostics import async_get_config_entry_diagnostics
-import pytest
-
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 
@@ -29,6 +29,11 @@ def mock_coordinator(mock_api_data):
     coordinator.api.data["sn"] = TEST_SERIAL_NUMBER
     coordinator.api.data["manufact"] = "4-noks"
     coordinator.api.data["model"] = "Elios4you"
+    # ConnectionManager surface used by diagnostics
+    coordinator.api.connection_manager = MagicMock()
+    coordinator.api.connection_manager.metrics_snapshot = MagicMock(
+        return_value={"state": "ready", "consecutive_failures": 0}
+    )
     coordinator.last_update_success = True
     coordinator.update_interval = timedelta(seconds=60)
     return coordinator

@@ -65,9 +65,13 @@ async def async_get_config_entry_diagnostics(
             else:
                 sensor_data[key] = value
 
+    # Gather connection manager metrics (state, counters, last error, etc.)
+    connection_manager_data = coordinator.api.connection_manager.metrics_snapshot()
+
     return {
         "config": config_data,
         "device": device_data,
         "coordinator": coordinator_data,
+        "connection_manager": connection_manager_data,
         "sensors": sensor_data,
     }

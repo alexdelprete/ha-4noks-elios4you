@@ -21,7 +21,6 @@ from custom_components.fournoks_elios4you import (
     config_flow as _elios4you_config_flow,
 )
 from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL
-
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import CoreState, HomeAssistant
 
@@ -137,8 +136,11 @@ def mock_elios4you_api(mock_api_data: dict) -> Generator[MagicMock]:
         api_instance = mock_api.return_value
         api_instance.data = mock_api_data
         api_instance.async_get_data = AsyncMock(return_value=True)
-        api_instance.check_port = MagicMock(return_value=True)
         api_instance.close = AsyncMock()
+        # ConnectionManager surface used by diagnostics + coordinator
+        api_instance.connection_manager = MagicMock()
+        api_instance.connection_manager.metrics_snapshot = MagicMock(return_value={})
+        api_instance.connection_manager.close = AsyncMock()
         yield mock_api
 
 
@@ -151,5 +153,4 @@ def mock_elios4you_api_config_flow(
         api_instance = mock_api.return_value
         api_instance.data = mock_api_data
         api_instance.async_get_data = AsyncMock(return_value=True)
-        api_instance.check_port = MagicMock(return_value=True)
         yield mock_api
