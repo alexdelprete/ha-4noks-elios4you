@@ -4,13 +4,13 @@ version = "0.3.0"
 description = "Home Assistant custom integration for 4-noks Elios4you energy monitoring devices using Telnet"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.13.2"
+requires-python = ">=3.14.2"
 authors = [{ name = "alexdelprete" }]
 keywords = ["home-assistant", "4noks", "elios4you", "telnet", "energy", "monitoring"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 [project.urls]
@@ -23,7 +23,7 @@ include = ["custom_components*"]
 [project.optional-dependencies]
 dev = [
     "colorlog>=6.10.0",
-    "homeassistant>=2025.10.0",
+    "homeassistant>=2026.3.0",
     "homeassistant-stubs",
     "mdformat",
     "mdformat-gfm",
@@ -58,7 +58,7 @@ pytest = [
 ]
 dev = [
     "colorlog>=6.10.0",
-    "homeassistant>=2025.10.0",
+    "homeassistant>=2026.3.0",
     "telnetlib3>=2.0.4",
     { include-group = "lint" },
     { include-group = "pytest" },
