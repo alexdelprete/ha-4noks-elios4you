@@ -1,7 +1,7 @@
 # HA Custom Component for 4-noks Elios4you energy monitoring device
 
 <!-- BEGIN SHARED:repo-sync:badges -->
-<!-- Synced by repo-sync on 2026-02-20 -->
+<!-- Synced by repo-sync on 2026-06-27 -->
 
 [![GitHub Release](https://img.shields.io/github/v/release/alexdelprete/ha-4noks-elios4you?style=for-the-badge)](https://github.com/alexdelprete/ha-4noks-elios4you/releases)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-donate-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/alexdelprete)
@@ -92,7 +92,7 @@ gentle behaviour through an explicit state machine
   integration instance. To monitor multiple devices, add the integration multiple times.
 
 <!-- BEGIN SHARED:repo-sync:installation -->
-<!-- Synced by repo-sync on 2026-02-20 -->
+<!-- Synced by repo-sync on 2026-06-27 -->
 
 ## Installation
 
@@ -611,7 +611,7 @@ ruff check . --fix
 - **Release**: Automatically creates ZIP on GitHub release publish
 
 <!-- BEGIN SHARED:repo-sync:contributing -->
-<!-- Synced by repo-sync on 2026-02-20 -->
+<!-- Synced by repo-sync on 2026-06-27 -->
 
 ## Contributing
 
@@ -620,7 +620,7 @@ Contributions are welcome! Please follow these steps:
 1. Fork the repository
 1. Create a feature branch (`git checkout -b feature/my-feature`)
 1. Make your changes
-1. Run linting: `uvx pre-commit run --all-files`
+1. Run linting: `pre-commit run --all-files`
 1. Commit your changes (`git commit -m "feat: add my feature"`)
 1. Push to your branch (`git push origin feature/my-feature`)
 1. Open a Pull Request
@@ -636,7 +636,7 @@ _If you like this integration, I'll gladly accept some quality coffee, but pleas
 [![BuyMeCoffee][buymecoffee-button]][buymecoffee]
 
 <!-- BEGIN SHARED:repo-sync:license -->
-<!-- Synced by repo-sync on 2026-02-20 -->
+<!-- Synced by repo-sync on 2026-06-27 -->
 
 ## License
 
