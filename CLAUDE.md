@@ -188,9 +188,12 @@ All commands must pass without errors before committing.
 
 ## Dependencies
 
-- Home Assistant core (>= 2025.10.0)
+- Home Assistant core (>= 2026.3.0)
 - `telnetlib3>=2.0.4` - Telnet client library
-- Compatible with Python 3.13+
+- Requires Python 3.14+ (`requires-python = ">=3.14.2"`, ruff `target-version = "py314"`)
+  - All integrations are standardized on the Python 3.14+ toolchain
+  - Code may use 3.14-only syntax (e.g. PEP 758 parenthesis-free `except A, B:`),
+    so it is **not** backwards-compatible with 3.13
 
 ## Project-Specific Do's and Don'ts
 
