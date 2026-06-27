@@ -3,6 +3,8 @@
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
@@ -70,7 +72,7 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> "Elios4YouOptionsFlow":
+    def async_get_options_flow(config_entry: ConfigEntry) -> Elios4YouOptionsFlow:
         """Initiate Options Flow Instance."""
         return Elios4YouOptionsFlow()
 
