@@ -54,18 +54,16 @@ repos:
       #
       # The Python package starts with a digit (e.g. `4noks_elios4you`),
       # so `ty` cannot import it directly. The canonical workaround is the
-      # `fournoks_elios4you` symlink; the hook creates and removes it
-      # per invocation so the working tree stays clean and the symlink never
-      # shows up in `git status`. CI workflows already do the same dance.
+      # `fournoks_elios4you` symlink. Devcontainer postCreate creates
+      # it persistently and .gitignore hides it from `git status`; this
+      # hook uses `ln -sfn` (idempotent) so it also works if pre-commit is
+      # run outside the devcontainer where postCreate didn't fire.
       - id: ty
         name: ty
         entry: >-
           bash -c '
-          ln -s 4noks_elios4you custom_components/fournoks_elios4you &&
-          ty check --python /usr/local/bin/python custom_components/fournoks_elios4you;
-          status=$?;
-          rm -f custom_components/fournoks_elios4you;
-          exit $status'
+          ln -sfn 4noks_elios4you custom_components/fournoks_elios4you &&
+          ty check --python /usr/local/bin/python custom_components/fournoks_elios4you'
         language: system
         pass_filenames: false
         types: [python]
