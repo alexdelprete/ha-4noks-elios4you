@@ -580,7 +580,7 @@ class ConnectionManager:
             transport = self._writer.get_extra_info("transport")
             if transport is not None and transport.is_closing():
                 return False
-        except (AttributeError, OSError):
+        except AttributeError, OSError:
             return False
 
         age = time.time() - self._last_activity
