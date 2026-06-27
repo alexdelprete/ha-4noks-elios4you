@@ -55,15 +55,31 @@ repos:
       # The Python package starts with a digit (e.g. `4noks_elios4you`),
       # so `ty` cannot import it directly. The canonical workaround is the
       # `fournoks_elios4you` symlink. Devcontainer postCreate creates
-      # it persistently and .gitignore hides it from `git status`; this
-      # hook uses `ln -sfn` (idempotent) so it also works if pre-commit is
-      # run outside the devcontainer where postCreate didn't fire.
+      # it persistently and .gitignore hides it from `git status`. This
+      # hook ensures the symlink exists at invocation time (so it works
+      # outside the devcontainer where postCreate didn't fire) and cleans
+      # up only the symlink it created itself — leaving any pre-existing
+      # persistent symlink untouched.
+      #
+      # `--python "$(which python)"` resolves the interpreter at runtime
+      # so the hook works whether Python lives at the venv path
+      # (/home/vscode/.local/ha-venv/bin/python in the HA-style
+      # devcontainer) or elsewhere — matches the dynamic resolution the
+      # CI lint workflow already uses.
       - id: ty
         name: ty
         entry: >-
           bash -c '
-          ln -sfn 4noks_elios4you custom_components/fournoks_elios4you &&
-          ty check --python /usr/local/bin/python custom_components/fournoks_elios4you'
+          if [ ! -L "custom_components/fournoks_elios4you" ]; then
+          ln -s 4noks_elios4you "custom_components/fournoks_elios4you";
+          created_symlink=1;
+          fi;
+          ty check --python "$(which python)" "custom_components/fournoks_elios4you";
+          status=$?;
+          if [ -n "$created_symlink" ]; then
+          rm -f "custom_components/fournoks_elios4you";
+          fi;
+          exit $status'
         language: system
         pass_filenames: false
         types: [python]
