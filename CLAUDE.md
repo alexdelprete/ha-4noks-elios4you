@@ -16,7 +16,7 @@
 
 **Key mandatory workflows documented here:**
 
-- **Pre-commit checks** - Run `uvx pre-commit run --all-files` BEFORE every commit
+- **Pre-commit checks** - Run `pre-commit run --all-files` BEFORE every commit
 - Release documentation (CHANGELOG.md + docs/releases/)
 - Version bumping (manifest.json + const.py)
 - Logging patterns (helpers.py functions)
@@ -1311,7 +1311,7 @@ git tag -a v0.2.0 -m "Release v0.2.0"
 - [ ] Updated const.py VERSION constant
 - [ ] Created comprehensive release notes in docs/releases/
 - [ ] Updated CHANGELOG.md
-- [ ] Run pre-commit: `uvx pre-commit run --all-files` (MUST pass)
+- [ ] Run pre-commit: `pre-commit run --all-files` (MUST pass)
 - [ ] Commit all changes with descriptive message
 - [ ] Push commit to GitHub
 - [ ] Verify GitHub Actions pass (lint/test/validate)
