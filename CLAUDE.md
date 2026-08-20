@@ -240,7 +240,7 @@ In addition to the shared Do's and Don'ts:
 - Modify production code to make tests pass - always update tests to match intended code behavior
 
 <!-- BEGIN SHARED:repo-sync -->
-<!-- Synced by repo-sync on 2026-06-27 -->
+<!-- Synced by repo-sync on 2026-08-20 -->
 
 <!--
 ==============================================================================
@@ -591,6 +591,9 @@ in manifest.json and const.py.
 
 1. `custom_components/4noks_elios4you/manifest.json` → `"version": "X.Y.Z"`
 1. `custom_components/4noks_elios4you/const.py` → `VERSION = "X.Y.Z"`
+
+> const.py must declare the version as plain `VERSION = "X.Y.Z"` — no `Final`
+> annotation — because the release workflow and repo-sync validate that exact form.
 
 ### Complete Release Workflow
 
