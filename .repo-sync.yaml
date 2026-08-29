@@ -12,6 +12,7 @@ vars:
   component_dir: 4noks_elios4you
   domain: 4noks_elios4you
   default_branch: main
+  dev_alias: 4noks                      # devbox: <alias>.code / <alias>.hass hostnames
 
   # -- 4noks workaround --
   needs_symlink: true
