@@ -544,7 +544,10 @@ class TestCoordinatorRecoveryScript:
         mock_hass.services = MagicMock()
         mock_hass.services.async_call = AsyncMock()
 
-        with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue"),
+        ):
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(
                 side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
@@ -579,7 +582,10 @@ class TestCoordinatorRecoveryScript:
         mock_hass.services = MagicMock()
         mock_hass.services.async_call = AsyncMock()
 
-        with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue"),
+        ):
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(
                 side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
@@ -612,7 +618,10 @@ class TestCoordinatorRecoveryScript:
             side_effect=HomeAssistantError("Script not found")
         )
 
-        with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue"),
+        ):
             mock_api = mock_api_class.return_value
             mock_api.async_get_data = AsyncMock(
                 side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)

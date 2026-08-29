@@ -164,7 +164,9 @@ class TestCreateRecoveryNotification:
         mock_async_call = AsyncMock()
         hass.services = MagicMock()
         hass.services.async_call = mock_async_call
-        hass.async_create_task = MagicMock()
+        # Close the coroutine instead of scheduling it, to avoid a
+        # "coroutine was never awaited" RuntimeWarning at GC time
+        hass.async_create_task = MagicMock(side_effect=lambda coro, *a, **kw: coro.close())
 
         create_recovery_notification(
             hass,
@@ -188,7 +190,9 @@ class TestCreateRecoveryNotification:
         mock_async_call = AsyncMock()
         hass.services = MagicMock()
         hass.services.async_call = mock_async_call
-        hass.async_create_task = MagicMock()
+        # Close the coroutine instead of scheduling it, to avoid a
+        # "coroutine was never awaited" RuntimeWarning at GC time
+        hass.async_create_task = MagicMock(side_effect=lambda coro, *a, **kw: coro.close())
 
         create_recovery_notification(
             hass,
