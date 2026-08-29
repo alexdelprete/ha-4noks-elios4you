@@ -15,7 +15,9 @@
         "--label", "proxy.aliases=4noks.code,4noks.hadev",
         "--label", "proxy.#1.port=8443",
         "--label", "proxy.#1.scheme=http",
-        "--label", "proxy.#2.port=8123"
+        "--label", "proxy.#2.port=8123",
+        "--label", "proxy.#1.homepage.name=4noks code",
+        "--label", "proxy.#2.homepage.name=4noks hadev"
     ],
     "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && sudo rm -rf ./*.egg-info && uv pip install -e '.[dev]' --config-settings editable_mode=compat && pre-commit install && ln -sfn 4noks_elios4you custom_components/fournoks_elios4you",
     "postStartCommand": "uv pip install -q -e '.[dev]' --config-settings editable_mode=compat",
