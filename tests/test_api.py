@@ -131,6 +131,47 @@ class TestParsing:
         out = Elios4YouAPI._parse("@dat", raw)
         assert "produced_power" in out
 
+    def test_parse_dat_devha_unpacks_accessory_fields(self) -> None:
+        """A Smart RC accessory row carries ten fields, not a single value."""
+        raw = "@dat\n;DEVHA0;1;1;15;1;1;23;1;-59;81;PRESA_1;;\n\nready..."
+        out = Elios4YouAPI._parse("@dat", raw)
+        assert out["devha0_online"] == "1"
+        assert out["devha0_relay"] == "1"
+        assert out["devha0_power"] == "23"
+        assert out["devha0_energy"] == "1"
+        assert out["devha0_rssi"] == "-59"
+        assert out["devha0_devid"] == "81"
+        assert out["devha0_name"] == "PRESA_1"
+
+    def test_parse_dat_devha_keeps_legacy_key(self) -> None:
+        """``devha<n>`` keeps its historical value, so nothing downstream breaks."""
+        raw = "@dat\n;DEVHA1;1;0;15;1;1;0;0;-67;81;PRESA_2;;\n\nready..."
+        out = Elios4YouAPI._parse("@dat", raw)
+        assert out["devha1"] == "1"
+
+    def test_parse_dat_devha_offline_row_is_all_zero(self) -> None:
+        """An accessory that is not joined reports zeros: a reading, not an error."""
+        raw = "@dat\n;DEVHA0;1;1;15;0;0;0;0;0;81;PRESA_1;;\n\nready..."
+        out = Elios4YouAPI._parse("@dat", raw)
+        assert out["devha0_online"] == "0"
+        assert out["devha0_power"] == "0"
+        assert out["devha0_rssi"] == "0"
+        assert out["devha0_name"] == "PRESA_1"
+
+    def test_parse_dat_mixes_devha_and_plain_rows(self) -> None:
+        """Accessory rows do not disturb the ordinary ``key;value`` rows."""
+        raw = (
+            "@dat\n"
+            "0;produced_power;1.5\n"
+            ";DEVHA0;1;1;15;1;1;23;1;-59;81;PRESA_1;;\n"
+            "2;consumed_power;2.0\n"
+            "\nready..."
+        )
+        out = Elios4YouAPI._parse("@dat", raw)
+        assert out["produced_power"] == "1.5"
+        assert out["consumed_power"] == "2.0"
+        assert out["devha0_power"] == "23"
+
 
 class TestAsyncGetData:
     """The read cycle composes three commands and computes derived sensors."""
@@ -358,6 +399,23 @@ class TestMergeBranches:
         # alarm_1 should be parsed as int through the else-branch
         assert api.data["alarm_1"] == 0
         assert isinstance(api.data["alarm_1"], int)
+
+    @pytest.mark.asyncio
+    async def test_merge_dat_keeps_accessory_name_as_text(self, mock_hass) -> None:
+        """@dat: the accessory name is free text and must survive int parsing."""
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+
+        dat_raw = "@dat\n0;produced_power;2.5\n;DEVHA0;1;1;15;1;1;23;2;-59;81;PRESA_1;;\n\nready..."
+        sta_raw = "@sta\n0;daily_peak;3.2\n\nready..."
+        inf_raw = f"@inf\nsn={TEST_SERIAL_NUMBER}\nfwtop=1.0\nfwbtm=2.0\nhwver=3.0\n\nready..."
+
+        api.connection_manager.execute = AsyncMock(side_effect=[dat_raw, sta_raw, inf_raw])
+        assert await api.async_get_data() is True
+        assert api.data["devha0_name"] == "PRESA_1"
+        assert api.data["devha0_power"] == 23.0
+        assert api.data["devha0_energy"] == 2.0
+        assert api.data["devha0_rssi"] == -59
+        assert isinstance(api.data["devha0_rssi"], int)
 
     @pytest.mark.asyncio
     async def test_merge_sta_skips_bad_value(self, mock_hass) -> None:

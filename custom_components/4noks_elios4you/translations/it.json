@@ -92,7 +92,19 @@
       "hw_wifi": { "name": "Versione HW Wifi" },
       "s2w_app_version": { "name": "Versione App Wifi" },
       "s2w_geps_version": { "name": "Versione Geps Wifi" },
-      "s2w_wlan_version": { "name": "Versione Wlan Wifi" }
+      "s2w_wlan_version": { "name": "Versione Wlan Wifi" },
+      "devha0_power": { "name": "Presa 1 Potenza" },
+      "devha0_energy": { "name": "Presa 1 Energia" },
+      "devha0_online": { "name": "Presa 1 Online" },
+      "devha0_rssi": { "name": "Presa 1 Segnale" },
+      "devha0_relay": { "name": "Presa 1 Rele" },
+      "devha0_name": { "name": "Presa 1 Nome" },
+      "devha1_power": { "name": "Presa 2 Potenza" },
+      "devha1_energy": { "name": "Presa 2 Energia" },
+      "devha1_online": { "name": "Presa 2 Online" },
+      "devha1_rssi": { "name": "Presa 2 Segnale" },
+      "devha1_relay": { "name": "Presa 2 Rele" },
+      "devha1_name": { "name": "Presa 2 Nome" }
     },
     "switch": {
       "relay_state": { "name": "Rele" }

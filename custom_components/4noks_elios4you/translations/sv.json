@@ -92,7 +92,19 @@
       "hw_wifi": { "name": "Wifi HW-version" },
       "s2w_app_version": { "name": "Wifi App-version" },
       "s2w_geps_version": { "name": "Wifi Geps-version" },
-      "s2w_wlan_version": { "name": "Wifi Wlan-version" }
+      "s2w_wlan_version": { "name": "Wifi Wlan-version" },
+      "devha0_power": { "name": "Smart Plug 1 Power" },
+      "devha0_energy": { "name": "Smart Plug 1 Energy" },
+      "devha0_online": { "name": "Smart Plug 1 Online" },
+      "devha0_rssi": { "name": "Smart Plug 1 Signal" },
+      "devha0_relay": { "name": "Smart Plug 1 Relay" },
+      "devha0_name": { "name": "Smart Plug 1 Name" },
+      "devha1_power": { "name": "Smart Plug 2 Power" },
+      "devha1_energy": { "name": "Smart Plug 2 Energy" },
+      "devha1_online": { "name": "Smart Plug 2 Online" },
+      "devha1_rssi": { "name": "Smart Plug 2 Signal" },
+      "devha1_relay": { "name": "Smart Plug 2 Relay" },
+      "devha1_name": { "name": "Smart Plug 2 Name" }
     },
     "switch": {
       "relay_state": { "name": "Rela" }

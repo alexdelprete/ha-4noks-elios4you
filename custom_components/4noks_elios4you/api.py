@@ -40,6 +40,43 @@ __all__ = [
 _LOGGER = logging.getLogger(__name__)
 
 
+# Field layout of the ``DEVHA<n>`` rows returned by ``@dat``, one per Smart RC
+# wireless accessory (Smart Plug RC, Smart Switch RC, ...) paired to the Red Cap
+# radio module:
+#
+#     ;DEVHA0;1;1;15;1;1;23;1;-59;81;PRESA_1;;
+#      [1]   [2][3][4][5][6][7][8][9] [10] [11]
+#
+# ``[2]`` is what the parser has always exposed as ``devha<n>``; ``[3]`` and
+# ``[4]`` are still unidentified (``[4]`` is constant across accessories, so it
+# most likely belongs to the model). ``[10]`` is the ZigBee HA Device ID: 81 =
+# 0x0051 = "Smart Plug", matching the ZR-PLUG-RC datasheet.
+#
+# The accessory only reports live values while it is joined AND its relay is
+# closed; an offline accessory reports an all-zero row, which is a valid reading
+# and not an error.
+DEVHA_FIELDS: tuple[tuple[int, str], ...] = (
+    (2, ""),  # unchanged, for backwards compatibility
+    (5, "_online"),  # 0 = offline, 1 = joined and reachable
+    (6, "_relay"),  # 0 = open, 1 = closed (socket powered)
+    (7, "_power"),  # active power, W
+    (8, "_energy"),  # active energy, Wh
+    (9, "_rssi"),  # received signal strength, dBm
+    (10, "_devid"),  # ZigBee HA Device ID
+    (11, "_name"),  # accessory name as configured in the app
+)
+
+
+def _parse_devha_row(parts: list[str]) -> dict[str, str]:
+    """Unpack a ``DEVHA<n>`` row into one key per field."""
+    base = parts[1].lower()
+    return {
+        f"{base}{suffix}": parts[index].strip()
+        for index, suffix in DEVHA_FIELDS
+        if index < len(parts)
+    }
+
+
 class Elios4YouAPI:
     """Protocol-level API for an Elios4you device.
 
@@ -217,7 +254,13 @@ class Elios4YouAPI:
             if cmd_main in ("@inf", "@rel", "@hwr"):
                 key, value = line.split("=")
             else:
-                key, value = line.split(";")[1:3]
+                parts = line.split(";")
+                # Smart RC accessory rows carry ten fields instead of a single
+                # value, so they need their own unpacking.
+                if len(parts) > 2 and parts[1].upper().startswith("DEVHA"):
+                    output.update(_parse_devha_row(parts))
+                    continue
+                key, value = parts[1:3]
             output[key.lower().replace(" ", "_")] = value.strip()
         return output
 
@@ -229,7 +272,10 @@ class Elios4YouAPI:
         """Merge a parsed ``@dat`` response into ``self.data``."""
         for key, value in parsed.items():
             try:
-                if "energy" in key or "power" in key:
+                if key.endswith("_name"):
+                    # Accessory names are free text, not numbers.
+                    self.data[key] = value
+                elif "energy" in key or "power" in key:
                     self.data[key] = round(float(value), 2)
                 elif key == "utc_time":
                     continue

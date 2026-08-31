@@ -45,7 +45,10 @@ async def async_setup_entry(
     sensors = []
     for sensor in SENSOR_ENTITIES:
         sensor_def = cast(dict[str, Any], sensor)
-        if coordinator.api.data[sensor_def["key"]] is not None:
+        # ``.get()``: optional keys — such as the Smart RC accessory fields,
+        # which only exist when a Red Cap module with paired accessories is
+        # present — must not break setup on devices that never report them.
+        if coordinator.api.data.get(sensor_def["key"]) is not None:
             sensors.append(
                 Elios4YouSensor(
                     coordinator,
