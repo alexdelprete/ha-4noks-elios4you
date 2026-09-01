@@ -48,66 +48,167 @@
   },
   "entity": {
     "sensor": {
-      "produced_power": { "name": "Leistung Erzeugt" },
-      "consumed_power": { "name": "Leistung Verbraucht" },
-      "self_consumed_power": { "name": "Leistung Eigenverbraucht" },
-      "bought_power": { "name": "Leistung Import" },
-      "sold_power": { "name": "Leistung Export" },
-      "daily_peak": { "name": "Spitze Täglich" },
-      "monthly_peak": { "name": "Spitze Monatlich" },
-      "produced_energy": { "name": "Energie Erzeugt" },
-      "produced_energy_f1": { "name": "Energie Erzeugt F1" },
-      "produced_energy_f2": { "name": "Energie Erzeugt F2" },
-      "produced_energy_f3": { "name": "Energie Erzeugt F3" },
-      "consumed_energy": { "name": "Energie Verbraucht" },
-      "consumed_energy_f1": { "name": "Energie Verbraucht F1" },
-      "consumed_energy_f2": { "name": "Energie Verbraucht F2" },
-      "consumed_energy_f3": { "name": "Energie Verbraucht F3" },
-      "self_consumed_energy": { "name": "Energie Eigenverbraucht" },
-      "self_consumed_energy_f1": { "name": "Energie Eigenverbraucht F1" },
-      "self_consumed_energy_f2": { "name": "Energie Eigenverbraucht F2" },
-      "self_consumed_energy_f3": { "name": "Energie Eigenverbraucht F3" },
-      "bought_energy": { "name": "Energie Import" },
-      "bought_energy_f1": { "name": "Energie Import F1" },
-      "bought_energy_f2": { "name": "Energie Import F2" },
-      "bought_energy_f3": { "name": "Energie Import F3" },
-      "sold_energy": { "name": "Energie Export" },
-      "sold_energy_f1": { "name": "Energie Export F1" },
-      "sold_energy_f2": { "name": "Energie Export F2" },
-      "sold_energy_f3": { "name": "Energie Export F3" },
-      "alarm_1": { "name": "Alarm 1" },
-      "alarm_2": { "name": "Alarm 2" },
-      "power_alarm": { "name": "Leistungsalarm" },
-      "pwm_mode": { "name": "PWM-Modus" },
-      "pr_ssv": { "name": "Leistungsreduzierer Ssv" },
-      "rel_ssv": { "name": "Relais Ssv" },
-      "rel_mode": { "name": "Relais-Modus" },
-      "rel_warning": { "name": "Relais-Warnung" },
-      "rcap": { "name": "RedCap" },
-      "fwtop": { "name": "Firmware TOP Version" },
-      "fwbtm": { "name": "Firmware BOTTOM Version" },
-      "sn": { "name": "Seriennummer" },
-      "hwver": { "name": "Hardware-Version" },
-      "btver": { "name": "BT-Version" },
-      "hw_wifi": { "name": "Wifi HW-Version" },
-      "s2w_app_version": { "name": "Wifi App-Version" },
-      "s2w_geps_version": { "name": "Wifi Geps-Version" },
-      "s2w_wlan_version": { "name": "Wifi Wlan-Version" },
-      "devha0_power": { "name": "Smart Plug 1 Power" },
-      "devha0_energy": { "name": "Smart Plug 1 Energy" },
-      "devha0_online": { "name": "Smart Plug 1 Online" },
-      "devha0_rssi": { "name": "Smart Plug 1 Signal" },
-      "devha0_relay": { "name": "Smart Plug 1 Relay" },
-      "devha0_name": { "name": "Smart Plug 1 Name" },
-      "devha1_power": { "name": "Smart Plug 2 Power" },
-      "devha1_energy": { "name": "Smart Plug 2 Energy" },
-      "devha1_online": { "name": "Smart Plug 2 Online" },
-      "devha1_rssi": { "name": "Smart Plug 2 Signal" },
-      "devha1_relay": { "name": "Smart Plug 2 Relay" },
-      "devha1_name": { "name": "Smart Plug 2 Name" }
+      "produced_power": {
+        "name": "Leistung Erzeugt"
+      },
+      "consumed_power": {
+        "name": "Leistung Verbraucht"
+      },
+      "self_consumed_power": {
+        "name": "Leistung Eigenverbraucht"
+      },
+      "bought_power": {
+        "name": "Leistung Import"
+      },
+      "sold_power": {
+        "name": "Leistung Export"
+      },
+      "daily_peak": {
+        "name": "Spitze Täglich"
+      },
+      "monthly_peak": {
+        "name": "Spitze Monatlich"
+      },
+      "produced_energy": {
+        "name": "Energie Erzeugt"
+      },
+      "produced_energy_f1": {
+        "name": "Energie Erzeugt F1"
+      },
+      "produced_energy_f2": {
+        "name": "Energie Erzeugt F2"
+      },
+      "produced_energy_f3": {
+        "name": "Energie Erzeugt F3"
+      },
+      "consumed_energy": {
+        "name": "Energie Verbraucht"
+      },
+      "consumed_energy_f1": {
+        "name": "Energie Verbraucht F1"
+      },
+      "consumed_energy_f2": {
+        "name": "Energie Verbraucht F2"
+      },
+      "consumed_energy_f3": {
+        "name": "Energie Verbraucht F3"
+      },
+      "self_consumed_energy": {
+        "name": "Energie Eigenverbraucht"
+      },
+      "self_consumed_energy_f1": {
+        "name": "Energie Eigenverbraucht F1"
+      },
+      "self_consumed_energy_f2": {
+        "name": "Energie Eigenverbraucht F2"
+      },
+      "self_consumed_energy_f3": {
+        "name": "Energie Eigenverbraucht F3"
+      },
+      "bought_energy": {
+        "name": "Energie Import"
+      },
+      "bought_energy_f1": {
+        "name": "Energie Import F1"
+      },
+      "bought_energy_f2": {
+        "name": "Energie Import F2"
+      },
+      "bought_energy_f3": {
+        "name": "Energie Import F3"
+      },
+      "sold_energy": {
+        "name": "Energie Export"
+      },
+      "sold_energy_f1": {
+        "name": "Energie Export F1"
+      },
+      "sold_energy_f2": {
+        "name": "Energie Export F2"
+      },
+      "sold_energy_f3": {
+        "name": "Energie Export F3"
+      },
+      "alarm_1": {
+        "name": "Alarm 1"
+      },
+      "alarm_2": {
+        "name": "Alarm 2"
+      },
+      "power_alarm": {
+        "name": "Leistungsalarm"
+      },
+      "pwm_mode": {
+        "name": "PWM-Modus"
+      },
+      "pr_ssv": {
+        "name": "Leistungsreduzierer Ssv"
+      },
+      "rel_ssv": {
+        "name": "Relais Ssv"
+      },
+      "rel_mode": {
+        "name": "Relais-Modus"
+      },
+      "rel_warning": {
+        "name": "Relais-Warnung"
+      },
+      "rcap": {
+        "name": "RedCap"
+      },
+      "fwtop": {
+        "name": "Firmware TOP Version"
+      },
+      "fwbtm": {
+        "name": "Firmware BOTTOM Version"
+      },
+      "sn": {
+        "name": "Seriennummer"
+      },
+      "hwver": {
+        "name": "Hardware-Version"
+      },
+      "btver": {
+        "name": "BT-Version"
+      },
+      "hw_wifi": {
+        "name": "Wifi HW-Version"
+      },
+      "s2w_app_version": {
+        "name": "Wifi App-Version"
+      },
+      "s2w_geps_version": {
+        "name": "Wifi Geps-Version"
+      },
+      "s2w_wlan_version": {
+        "name": "Wifi Wlan-Version"
+      },
+      "devha_power": {
+        "name": "Zubehör {slot} Leistung"
+      },
+      "devha_energy": {
+        "name": "Zubehör {slot} Energie"
+      },
+      "devha_online": {
+        "name": "Zubehör {slot} Online"
+      },
+      "devha_rssi": {
+        "name": "Zubehör {slot} Signal"
+      },
+      "devha_relay": {
+        "name": "Zubehör {slot} Relais"
+      },
+      "devha_name": {
+        "name": "Zubehör {slot} Name"
+      },
+      "devha_devid": {
+        "name": "Zubehör {slot} Geräte-ID"
+      }
     },
     "switch": {
-      "relay_state": { "name": "Relais" }
+      "relay_state": {
+        "name": "Relais"
+      }
     }
   },
   "issues": {

@@ -3,6 +3,8 @@
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
+from typing import Any
+
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT, UnitOfEnergy, UnitOfPower
@@ -594,114 +596,89 @@ SENSOR_ENTITIES = [
         # diagnosing a problem / filing a bug report.
         "enabled_default": True,
     },
-    # ---- Smart RC wireless accessory 1 (paired to the Red Cap module) ----
-    {
-        "name": "Smart Plug 1 Power",
-        "key": "devha0_power",
-        "icon": "mdi:power-plug-outline",
-        "device_class": SensorDeviceClass.POWER,
-        "state_class": SensorStateClass.MEASUREMENT,
-        "unit": UnitOfPower.WATT,
-        "enabled_default": True,
-    },
-    {
-        "name": "Smart Plug 1 Energy",
-        "key": "devha0_energy",
-        "icon": "mdi:counter",
-        "device_class": SensorDeviceClass.ENERGY,
-        "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
-        "enabled_default": True,
-    },
-    {
-        "name": "Smart Plug 1 Online",
-        "key": "devha0_online",
-        "icon": "mdi:access-point-network",
-        "device_class": None,
-        "state_class": None,
-        "unit": None,
-        "enabled_default": True,
-    },
-    {
-        "name": "Smart Plug 1 Signal",
-        "key": "devha0_rssi",
-        "icon": "mdi:wifi-strength-2",
-        "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
-        "state_class": SensorStateClass.MEASUREMENT,
-        "unit": SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-        "enabled_default": False,
-    },
-    {
-        "name": "Smart Plug 1 Relay",
-        "key": "devha0_relay",
-        "icon": "mdi:electric-switch",
-        "device_class": None,
-        "state_class": None,
-        "unit": None,
-        "enabled_default": False,
-    },
-    {
-        "name": "Smart Plug 1 Name",
-        "key": "devha0_name",
-        "icon": "mdi:tag-outline",
-        "device_class": None,
-        "state_class": None,
-        "unit": None,
-        "enabled_default": False,
-    },
-    # ---- Smart RC wireless accessory 2 (paired to the Red Cap module) ----
-    {
-        "name": "Smart Plug 2 Power",
-        "key": "devha1_power",
-        "icon": "mdi:power-plug-outline",
-        "device_class": SensorDeviceClass.POWER,
-        "state_class": SensorStateClass.MEASUREMENT,
-        "unit": UnitOfPower.WATT,
-        "enabled_default": True,
-    },
-    {
-        "name": "Smart Plug 2 Energy",
-        "key": "devha1_energy",
-        "icon": "mdi:counter",
-        "device_class": SensorDeviceClass.ENERGY,
-        "state_class": SensorStateClass.TOTAL_INCREASING,
-        "unit": UnitOfEnergy.WATT_HOUR,
-        "enabled_default": True,
-    },
-    {
-        "name": "Smart Plug 2 Online",
-        "key": "devha1_online",
-        "icon": "mdi:access-point-network",
-        "device_class": None,
-        "state_class": None,
-        "unit": None,
-        "enabled_default": True,
-    },
-    {
-        "name": "Smart Plug 2 Signal",
-        "key": "devha1_rssi",
-        "icon": "mdi:wifi-strength-2",
-        "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
-        "state_class": SensorStateClass.MEASUREMENT,
-        "unit": SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-        "enabled_default": False,
-    },
-    {
-        "name": "Smart Plug 2 Relay",
-        "key": "devha1_relay",
-        "icon": "mdi:electric-switch",
-        "device_class": None,
-        "state_class": None,
-        "unit": None,
-        "enabled_default": False,
-    },
-    {
-        "name": "Smart Plug 2 Name",
-        "key": "devha1_name",
-        "icon": "mdi:tag-outline",
-        "device_class": None,
-        "state_class": None,
-        "unit": None,
-        "enabled_default": False,
-    },
 ]
+
+# Sensors created for every Smart RC wireless accessory paired to the Red Cap
+# module. One definition per sensor *type*, not per slot: the parser already
+# handles any ``DEVHA<n>``, so hardcoding ``devha0``/``devha1`` blocks would
+# silently drop a third accessory -- parsed, but never exposed. The slot number
+# is injected into the entity name through ``translation_placeholders``, which
+# also keeps the translations at seven strings per language instead of six per
+# accessory.
+#
+# Naming is deliberately neutral: the Red Cap pairs Smart Plug RC, Smart Switch
+# RC, Smart Relay RC, Power Reducer RC and Energy Meter RC (1ph/3ph), so calling
+# every one of them a "Smart Plug" would be wrong for most of them. The device
+# type is exposed separately as ``_devid`` (ZigBee HA 1.2 Device ID) so users
+# can report the value for accessories other than the Smart Plug -- 81/0x0051 is
+# the only one confirmed so far.
+#
+# No entity_category here: Elios4YouSensor already classifies as DIAGNOSTIC
+# every sensor without a state_class, which covers Online, Relay, Name and
+# Device ID.
+DEVHA_SENSOR_TEMPLATE: tuple[dict[str, Any], ...] = (
+    {
+        "suffix": "_power",
+        "translation_key": "devha_power",
+        "icon": "mdi:power-plug-outline",
+        "device_class": SensorDeviceClass.POWER,
+        "state_class": SensorStateClass.MEASUREMENT,
+        "unit": UnitOfPower.WATT,
+        "enabled_default": True,
+    },
+    {
+        "suffix": "_energy",
+        "translation_key": "devha_energy",
+        "icon": "mdi:counter",
+        "device_class": SensorDeviceClass.ENERGY,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "unit": UnitOfEnergy.WATT_HOUR,
+        "enabled_default": True,
+    },
+    {
+        "suffix": "_online",
+        "translation_key": "devha_online",
+        "icon": "mdi:access-point-network",
+        "device_class": None,
+        "state_class": None,
+        "unit": None,
+        "enabled_default": True,
+    },
+    {
+        "suffix": "_rssi",
+        "translation_key": "devha_rssi",
+        # ZigBee link, not WiFi: mdi:wifi-strength-2 would be the wrong radio.
+        "icon": "mdi:zigbee",
+        "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
+        "state_class": SensorStateClass.MEASUREMENT,
+        "unit": SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+        "enabled_default": False,
+    },
+    {
+        "suffix": "_relay",
+        "translation_key": "devha_relay",
+        "icon": "mdi:electric-switch",
+        "device_class": None,
+        "state_class": None,
+        "unit": None,
+        "enabled_default": False,
+    },
+    {
+        "suffix": "_name",
+        "translation_key": "devha_name",
+        "icon": "mdi:tag-outline",
+        "device_class": None,
+        "state_class": None,
+        "unit": None,
+        "enabled_default": False,
+    },
+    {
+        "suffix": "_devid",
+        "translation_key": "devha_devid",
+        "icon": "mdi:identifier",
+        "device_class": None,
+        "state_class": None,
+        "unit": None,
+        "enabled_default": False,
+    },
+)

@@ -55,6 +55,13 @@ _LOGGER = logging.getLogger(__name__)
 # The accessory only reports live values while it is joined AND its relay is
 # closed; an offline accessory reports an all-zero row, which is a valid reading
 # and not an error.
+#
+# Those zeros must not reach the entities, though. ``devha<n>_energy`` is
+# TOTAL_INCREASING: a 0 reading is interpreted by the statistics engine as a
+# meter reset, so when the accessory rejoins its whole counter is added to the
+# Energy dashboard again, inflating statistics on every offline/online cycle.
+# RSSI 0 is misleading in a different way -- 0 dBm reads as a very strong
+# signal. See :func:`_parse_devha_row`.
 DEVHA_FIELDS: tuple[tuple[int, str], ...] = (
     (2, ""),  # unchanged, for backwards compatibility
     (5, "_online"),  # 0 = offline, 1 = joined and reachable
@@ -67,14 +74,36 @@ DEVHA_FIELDS: tuple[tuple[int, str], ...] = (
 )
 
 
+#: Fields that carry a measurement and are therefore meaningless -- worse,
+#: actively misleading -- when the accessory is offline.
+DEVHA_MEASUREMENTS: tuple[str, ...] = ("_power", "_energy", "_rssi")
+
+
 def _parse_devha_row(parts: list[str]) -> dict[str, str]:
-    """Unpack a ``DEVHA<n>`` row into one key per field."""
+    """Unpack a ``DEVHA<n>`` row into one key per field.
+
+    When the accessory is offline (field ``[5]`` is ``0``) the measurement keys
+    are omitted rather than reported as zero. ``Elios4YouAPI.data`` is merged
+    into, never rebuilt, so omitting a key leaves the last known value in place
+    -- which is what we want for a device that is simply out of reach.
+
+    Note the consequence at startup: if an accessory is *already* offline when
+    the integration first polls, those keys have never existed and the entities
+    are not created until it comes back online. That is deliberate -- an entity
+    reporting 0 W for an accessory nobody has ever heard from would be a
+    fabricated measurement -- but it means power/energy/signal appear only after
+    the first successful reading.
+    """
     base = parts[1].lower()
-    return {
+    row = {
         f"{base}{suffix}": parts[index].strip()
         for index, suffix in DEVHA_FIELDS
         if index < len(parts)
     }
+    if row.get(f"{base}_online") == "0":
+        for suffix in DEVHA_MEASUREMENTS:
+            row.pop(f"{base}{suffix}", None)
+    return row
 
 
 class Elios4YouAPI:

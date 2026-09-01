@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### ✨ Features
+
+- **Smart RC wireless accessories are now exposed as sensors.** The `DEVHA<n>` rows returned by
+  `@dat` carry ten fields per accessory paired to the Red Cap radio module (online, relay, power,
+  energy, RSSI, ZigBee device ID, name), but the parser treated every row as a plain
+  `name;value` pair and kept only the first field. Each accessory now gets seven sensors: Power,
+  Energy, Online, Signal, Relay, Name, and Device ID.
+- **Sensors are generated per discovered slot**, not from hardcoded `devha0`/`devha1` blocks, so
+  a third or fourth paired accessory is exposed without a code change. The slot number is
+  injected into the entity name via `translation_placeholders`, keeping translations at seven
+  strings per language.
+- **Neutral naming — "Accessory N", not "Smart Plug N".** The Red Cap pairs Smart Plug RC, Smart
+  Switch RC, Smart Relay RC, Power Reducer RC and Energy Meter RC. The ZigBee HA 1.2 Device ID is
+  exposed as a diagnostic sensor (disabled by default) so users can report the value for
+  accessory types other than the Smart Plug — `81`/`0x0051` is the only one confirmed so far.
+
+### 🐛 Bug Fixes
+
+- **Offline accessories no longer report zeros for power, energy and RSSI.** `devha<n>_energy` is
+  `TOTAL_INCREASING`: a `0` reading is read by the statistics engine as a meter reset, so on
+  every offline/online cycle the whole counter was added to the Energy dashboard again, inflating
+  statistics. RSSI `0` misleads in the other direction — 0 dBm reads as a very strong signal.
+  When field `[5]` (online) is `0`, those three keys are now omitted from the parsed row; since
+  `Elios4YouAPI.data` is merged into and never rebuilt, the last known values simply persist.
+  Only `_online` and `_relay` take the offline row's values.
+- **Signal sensor uses `mdi:zigbee`** instead of `mdi:wifi-strength-2`: the accessory link is
+  ZigBee, not WiFi.
+
+### ⚠️ Breaking Changes
+
+**None for existing installations.** Entity `unique_id`s are unchanged (`{domain}_{sn}_{key}`,
+with keys still `devha<n>_<field>`), so entities are not recreated; only their display names
+change from "Smart Plug N …" to "Accessory N …".
+
+⚠️ **One behaviour worth knowing:** if an accessory is *already offline* when the integration
+first polls, its power, energy and signal entities are not created until it comes back online —
+because those keys have never existed. This is deliberate: an entity reporting 0 W for an
+accessory nobody has ever heard from would be a fabricated measurement. Online and Relay are
+always created.
+
 ---
 
 ## [1.3.1] - 2026-05-31

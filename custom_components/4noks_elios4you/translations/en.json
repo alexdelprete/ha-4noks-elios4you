@@ -48,78 +48,203 @@
   },
   "entity": {
     "sensor": {
-      "produced_power": { "name": "Power Produced" },
-      "consumed_power": { "name": "Power Consumed" },
-      "self_consumed_power": { "name": "Power Self-Consumed" },
-      "bought_power": { "name": "Power Imported" },
-      "sold_power": { "name": "Power Exported" },
-      "daily_peak": { "name": "Peak Daily" },
-      "monthly_peak": { "name": "Peak Monthly" },
-      "produced_energy": { "name": "Energy Produced" },
-      "produced_energy_f1": { "name": "Energy Produced F1" },
-      "produced_energy_f2": { "name": "Energy Produced F2" },
-      "produced_energy_f3": { "name": "Energy Produced F3" },
-      "consumed_energy": { "name": "Energy Consumed" },
-      "consumed_energy_f1": { "name": "Energy Consumed F1" },
-      "consumed_energy_f2": { "name": "Energy Consumed F2" },
-      "consumed_energy_f3": { "name": "Energy Consumed F3" },
-      "self_consumed_energy": { "name": "Energy Self-Consumed" },
-      "self_consumed_energy_f1": { "name": "Energy Self-Consumed F1" },
-      "self_consumed_energy_f2": { "name": "Energy Self-Consumed F2" },
-      "self_consumed_energy_f3": { "name": "Energy Self-Consumed F3" },
-      "bought_energy": { "name": "Energy Imported" },
-      "bought_energy_f1": { "name": "Energy Imported F1" },
-      "bought_energy_f2": { "name": "Energy Imported F2" },
-      "bought_energy_f3": { "name": "Energy Imported F3" },
-      "sold_energy": { "name": "Energy Exported" },
-      "sold_energy_f1": { "name": "Energy Exported F1" },
-      "sold_energy_f2": { "name": "Energy Exported F2" },
-      "sold_energy_f3": { "name": "Energy Exported F3" },
-      "alarm_1": { "name": "Alarm 1" },
-      "alarm_2": { "name": "Alarm 2" },
-      "power_alarm": { "name": "Power Alarm" },
-      "pwm_mode": { "name": "PWM Mode" },
-      "pr_ssv": { "name": "Power Reducer Ssv" },
-      "rel_ssv": { "name": "Relay Ssv" },
-      "rel_mode": { "name": "Relay Mode" },
-      "rel_warning": { "name": "Relay Warning" },
-      "rcap": { "name": "RedCap" },
-      "fwtop": { "name": "Firmware TOP Version" },
-      "fwbtm": { "name": "Firmware BOTTOM Version" },
-      "sn": { "name": "Serial Number" },
-      "hwver": { "name": "Hardware Version" },
-      "btver": { "name": "BT Version" },
-      "hw_wifi": { "name": "Wifi HW Version" },
-      "s2w_app_version": { "name": "Wifi App Version" },
-      "s2w_geps_version": { "name": "Wifi Geps Version" },
-      "s2w_wlan_version": { "name": "Wifi Wlan Version" },
-      "cm_state": { "name": "Connection State" },
-      "cm_consecutive_failures": { "name": "Connection Consecutive Failures" },
-      "cm_backoff_seconds_remaining": { "name": "Connection Backoff Remaining" },
-      "cm_connects_succeeded": { "name": "Connection Connects Succeeded" },
-      "cm_connect_failures": { "name": "Connection Connect Failures" },
-      "cm_reuse_hits": { "name": "Connection Reuse Hits" },
-      "cm_commands_sent": { "name": "Connection Commands Sent" },
-      "cm_commands_failed": { "name": "Connection Commands Failed" },
-      "cm_commands_retried": { "name": "Connection Commands Retried" },
-      "cm_silent_timeouts": { "name": "Connection Silent Timeouts" },
-      "cm_forced_aborts": { "name": "Connection Forced Aborts" },
-      "cm_last_error": { "name": "Connection Last Error" },
-      "devha0_power": { "name": "Smart Plug 1 Power" },
-      "devha0_energy": { "name": "Smart Plug 1 Energy" },
-      "devha0_online": { "name": "Smart Plug 1 Online" },
-      "devha0_rssi": { "name": "Smart Plug 1 Signal" },
-      "devha0_relay": { "name": "Smart Plug 1 Relay" },
-      "devha0_name": { "name": "Smart Plug 1 Name" },
-      "devha1_power": { "name": "Smart Plug 2 Power" },
-      "devha1_energy": { "name": "Smart Plug 2 Energy" },
-      "devha1_online": { "name": "Smart Plug 2 Online" },
-      "devha1_rssi": { "name": "Smart Plug 2 Signal" },
-      "devha1_relay": { "name": "Smart Plug 2 Relay" },
-      "devha1_name": { "name": "Smart Plug 2 Name" }
+      "produced_power": {
+        "name": "Power Produced"
+      },
+      "consumed_power": {
+        "name": "Power Consumed"
+      },
+      "self_consumed_power": {
+        "name": "Power Self-Consumed"
+      },
+      "bought_power": {
+        "name": "Power Imported"
+      },
+      "sold_power": {
+        "name": "Power Exported"
+      },
+      "daily_peak": {
+        "name": "Peak Daily"
+      },
+      "monthly_peak": {
+        "name": "Peak Monthly"
+      },
+      "produced_energy": {
+        "name": "Energy Produced"
+      },
+      "produced_energy_f1": {
+        "name": "Energy Produced F1"
+      },
+      "produced_energy_f2": {
+        "name": "Energy Produced F2"
+      },
+      "produced_energy_f3": {
+        "name": "Energy Produced F3"
+      },
+      "consumed_energy": {
+        "name": "Energy Consumed"
+      },
+      "consumed_energy_f1": {
+        "name": "Energy Consumed F1"
+      },
+      "consumed_energy_f2": {
+        "name": "Energy Consumed F2"
+      },
+      "consumed_energy_f3": {
+        "name": "Energy Consumed F3"
+      },
+      "self_consumed_energy": {
+        "name": "Energy Self-Consumed"
+      },
+      "self_consumed_energy_f1": {
+        "name": "Energy Self-Consumed F1"
+      },
+      "self_consumed_energy_f2": {
+        "name": "Energy Self-Consumed F2"
+      },
+      "self_consumed_energy_f3": {
+        "name": "Energy Self-Consumed F3"
+      },
+      "bought_energy": {
+        "name": "Energy Imported"
+      },
+      "bought_energy_f1": {
+        "name": "Energy Imported F1"
+      },
+      "bought_energy_f2": {
+        "name": "Energy Imported F2"
+      },
+      "bought_energy_f3": {
+        "name": "Energy Imported F3"
+      },
+      "sold_energy": {
+        "name": "Energy Exported"
+      },
+      "sold_energy_f1": {
+        "name": "Energy Exported F1"
+      },
+      "sold_energy_f2": {
+        "name": "Energy Exported F2"
+      },
+      "sold_energy_f3": {
+        "name": "Energy Exported F3"
+      },
+      "alarm_1": {
+        "name": "Alarm 1"
+      },
+      "alarm_2": {
+        "name": "Alarm 2"
+      },
+      "power_alarm": {
+        "name": "Power Alarm"
+      },
+      "pwm_mode": {
+        "name": "PWM Mode"
+      },
+      "pr_ssv": {
+        "name": "Power Reducer Ssv"
+      },
+      "rel_ssv": {
+        "name": "Relay Ssv"
+      },
+      "rel_mode": {
+        "name": "Relay Mode"
+      },
+      "rel_warning": {
+        "name": "Relay Warning"
+      },
+      "rcap": {
+        "name": "RedCap"
+      },
+      "fwtop": {
+        "name": "Firmware TOP Version"
+      },
+      "fwbtm": {
+        "name": "Firmware BOTTOM Version"
+      },
+      "sn": {
+        "name": "Serial Number"
+      },
+      "hwver": {
+        "name": "Hardware Version"
+      },
+      "btver": {
+        "name": "BT Version"
+      },
+      "hw_wifi": {
+        "name": "Wifi HW Version"
+      },
+      "s2w_app_version": {
+        "name": "Wifi App Version"
+      },
+      "s2w_geps_version": {
+        "name": "Wifi Geps Version"
+      },
+      "s2w_wlan_version": {
+        "name": "Wifi Wlan Version"
+      },
+      "cm_state": {
+        "name": "Connection State"
+      },
+      "cm_consecutive_failures": {
+        "name": "Connection Consecutive Failures"
+      },
+      "cm_backoff_seconds_remaining": {
+        "name": "Connection Backoff Remaining"
+      },
+      "cm_connects_succeeded": {
+        "name": "Connection Connects Succeeded"
+      },
+      "cm_connect_failures": {
+        "name": "Connection Connect Failures"
+      },
+      "cm_reuse_hits": {
+        "name": "Connection Reuse Hits"
+      },
+      "cm_commands_sent": {
+        "name": "Connection Commands Sent"
+      },
+      "cm_commands_failed": {
+        "name": "Connection Commands Failed"
+      },
+      "cm_commands_retried": {
+        "name": "Connection Commands Retried"
+      },
+      "cm_silent_timeouts": {
+        "name": "Connection Silent Timeouts"
+      },
+      "cm_forced_aborts": {
+        "name": "Connection Forced Aborts"
+      },
+      "cm_last_error": {
+        "name": "Connection Last Error"
+      },
+      "devha_power": {
+        "name": "Accessory {slot} Power"
+      },
+      "devha_energy": {
+        "name": "Accessory {slot} Energy"
+      },
+      "devha_online": {
+        "name": "Accessory {slot} Online"
+      },
+      "devha_rssi": {
+        "name": "Accessory {slot} Signal"
+      },
+      "devha_relay": {
+        "name": "Accessory {slot} Relay"
+      },
+      "devha_name": {
+        "name": "Accessory {slot} Name"
+      },
+      "devha_devid": {
+        "name": "Accessory {slot} Device ID"
+      }
     },
     "switch": {
-      "relay_state": { "name": "Relay" }
+      "relay_state": {
+        "name": "Relay"
+      }
     }
   },
   "issues": {
