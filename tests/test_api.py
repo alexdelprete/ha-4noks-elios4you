@@ -149,14 +149,35 @@ class TestParsing:
         out = Elios4YouAPI._parse("@dat", raw)
         assert out["devha1"] == "1"
 
-    def test_parse_dat_devha_offline_row_is_all_zero(self) -> None:
-        """An accessory that is not joined reports zeros: a reading, not an error."""
+    def test_parse_dat_devha_offline_row_drops_measurements(self) -> None:
+        """An offline accessory reports zeros, and the measurements are dropped.
+
+        The zeros are a valid reading of "not joined", not measurements. Publishing
+        them would be actively harmful: ``devha<n>_energy`` is TOTAL_INCREASING, so a
+        0 is read as a meter reset and the whole counter is re-added to the Energy
+        dashboard on every offline/online cycle; RSSI 0 misleads the other way, as
+        0 dBm reads as a very strong signal. Omitting the keys leaves the last known
+        values in place, since ``data`` is merged into and never rebuilt.
+        """
         raw = "@dat\n;DEVHA0;1;1;15;0;0;0;0;0;81;PRESA_1;;\n\nready..."
         out = Elios4YouAPI._parse("@dat", raw)
+        # State is still reported: this is what tells the user it is offline.
         assert out["devha0_online"] == "0"
-        assert out["devha0_power"] == "0"
-        assert out["devha0_rssi"] == "0"
+        assert out["devha0_relay"] == "0"
         assert out["devha0_name"] == "PRESA_1"
+        # Measurements are absent, not zero.
+        assert "devha0_power" not in out
+        assert "devha0_energy" not in out
+        assert "devha0_rssi" not in out
+
+    def test_parse_dat_devha_online_row_keeps_measurements(self) -> None:
+        """The guard is conditional: a joined accessory reports everything."""
+        raw = "@dat\n;DEVHA0;1;1;15;1;1;23;1;-59;81;PRESA_1;;\n\nready..."
+        out = Elios4YouAPI._parse("@dat", raw)
+        assert out["devha0_online"] == "1"
+        assert out["devha0_power"] == "23"
+        assert out["devha0_energy"] == "1"
+        assert out["devha0_rssi"] == "-59"
 
     def test_parse_dat_mixes_devha_and_plain_rows(self) -> None:
         """Accessory rows do not disturb the ordinary ``key;value`` rows."""
