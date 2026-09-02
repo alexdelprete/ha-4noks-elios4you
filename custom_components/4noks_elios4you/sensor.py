@@ -14,7 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import Elios4YouConfigEntry
-from .const import CONF_NAME, DOMAIN, SENSOR_ENTITIES
+from .const import CONF_NAME, DEVHA_SENSOR_TEMPLATE, DOMAIN, SENSOR_ENTITIES
 from .coordinator import Elios4YouCoordinator
 from .helpers import log_debug
 
@@ -45,7 +45,10 @@ async def async_setup_entry(
     sensors = []
     for sensor in SENSOR_ENTITIES:
         sensor_def = cast(dict[str, Any], sensor)
-        if coordinator.api.data[sensor_def["key"]] is not None:
+        # ``.get()``: optional keys — such as the Smart RC accessory fields,
+        # which only exist when a Red Cap module with paired accessories is
+        # present — must not break setup on devices that never report them.
+        if coordinator.api.data.get(sensor_def["key"]) is not None:
             sensors.append(
                 Elios4YouSensor(
                     coordinator,
@@ -56,6 +59,38 @@ async def async_setup_entry(
                     sensor_def["state_class"],
                     sensor_def["unit"],
                     sensor_def["enabled_default"],
+                )
+            )
+
+    # Smart RC wireless accessories: one set of sensors per slot actually
+    # reported by the device, so a third or fourth paired accessory is exposed
+    # without touching the code. Slots are discovered from the parsed data --
+    # ``devha0``, ``devha1``, ... -- and numbered from 1 for the user.
+    #
+    # ``.get() is not None`` matters here beyond the usual "optional key" case:
+    # power, energy and RSSI are deliberately not published while an accessory
+    # is offline (see ``_parse_devha_row``), so on a cold start with an offline
+    # accessory those three entities appear only after its first reading.
+    for slot in sorted(
+        {k.split("_", 1)[0] for k in coordinator.api.data if k.startswith("devha") and "_" in k}
+    ):
+        number = int(slot.removeprefix("devha")) + 1
+        for template in DEVHA_SENSOR_TEMPLATE:
+            key = f"{slot}{template['suffix']}"
+            if coordinator.api.data.get(key) is None:
+                continue
+            sensors.append(
+                Elios4YouSensor(
+                    coordinator,
+                    key,
+                    key,
+                    template["icon"],
+                    template["device_class"],
+                    template["state_class"],
+                    template["unit"],
+                    template["enabled_default"],
+                    translation_key=template["translation_key"],
+                    translation_placeholders={"slot": str(number)},
                 )
             )
 
@@ -77,6 +112,8 @@ class Elios4YouSensor(CoordinatorEntity[Elios4YouCoordinator], SensorEntity):
         state_class: SensorStateClass | None,
         unit: str | None,
         enabled_default: bool,
+        translation_key: str | None = None,
+        translation_placeholders: dict[str, str] | None = None,
     ) -> None:
         """Class Initializitation."""
         super().__init__(coordinator)
@@ -93,8 +130,17 @@ class Elios4YouSensor(CoordinatorEntity[Elios4YouCoordinator], SensorEntity):
         self._device_sn: str = str(self._coordinator.api.data.get("sn", ""))
         self._device_swver: str = str(self._coordinator.api.data.get("swver", ""))
         self._device_hwver: str = str(self._coordinator.api.data.get("hwver", ""))
-        # Use translation key for entity name (translations in translations/*.json)
-        self._attr_translation_key = key
+        # Use translation key for entity name (translations in translations/*.json).
+        # Accessory sensors share one key per sensor type and pass the slot
+        # number as a placeholder, so the translations don't have to be
+        # duplicated for every paired accessory.
+        self._attr_translation_key = translation_key or key
+        if translation_placeholders:
+            self._attr_translation_placeholders = translation_placeholders
+        # No ``_attr_entity_category`` here on purpose: the ``entity_category``
+        # property below already classifies as DIAGNOSTIC every sensor without a
+        # state_class, which covers Online, Relay, Name and Device ID. Setting
+        # the attribute would be dead code — an explicit property always wins.
         # Entity registry enabled default (False = disabled by default in UI)
         self._attr_entity_registry_enabled_default = enabled_default
 

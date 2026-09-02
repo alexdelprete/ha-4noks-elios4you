@@ -48,54 +48,167 @@
   },
   "entity": {
     "sensor": {
-      "produced_power": { "name": "Producerad Effekt" },
-      "consumed_power": { "name": "Forbrukad Effekt" },
-      "self_consumed_power": { "name": "Egenforbrukad Effekt" },
-      "bought_power": { "name": "Importerad Effekt" },
-      "sold_power": { "name": "Exporterad Effekt" },
-      "daily_peak": { "name": "Topp Daglig" },
-      "monthly_peak": { "name": "Topp Manatlig" },
-      "produced_energy": { "name": "Producerad Energi" },
-      "produced_energy_f1": { "name": "Producerad Energi F1" },
-      "produced_energy_f2": { "name": "Producerad Energi F2" },
-      "produced_energy_f3": { "name": "Producerad Energi F3" },
-      "consumed_energy": { "name": "Forbrukad Energi" },
-      "consumed_energy_f1": { "name": "Forbrukad Energi F1" },
-      "consumed_energy_f2": { "name": "Forbrukad Energi F2" },
-      "consumed_energy_f3": { "name": "Forbrukad Energi F3" },
-      "self_consumed_energy": { "name": "Egenforbrukad Energi" },
-      "self_consumed_energy_f1": { "name": "Egenforbrukad Energi F1" },
-      "self_consumed_energy_f2": { "name": "Egenforbrukad Energi F2" },
-      "self_consumed_energy_f3": { "name": "Egenforbrukad Energi F3" },
-      "bought_energy": { "name": "Importerad Energi" },
-      "bought_energy_f1": { "name": "Importerad Energi F1" },
-      "bought_energy_f2": { "name": "Importerad Energi F2" },
-      "bought_energy_f3": { "name": "Importerad Energi F3" },
-      "sold_energy": { "name": "Exporterad Energi" },
-      "sold_energy_f1": { "name": "Exporterad Energi F1" },
-      "sold_energy_f2": { "name": "Exporterad Energi F2" },
-      "sold_energy_f3": { "name": "Exporterad Energi F3" },
-      "alarm_1": { "name": "Larm 1" },
-      "alarm_2": { "name": "Larm 2" },
-      "power_alarm": { "name": "Effektlarm" },
-      "pwm_mode": { "name": "PWM-lage" },
-      "pr_ssv": { "name": "Effektreducerare Ssv" },
-      "rel_ssv": { "name": "Rela Ssv" },
-      "rel_mode": { "name": "Rela-lage" },
-      "rel_warning": { "name": "Rela-varning" },
-      "rcap": { "name": "RedCap" },
-      "fwtop": { "name": "Firmware TOP Version" },
-      "fwbtm": { "name": "Firmware BOTTOM Version" },
-      "sn": { "name": "Serienummer" },
-      "hwver": { "name": "Maskinvaruversion" },
-      "btver": { "name": "BT-version" },
-      "hw_wifi": { "name": "Wifi HW-version" },
-      "s2w_app_version": { "name": "Wifi App-version" },
-      "s2w_geps_version": { "name": "Wifi Geps-version" },
-      "s2w_wlan_version": { "name": "Wifi Wlan-version" }
+      "produced_power": {
+        "name": "Producerad Effekt"
+      },
+      "consumed_power": {
+        "name": "Forbrukad Effekt"
+      },
+      "self_consumed_power": {
+        "name": "Egenforbrukad Effekt"
+      },
+      "bought_power": {
+        "name": "Importerad Effekt"
+      },
+      "sold_power": {
+        "name": "Exporterad Effekt"
+      },
+      "daily_peak": {
+        "name": "Topp Daglig"
+      },
+      "monthly_peak": {
+        "name": "Topp Manatlig"
+      },
+      "produced_energy": {
+        "name": "Producerad Energi"
+      },
+      "produced_energy_f1": {
+        "name": "Producerad Energi F1"
+      },
+      "produced_energy_f2": {
+        "name": "Producerad Energi F2"
+      },
+      "produced_energy_f3": {
+        "name": "Producerad Energi F3"
+      },
+      "consumed_energy": {
+        "name": "Forbrukad Energi"
+      },
+      "consumed_energy_f1": {
+        "name": "Forbrukad Energi F1"
+      },
+      "consumed_energy_f2": {
+        "name": "Forbrukad Energi F2"
+      },
+      "consumed_energy_f3": {
+        "name": "Forbrukad Energi F3"
+      },
+      "self_consumed_energy": {
+        "name": "Egenforbrukad Energi"
+      },
+      "self_consumed_energy_f1": {
+        "name": "Egenforbrukad Energi F1"
+      },
+      "self_consumed_energy_f2": {
+        "name": "Egenforbrukad Energi F2"
+      },
+      "self_consumed_energy_f3": {
+        "name": "Egenforbrukad Energi F3"
+      },
+      "bought_energy": {
+        "name": "Importerad Energi"
+      },
+      "bought_energy_f1": {
+        "name": "Importerad Energi F1"
+      },
+      "bought_energy_f2": {
+        "name": "Importerad Energi F2"
+      },
+      "bought_energy_f3": {
+        "name": "Importerad Energi F3"
+      },
+      "sold_energy": {
+        "name": "Exporterad Energi"
+      },
+      "sold_energy_f1": {
+        "name": "Exporterad Energi F1"
+      },
+      "sold_energy_f2": {
+        "name": "Exporterad Energi F2"
+      },
+      "sold_energy_f3": {
+        "name": "Exporterad Energi F3"
+      },
+      "alarm_1": {
+        "name": "Larm 1"
+      },
+      "alarm_2": {
+        "name": "Larm 2"
+      },
+      "power_alarm": {
+        "name": "Effektlarm"
+      },
+      "pwm_mode": {
+        "name": "PWM-lage"
+      },
+      "pr_ssv": {
+        "name": "Effektreducerare Ssv"
+      },
+      "rel_ssv": {
+        "name": "Rela Ssv"
+      },
+      "rel_mode": {
+        "name": "Rela-lage"
+      },
+      "rel_warning": {
+        "name": "Rela-varning"
+      },
+      "rcap": {
+        "name": "RedCap"
+      },
+      "fwtop": {
+        "name": "Firmware TOP Version"
+      },
+      "fwbtm": {
+        "name": "Firmware BOTTOM Version"
+      },
+      "sn": {
+        "name": "Serienummer"
+      },
+      "hwver": {
+        "name": "Maskinvaruversion"
+      },
+      "btver": {
+        "name": "BT-version"
+      },
+      "hw_wifi": {
+        "name": "Wifi HW-version"
+      },
+      "s2w_app_version": {
+        "name": "Wifi App-version"
+      },
+      "s2w_geps_version": {
+        "name": "Wifi Geps-version"
+      },
+      "s2w_wlan_version": {
+        "name": "Wifi Wlan-version"
+      },
+      "devha_power": {
+        "name": "Tillbehör {slot} Effekt"
+      },
+      "devha_energy": {
+        "name": "Tillbehör {slot} Energi"
+      },
+      "devha_online": {
+        "name": "Tillbehör {slot} Online"
+      },
+      "devha_rssi": {
+        "name": "Tillbehör {slot} Signal"
+      },
+      "devha_relay": {
+        "name": "Tillbehör {slot} Relä"
+      },
+      "devha_name": {
+        "name": "Tillbehör {slot} Namn"
+      },
+      "devha_devid": {
+        "name": "Tillbehör {slot} Enhets-ID"
+      }
     },
     "switch": {
-      "relay_state": { "name": "Rela" }
+      "relay_state": {
+        "name": "Rela"
+      }
     }
   },
   "issues": {
