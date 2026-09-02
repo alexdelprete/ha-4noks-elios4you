@@ -79,6 +79,89 @@ class TestSensorSetup:
         # Should create sensors for all defined sensor entities
         assert len(entities) == len(SENSOR_ENTITIES)
 
+    async def _setup(self, hass: HomeAssistant, coordinator) -> list:
+        """Run the platform setup and collect the entities it creates."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_NAME: TEST_NAME, CONF_HOST: TEST_HOST, CONF_PORT: TEST_PORT},
+            options={CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL},
+        )
+        entry.add_to_hass(hass)
+        runtime_data = MagicMock()
+        runtime_data.coordinator = coordinator
+        entry.runtime_data = runtime_data
+
+        entities: list = []
+        await async_setup_entry(hass, entry, entities.extend)
+        return entities
+
+    @pytest.mark.asyncio
+    async def test_setup_creates_one_sensor_set_per_accessory_slot(
+        self, hass: HomeAssistant, mock_coordinator
+    ) -> None:
+        """A joined accessory gets the full set of seven sensors.
+
+        Slots are discovered from the parsed data rather than hardcoded, so this
+        also guards the case that motivated the change: a third accessory must be
+        exposed without touching the code.
+        """
+        mock_coordinator.api.data.update(
+            {
+                "devha0": "1",
+                "devha0_online": "1",
+                "devha0_relay": "1",
+                "devha0_power": "23",
+                "devha0_energy": "1",
+                "devha0_rssi": "-59",
+                "devha0_devid": "81",
+                "devha0_name": "PRESA_1",
+            }
+        )
+
+        entities = await self._setup(hass, mock_coordinator)
+        accessory = [e for e in entities if e._key.startswith("devha0_")]
+
+        assert len(accessory) == 7
+        assert len(entities) == len(SENSOR_ENTITIES) + 7
+
+        # One translation key per sensor *type*, with the slot injected as a
+        # placeholder: that is what keeps the translations at seven strings per
+        # language instead of six per accessory.
+        power = next(e for e in accessory if e._key == "devha0_power")
+        assert power._attr_translation_key == "devha_power"
+        assert power._attr_translation_placeholders == {"slot": "1"}
+
+    @pytest.mark.asyncio
+    async def test_setup_skips_measurements_of_accessory_offline_at_first_poll(
+        self, hass: HomeAssistant, mock_coordinator
+    ) -> None:
+        """An accessory offline at the first poll gets only its state sensors.
+
+        The offline guard in ``_parse_devha_row`` omits power, energy and RSSI, so
+        on a cold start those keys have never existed and the entities are not
+        created until the accessory reports. Deliberate: an entity showing 0 W for
+        an accessory nobody has ever heard from would be a fabricated measurement.
+        """
+        mock_coordinator.api.data.update(
+            {
+                "devha0": "1",
+                "devha0_online": "0",
+                "devha0_relay": "0",
+                "devha0_devid": "81",
+                "devha0_name": "PRESA_1",
+            }
+        )
+
+        entities = await self._setup(hass, mock_coordinator)
+        accessory = {e._key for e in entities if e._key.startswith("devha0_")}
+
+        assert accessory == {
+            "devha0_online",
+            "devha0_relay",
+            "devha0_devid",
+            "devha0_name",
+        }
+
     @pytest.mark.asyncio
     async def test_async_setup_entry_skips_none_values(
         self, hass: HomeAssistant, mock_coordinator
