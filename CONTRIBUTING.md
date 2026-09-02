@@ -51,11 +51,12 @@ explain why it is the supported path rather than a convenience:
 
 ## Installing dependencies by hand
 
-If you are not using the devcontainer, **the order matters**:
+If you are not using the devcontainer, **the order matters** — install
+`pytest-homeassistant-custom-component` first, at the exact version pinned in `pyproject.toml`:
 
 ```bash
-pip install 'pytest-homeassistant-custom-component==0.13.356'   # first
-pip install -r requirements-dev.txt                             # layered on top
+pip install "pytest-homeassistant-custom-component==<version pinned in pyproject.toml>"
+pip install -r requirements-dev.txt   # layered on top
 ```
 
 `pytest-homeassistant-custom-component` is intentionally absent from `requirements-dev.txt`: it
