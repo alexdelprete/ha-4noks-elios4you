@@ -44,10 +44,10 @@ explain why it is the supported path rather than a convenience:
 
 | Symptom | Cause |
 |---|---|
-| `No matching distribution found for homeassistant>=2026.3.0` | Python older than **3.14.2**. pip discards every candidate release for the Python version and does not say so. |
-| `ModuleNotFoundError: No module named 'custom_components.fournoks_elios4you'` | The symlink is not recreated by git on Windows (it needs `core.symlinks=true` and elevation). Reads like a broken checkout. |
-| `Error importing plugin "pytest_homeassistant_custom_component"` | The package is deliberately **not** in `requirements-dev.txt` — see below. |
-| `ln: failed to create symbolic link: Not a directory` | An NTFS junction created on the Windows side does not survive a Docker bind mount. Create the symlink inside the container instead. |
+| `No matching distribution found for homeassistant>=2026.3.0` | Python older than **3.14.2** — pip does not say so. |
+| `No module named 'custom_components.fournoks_elios4you'` | Missing symlink; git on Windows does not recreate it. |
+| `Error importing plugin "pytest_homeassistant_custom_component"` | Deliberately absent — see below. |
+| `ln: failed to create symbolic link: Not a directory` | An NTFS junction does not survive a Docker bind mount. |
 
 ## Installing dependencies by hand
 
