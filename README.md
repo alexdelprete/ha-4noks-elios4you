@@ -103,6 +103,18 @@ gentle behaviour through an explicit state machine
 - **Accessory relays are read-only**: the telnet protocol offers no verified command to switch
   an accessory relay (`@rel <n>` addressing was tested on real hardware and is silently
   ignored by the device). Relay control remains exclusive to the 4-noks app.
+- **Accessory identity is the slot, not the device**: the protocol exposes no per-accessory
+  serial (the ZigBee device-type field reads the same for identical models), so entities are
+  keyed on the pairing slot (`devha0`, `devha1`, …). A **replacement accessory paired into a
+  previously used slot inherits everything** from the old one: entity IDs, custom names,
+  energy history, and even enable/disable preferences — deleting the old entities first does
+  not help, because Home Assistant restores the stored settings when the same unique ID
+  reappears. When swapping hardware, rename or clean up deliberately and expect the energy
+  counter to restart (see next point). Slots are sticky: un-pairing an accessory does not
+  renumber the others.
+- **Re-pairing an accessory zeroes its internal energy counter** (device behavior): the Wh
+  total restarts from 0, which Home Assistant statistics register as a meter reset. Same
+  family as the counter loss on power failure above, but user-triggered.
 
 <!-- BEGIN SHARED:repo-sync:installation -->
 <!-- Synced by repo-sync on 2026-09-04 -->
@@ -395,6 +407,28 @@ automation:
 ```
 
 ## Troubleshooting
+
+### Smart RC Accessories
+
+All of the following come from real-hardware testing — none of them are integration bugs, but
+they look like integration bugs when you hit them:
+
+- **"Relay reports open but the load is still powered."** Observed in the field on a ZR-PLUG
+  that had been switching under load in Automatic mode for months: the firmware got stuck
+  believing the relay was open (power/energy/relay all reported zero) while the socket stayed
+  live. **Factory-reset the accessory (hold its button ~10 s) and re-pair it before assuming
+  a hardware failure** — the reset restored full function in the observed case.
+- **"Home Assistant and the 4-noks app show different values."** The app's Smart RC screen
+  does not refresh while it is open — it can show 0 W for minutes while the integration reads
+  the live value continuously. Navigate away and back in the app to force a refresh before
+  comparing.
+- **Pairing quirks (app-side)**: pairing needs *two* button presses — ~10 s to reset, then
+  ~3 s to actually start pairing; the app's "wait for the blue blinking" instruction refers
+  to an LED state this hardware does not have (its LED table has no blue at all); and the app
+  may report "Pairing failed — radio module not responding" even when pairing succeeded (the
+  accessory appears in Home Assistant regardless — the integration follows the device data,
+  not the app). A freshly paired accessory also has an **empty name** until you set one in
+  the app: the "Accessory N" label the app shows is generated, not stored on the device.
 
 ### Enabling Debug Logging
 
