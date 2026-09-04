@@ -331,7 +331,9 @@ class TestDeviceRegistry:
 
         # Verify device was created in registry
         device_registry = dr.async_get(hass)
-        device = device_registry.async_get_device(identifiers={(DOMAIN, mock_api_data["sn"])})
+        device = device_registry.async_get_device_by_identifier(
+            (DOMAIN, mock_api_data["sn"]), entry.entry_id
+        )
 
         assert device is not None
         assert device.name == TEST_NAME
@@ -378,7 +380,9 @@ class TestDeviceRegistry:
 
         # Verify device was created with all expected data
         device_registry = dr.async_get(hass)
-        device = device_registry.async_get_device(identifiers={(DOMAIN, "SN123456789")})
+        device = device_registry.async_get_device_by_identifier(
+            (DOMAIN, "SN123456789"), entry.entry_id
+        )
 
         assert device is not None
         assert device.name == "My Solar Monitor"
