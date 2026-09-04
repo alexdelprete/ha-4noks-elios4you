@@ -18,6 +18,7 @@ from custom_components.fournoks_elios4you.const import CONF_SCAN_INTERVAL, DOMAI
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL, TEST_SERIAL_NUMBER
@@ -116,6 +117,28 @@ class TestBinarySensorSetup:
         # Refresh without new slots: no duplicates.
         listener()
         assert len(entities) == 2
+
+    @pytest.mark.asyncio
+    async def test_unpaired_accessory_binary_sensors_are_removed(
+        self, hass: HomeAssistant, mock_coordinator
+    ) -> None:
+        """Un-pairing an accessory removes its binary sensors from the registry."""
+        mock_coordinator.api.data.update({"devha0": 1, "devha0_online": 1, "devha0_relay": 0})
+        entities = await self._setup(hass, mock_coordinator)
+        assert {e._key for e in entities} == {"devha0_online", "devha0_relay"}
+        listener = mock_coordinator.async_add_listener.call_args[0][0]
+
+        entity_registry = er.async_get(hass)
+        registered = entity_registry.async_get_or_create(
+            "binary_sensor", DOMAIN, f"{DOMAIN}_{TEST_SERIAL_NUMBER}_devha0_online"
+        )
+
+        for key in list(mock_coordinator.api.data):
+            if key.startswith("devha0"):
+                del mock_coordinator.api.data[key]
+        listener()
+
+        assert entity_registry.async_get(registered.entity_id) is None
 
 
 class TestBinarySensorEntity:

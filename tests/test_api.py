@@ -388,6 +388,47 @@ class TestCommandParseError:
 class TestMergeBranches:
     """Cover the @dat utc_time / int branches and the @sta value-error branch."""
 
+    def test_merge_dat_prunes_unpaired_accessory_slots(self, mock_hass) -> None:
+        """Keys of a slot that stopped appearing in @dat are removed.
+
+        An un-paired accessory stops emitting its DEVHA row entirely; since
+        ``self.data`` is merged into and never rebuilt, its keys must be pruned
+        or they would survive forever with frozen values.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api.data.update(
+            {
+                "devha0": 1,
+                "devha0_power": 23.0,
+                "devha0_name": "PRESA_1",
+                "devha1": 1,
+                "devha1_power": 40.0,
+                "devha1_name": "PRESA_2",
+            }
+        )
+
+        # devha1 was un-paired: only devha0's row appears in the new parse.
+        api._merge_dat({"devha0": "1", "devha0_power": "25", "devha0_name": "PRESA_1"})
+
+        assert api.data["devha0_power"] == 25.0
+        assert not any(k.startswith("devha1") for k in api.data)
+
+    def test_merge_dat_offline_row_does_not_prune_measurements(self, mock_hass) -> None:
+        """An offline accessory still emits its row: its slot must survive.
+
+        The offline guard omits power/energy/rssi from the parsed row, but the
+        bare ``devha<n>`` key is still present — so the prune must keep the
+        last-known measurement values the guard deliberately preserves.
+        """
+        api = Elios4YouAPI(mock_hass, TEST_NAME, TEST_HOST, TEST_PORT)
+        api.data.update({"devha0": 1, "devha0_online": 1, "devha0_power": 82.0})
+
+        # Offline parse: slot present, measurements absent.
+        api._merge_dat({"devha0": "1", "devha0_online": "0", "devha0_relay": "0"})
+
+        assert api.data["devha0_online"] == 0
+        assert api.data["devha0_power"] == 82.0
+
     @pytest.mark.asyncio
     async def test_merge_dat_skips_utc_time_and_parses_ints(self, mock_hass) -> None:
         """@dat: utc_time is skipped, non-energy/power values are parsed as int."""

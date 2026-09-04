@@ -298,7 +298,21 @@ class Elios4YouAPI:
     # ------------------------------------------------------------------ #
 
     def _merge_dat(self, parsed: dict[str, str]) -> None:
-        """Merge a parsed ``@dat`` response into ``self.data``."""
+        """Merge a parsed ``@dat`` response into ``self.data``.
+
+        Accessory keys of slots that no longer appear in the response are
+        pruned first: an un-paired accessory stops emitting its ``DEVHA<n>``
+        row entirely, and since ``self.data`` is merged into rather than
+        rebuilt, its keys would otherwise survive forever with frozen values.
+        An *offline* accessory still emits its row (all zeros), so its slot —
+        and the last-known measurements the offline guard preserves — are
+        untouched by the prune.
+        """
+        slots_present = {k for k in parsed if k.startswith("devha") and "_" not in k}
+        for key in [k for k in self.data if k.startswith("devha")]:
+            if key.split("_", 1)[0] not in slots_present:
+                del self.data[key]
+
         for key, value in parsed.items():
             try:
                 if key.endswith("_name"):

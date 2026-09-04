@@ -10,7 +10,16 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 import ipaddress
 import logging
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+from homeassistant.helpers import entity_registry as er
+
+from .const import DOMAIN
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
+    from .coordinator import Elios4YouCoordinator
 
 
 def host_valid(host: str | None) -> bool:
@@ -145,3 +154,40 @@ def log_error(logger: logging.Logger, context: str, message: str, **kwargs: Any)
         context_parts = [f"{k}={v}" for k, v in kwargs.items()]
         context_str += f" [{', '.join(context_parts)}]"
     logger.error("%s: %s", context_str, message)
+
+
+def remove_stale_accessory_entities(
+    hass: HomeAssistant,
+    platform: str,
+    coordinator: Elios4YouCoordinator,
+    created_keys: set[str],
+) -> None:
+    """Remove entities of accessory slots that vanished from the data.
+
+    The API prunes ``self.data`` of every key belonging to a ``DEVHA<n>`` slot
+    that stopped appearing in ``@dat`` (an un-paired accessory). This removes
+    the matching entities from the registry and drops them from
+    ``created_keys`` so a re-paired accessory is recreated cleanly.
+
+    Removal is slot-level on purpose: an *offline* accessory keeps emitting
+    its row, so its slot survives and the measurement entities the offline
+    guard preserves are never removed here.
+    """
+    slots_present = {k for k in coordinator.api.data if k.startswith("devha") and "_" not in k}
+    stale = {k for k in created_keys if k.split("_", 1)[0] not in slots_present}
+    if not stale:
+        return
+    entity_registry = er.async_get(hass)
+    serial_number = str(coordinator.api.data.get("sn", ""))
+    for key in stale:
+        created_keys.discard(key)
+        unique_id = f"{DOMAIN}_{serial_number}_{key}"
+        entity_id = entity_registry.async_get_entity_id(platform, DOMAIN, unique_id)
+        if entity_id:
+            entity_registry.async_remove(entity_id)
+            log_debug(
+                logging.getLogger(__name__),
+                "remove_stale_accessory_entities",
+                "Removed entity of un-paired accessory",
+                entity_id=entity_id,
+            )

@@ -15,6 +15,7 @@ from custom_components.fournoks_elios4you.sensor import Elios4YouSensor, async_s
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, UnitOfEnergy, UnitOfPower
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL, TEST_SERIAL_NUMBER
@@ -219,6 +220,46 @@ class TestSensorSetup:
             "devha0_energy",
             "devha0_rssi",
         }
+
+    @pytest.mark.asyncio
+    async def test_unpaired_accessory_entities_are_removed(
+        self, hass: HomeAssistant, mock_coordinator
+    ) -> None:
+        """Un-pairing an accessory removes its entities from the registry.
+
+        The API prunes the slot's keys from the data; the platform listener
+        must then drop the registry entries (slot-level: an offline accessory
+        keeps its row, so this never fires for a merely offline one) and
+        forget the keys, so a re-paired accessory is recreated cleanly.
+        """
+        mock_coordinator.api.data.update(
+            {"devha0": 1, "devha0_power": 23.0, "devha0_name": "PRESA_1"}
+        )
+        entities = await self._setup(hass, mock_coordinator)
+        assert {e._key for e in entities if e._key.startswith("devha")} == {
+            "devha0_power",
+            "devha0_name",
+        }
+        listener = mock_coordinator.async_add_listener.call_args[0][0]
+
+        # Register one of the two as the platform would have.
+        entity_registry = er.async_get(hass)
+        registered = entity_registry.async_get_or_create(
+            "sensor", DOMAIN, f"{DOMAIN}_{TEST_SERIAL_NUMBER}_devha0_power"
+        )
+
+        # The accessory is un-paired: the API pruned every devha0 key.
+        for key in list(mock_coordinator.api.data):
+            if key.startswith("devha0"):
+                del mock_coordinator.api.data[key]
+        listener()
+
+        assert entity_registry.async_get(registered.entity_id) is None
+
+        # Re-pairing recreates the entities (created_keys was forgotten).
+        mock_coordinator.api.data.update({"devha0": 1, "devha0_power": 30.0})
+        listener()
+        assert [e._key for e in entities if e._key.startswith("devha")].count("devha0_power") == 2
 
     @pytest.mark.asyncio
     async def test_async_setup_entry_skips_none_values(

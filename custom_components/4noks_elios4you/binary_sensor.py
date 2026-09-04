@@ -4,9 +4,14 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 Smart RC wireless accessories report two genuinely binary states — Online
 (joined/not joined) and Relay (contact closed/open, a real physical contact in
-the accessory) — which live here rather than as 0/1 numeric sensors. Relay is
-read-only until the ``@rel <n>`` accessory-addressing hypothesis is confirmed
-on real hardware; if it holds, it graduates to a switch entity.
+the accessory) — which live here rather than as 0/1 numeric sensors.
+
+Relay is read-only: the ``@rel <n> <state>`` accessory-addressing hypothesis
+was tested on real hardware (2026-09-04, PR #182 discussion) and falsified —
+the device accepts a non-zero index and silently ignores it, replying exactly
+as to a bare ``@rel``, so a switch built on it would report success while the
+relay never moves. Do not reintroduce a switch for it without a verified
+command from a capture of the official app's traffic.
 """
 
 import logging
@@ -21,7 +26,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from . import Elios4YouConfigEntry
 from .const import CONF_NAME, DEVHA_BINARY_SENSOR_TEMPLATE, DOMAIN
 from .coordinator import Elios4YouCoordinator
-from .helpers import log_debug
+from .helpers import log_debug, remove_stale_accessory_entities
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,14 +53,18 @@ async def async_setup_entry(
     created_keys: set[str] = set()
 
     @callback
-    def _async_add_new_accessory_binary_sensors() -> None:
+    def _async_sync_accessory_binary_sensors() -> None:
         new_entities = _build_accessory_binary_sensors(coordinator, created_keys)
         if new_entities:
             async_add_entities(new_entities)
+        # An un-paired accessory stops emitting its DEVHA row; the API prunes
+        # its keys, and here its entities leave the registry (slot-level, so an
+        # offline accessory's entities are never touched).
+        remove_stale_accessory_entities(hass, "binary_sensor", coordinator, created_keys)
 
-    _async_add_new_accessory_binary_sensors()
+    _async_sync_accessory_binary_sensors()
     config_entry.async_on_unload(
-        coordinator.async_add_listener(_async_add_new_accessory_binary_sensors)
+        coordinator.async_add_listener(_async_sync_accessory_binary_sensors)
     )
 
 

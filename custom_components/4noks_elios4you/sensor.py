@@ -16,7 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from . import Elios4YouConfigEntry
 from .const import CONF_NAME, DEVHA_SENSOR_TEMPLATE, DOMAIN, SENSOR_ENTITIES
 from .coordinator import Elios4YouCoordinator
-from .helpers import log_debug
+from .helpers import log_debug, remove_stale_accessory_entities
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,13 +74,17 @@ async def async_setup_entry(
     created_keys: set[str] = set()
 
     @callback
-    def _async_add_new_accessory_sensors() -> None:
+    def _async_sync_accessory_sensors() -> None:
         new_entities = _build_accessory_sensors(coordinator, created_keys)
         if new_entities:
             async_add_entities(new_entities)
+        # An un-paired accessory stops emitting its DEVHA row; the API prunes
+        # its keys, and here its entities leave the registry (slot-level, so an
+        # offline accessory's entities are never touched).
+        remove_stale_accessory_entities(hass, "sensor", coordinator, created_keys)
 
-    _async_add_new_accessory_sensors()
-    config_entry.async_on_unload(coordinator.async_add_listener(_async_add_new_accessory_sensors))
+    _async_sync_accessory_sensors()
+    config_entry.async_on_unload(coordinator.async_add_listener(_async_sync_accessory_sensors))
 
 
 def _build_accessory_sensors(

@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0-beta.2] - 2026-09-04
+
+Incremental over v1.4.0-beta.1, driven by @RickyReds' beta report on real hardware.
+
+### ✨ Features
+
+- **Stale-entity cleanup**: un-pairing an accessory now removes its entities automatically.
+  The API prunes the data keys of any `DEVHA<n>` slot that stops appearing in `@dat`, and the
+  platforms remove the matching registry entries — slot-level, so a merely *offline* accessory
+  (which keeps emitting its row) is never touched. Re-pairing recreates the entities cleanly.
+
+### 🔧 Changed
+
+- **Accessory Relay is definitively read-only.** The `@rel <n> <state>` accessory-addressing
+  hypothesis was tested on real hardware and falsified: the device accepts a non-zero index
+  and silently ignores it. A switch entity will not be added unless a working command is ever
+  captured from the official app's traffic.
+
+### 📚 Documentation
+
+- README Known Limitations now documents three findings from real-hardware testing:
+  accessories may lose part of their internal Wh counter on power loss (statistics can adjust
+  downward — understated, never inflated); Relay is not a reachability indicator (watch
+  Online); accessory relays cannot be switched via the local protocol.
+- Release notes now include manual installation steps alongside HACS.
+
+---
+
 ## [1.4.0-beta.1] - 2026-09-04
 
 First pre-release since v1.3.1. Everything below is new relative to that release.

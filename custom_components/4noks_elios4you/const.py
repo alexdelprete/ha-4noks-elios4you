@@ -672,8 +672,13 @@ DEVHA_SENSOR_TEMPLATE: tuple[dict[str, Any], ...] = (
 # Relay are genuinely binary (joined/not joined, contact closed/open — the
 # relay is a real physical contact in the accessory), so they belong on the
 # binary_sensor platform rather than being exposed as 0/1 numeric sensors.
-# Relay stays read-only until the ``@rel <n>`` accessory-addressing hypothesis
-# is confirmed on real hardware; if it holds, it graduates to a switch.
+# Relay is read-only: ``@rel <n> <state>`` accessory addressing was tested on
+# real hardware and falsified (silently ignored by the device) — see the
+# binary_sensor module docstring before considering a switch.
+#
+# Note for automations (documented in README): Relay is NOT a reachability
+# indicator — it keeps its last state when the accessory is physically
+# unplugged. Watch Online for reachability.
 DEVHA_BINARY_SENSOR_TEMPLATE: tuple[dict[str, Any], ...] = (
     {
         "suffix": "_online",

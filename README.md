@@ -90,6 +90,19 @@ gentle behaviour through an explicit state machine
 
 - **Single device per integration instance**: Each Elios4you device requires a separate
   integration instance. To monitor multiple devices, add the integration multiple times.
+- **Smart RC accessories may lose part of their energy counter on power loss** (device
+  limitation): a ZR-PLUG that loses mains power can come back reporting a *lower* Wh total
+  than before. The integration cannot detect this — the low value arrives from an accessory
+  that is online, indistinguishable from a legitimate reading — so the Energy dashboard may
+  show a small downward adjustment after an accessory power cycle. Understated, never
+  inflated.
+- **The accessory Relay state is not a reachability indicator**: it reports the last state
+  the accessory declared and keeps it when the accessory is physically unplugged. Automations
+  that care whether an accessory is actually reachable must watch its **Online** binary
+  sensor, not Relay.
+- **Accessory relays are read-only**: the telnet protocol offers no verified command to switch
+  an accessory relay (`@rel <n>` addressing was tested on real hardware and is silently
+  ignored by the device). Relay control remains exclusive to the 4-noks app.
 
 <!-- BEGIN SHARED:repo-sync:installation -->
 <!-- Synced by repo-sync on 2026-09-04 -->
