@@ -1,7 +1,8 @@
-# Contributing
+# Contributing to 4-noks Elios4you
 
-Thanks for wanting to contribute. This document covers the development environment; for what to
-change and why, open an issue first so we can agree on the approach.
+Thanks for wanting to contribute. This document covers the development environment and the
+pull request flow. For anything beyond a small fix, open an issue first so we can agree on the
+approach before you spend time on it.
 
 ## Development environment: use the devcontainer
 
@@ -12,22 +13,49 @@ Open the repository in VS Code with the [Dev Containers][devcontainers] extensio
 *Reopen in Container*. Docker Desktop is enough on Windows and macOS. The container gives you,
 with no further setup:
 
-- **Python 3.14** with all development dependencies, installed via `uv pip install -e '.[dev]'`
-  from `pyproject.toml`;
-- the **`fournoks_elios4you` → `4noks_elios4you` symlink**, created by `postCreateCommand`. It
-  exists because `4noks_elios4you` starts with a digit and is therefore not importable from
-  Python: the tests import through the symlinked name;
-- `pre-commit` installed and wired up;
-- a live Home Assistant instance on port **8123** to test against a real setup.
+- the exact **Python** version pinned in `.python-version`, in a virtualenv that is already on
+  `PATH`;
+- all development dependencies, installed with `uv pip install -e '.[dev]'` from `pyproject.toml`.
+  That includes `pytest-homeassistant-custom-component`, which pins the exact Home Assistant
+  release the tests run against;
+- the **`fournoks_elios4you` → `4noks_elios4you` symlink**, created by
+  `postCreateCommand`. It exists because `4noks_elios4you` starts with a digit and is
+  therefore not importable from Python: the tests import through the symlinked name;
+- `pre-commit` installed and wired to the git hooks, so every commit is linted;
+- a live Home Assistant instance you can start on port **8123** (see below).
 
-Then:
+### Running the tests
 
 ```bash
-python -m pytest tests/          # the whole suite
-python -m pytest tests/test_api.py
+pytest tests/                    # the whole suite, without coverage
+pytest tests/test_init.py        # one module
+pytest tests/ --cov=custom_components/4noks_elios4you --cov-report=term-missing
+```
+
+The last form is what CI runs. Coverage is collected only in CI so local runs stay fast, and the
+VS Code test explorer is configured the same way.
+
+### Linting and type checking
+
+`pre-commit run --all-files` runs everything CI runs: ruff (lint and format), ty, yamllint,
+jsonlint and pymarkdown. The same hooks run automatically on `git commit`. The individual tools:
+
+```bash
 ruff check custom_components/ tests/
 ruff format custom_components/ tests/
+ty check custom_components/fournoks_elios4you
 ```
+
+### Running a live Home Assistant
+
+```bash
+scripts/develop
+```
+
+or the *Run Home Assistant* task in VS Code. It starts Home Assistant with `config/` as its
+configuration directory and this integration loaded from `custom_components/`, then serves the
+UI on <http://localhost:8123>. `config/configuration.yaml` is versioned; the runtime state Home
+Assistant writes under `config/` is ignored by git.
 
 ## ⚠️ The test suite cannot run natively on Windows
 
@@ -38,30 +66,45 @@ installing fixes it.
 Windows contributors have three options, in order of preference: the **devcontainer** (above),
 **WSL**, or any Linux container.
 
-Four further obstacles are worth knowing about, because each one produces an error message that
+A few further obstacles are worth knowing about, because each one produces an error message that
 points somewhere else. They are all handled by the devcontainer, and are listed here only to
 explain why it is the supported path rather than a convenience:
 
 | Symptom | Cause |
 |---|---|
-| `No matching distribution found for homeassistant>=2026.3.0` | Python older than **3.14.2** — pip does not say so. |
+| `No matching distribution found for homeassistant>=2026.8.0` | Python older than **3.14.2** — pip does not say so. |
 | `No module named 'custom_components.fournoks_elios4you'` | Missing symlink; git on Windows does not recreate it. |
-| `Error importing plugin "pytest_homeassistant_custom_component"` | Deliberately absent — see below. |
 | `ln: failed to create symbolic link: Not a directory` | An NTFS junction does not survive a Docker bind mount. |
 
 ## Installing dependencies by hand
 
-If you are not using the devcontainer, **the order matters** — install
-`pytest-homeassistant-custom-component` first, at the exact version pinned in `pyproject.toml`:
+If you are not using the devcontainer (Linux or WSL), install the `dev` extra from
+`pyproject.toml` in one step, with Python 3.14.2 or newer:
 
 ```bash
-pip install "pytest-homeassistant-custom-component==<version pinned in pyproject.toml>"
-pip install -r requirements-dev.txt   # layered on top
+uv venv && source .venv/bin/activate
+uv pip install -e '.[dev]'
+pre-commit install
+ln -sfn 4noks_elios4you custom_components/fournoks_elios4you
 ```
 
-`pytest-homeassistant-custom-component` is intentionally absent from `requirements-dev.txt`: it
-pins an exact `homeassistant` version, while `requirements-dev.txt` asks for a range. Installing
-both in a single resolution step makes pip reconcile the two, which is why the packages are
-layered instead. The first line of that file says so — it is not an omission.
+`pyproject.toml` is the single source of truth for development dependencies: there is no
+`requirements-dev.txt`. `pytest-homeassistant-custom-component` is pinned there to an exact version,
+and it in turn pins the exact `homeassistant` release, which is what makes the test environment
+reproducible.
+
+## Making changes
+
+- Branch from `main` and keep each pull request to one change.
+- Write commit messages as [Conventional Commits][conventional]: `feat:`, `fix:`, `docs:`,
+  `refactor:`, `test:`, `chore:`, with an optional scope such as `feat(sensor):`.
+- Reference issues neutrally (`Refs #12`), never with closing keywords such as `fixes #12`:
+  issues are closed by the maintainer, not by automation.
+- Add or update tests for behaviour you change; CI runs the full suite with coverage.
+- Do not edit files marked as managed by `repo-sync` (the `BEGIN SHARED` / `END SHARED` blocks
+  and the workflow, lint and devcontainer files). They are overwritten from a shared template.
+- Make sure `pre-commit run --all-files` and `pytest tests/` pass before opening the pull
+  request, and that all CI checks are green before requesting a review.
 
 [devcontainers]: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+[conventional]: https://www.conventionalcommits.org/

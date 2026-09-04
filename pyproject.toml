@@ -20,7 +20,7 @@ classifiers = [
 [project.optional-dependencies]
 dev = [
     "colorlog>=6.10.0",
-    "homeassistant>=2026.3.0",
+    "homeassistant>=2026.8.0",
     "homeassistant-stubs",
     "mdformat",
     "mdformat-gfm",
@@ -55,7 +55,7 @@ pytest = [
 ]
 dev = [
     "colorlog>=6.10.0",
-    "homeassistant>=2026.3.0",
+    "homeassistant>=2026.8.0",
     "telnetlib3>=2.0.4",
     { include-group = "lint" },
     { include-group = "pytest" },

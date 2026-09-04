@@ -1,6 +1,6 @@
 {
   "name": "4-noks Elios4you",
-  "homeassistant": "2026.3.0",
+  "homeassistant": "2026.8.0",
   "content_in_root": false,
   "render_readme": true,
   "zip_release": true,
