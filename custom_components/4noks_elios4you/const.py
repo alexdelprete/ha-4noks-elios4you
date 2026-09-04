@@ -13,7 +13,7 @@ from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT, UnitOfEnergy
 # Base component constants
 NAME = "4-noks Elios4you integration"
 DOMAIN = "4noks_elios4you"
-VERSION = "1.4.0-beta.1"
+VERSION = "1.4.0-beta.2"
 ATTRIBUTION = "by @alexdelprete"
 ISSUE_URL = "https://github.com/alexdelprete/ha-4noks-elios4you/issues"
 
