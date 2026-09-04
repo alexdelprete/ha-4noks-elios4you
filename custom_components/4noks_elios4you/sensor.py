@@ -62,24 +62,48 @@ async def async_setup_entry(
                 )
             )
 
+    async_add_entities(sensors)
+
     # Smart RC wireless accessories: one set of sensors per slot actually
-    # reported by the device, so a third or fourth paired accessory is exposed
-    # without touching the code. Slots are discovered from the parsed data --
-    # ``devha0``, ``devha1``, ... -- and numbered from 1 for the user.
-    #
-    # ``.get() is not None`` matters here beyond the usual "optional key" case:
-    # power, energy and RSSI are deliberately not published while an accessory
-    # is offline (see ``_parse_devha_row``), so on a cold start with an offline
-    # accessory those three entities appear only after its first reading.
+    # reported by the device, discovered *dynamically*. The tracked-keys set
+    # plus a coordinator listener means entities appear the moment their key
+    # first shows up in the data — an accessory paired after HA starts, or an
+    # accessory that was offline at the first poll coming online (power, energy
+    # and RSSI are deliberately not published while offline, see
+    # ``_parse_devha_row``) — with no integration reload needed.
+    created_keys: set[str] = set()
+
+    @callback
+    def _async_add_new_accessory_sensors() -> None:
+        new_entities = _build_accessory_sensors(coordinator, created_keys)
+        if new_entities:
+            async_add_entities(new_entities)
+
+    _async_add_new_accessory_sensors()
+    config_entry.async_on_unload(coordinator.async_add_listener(_async_add_new_accessory_sensors))
+
+
+def _build_accessory_sensors(
+    coordinator: Elios4YouCoordinator, created_keys: set[str]
+) -> list[Elios4YouSensor]:
+    """Build sensors for accessory keys not yet turned into entities.
+
+    Slots are discovered from the parsed data -- ``devha0``, ``devha1``, ... --
+    and numbered from 1 for the user. ``created_keys`` is updated in place so
+    repeated calls (initial setup, then every coordinator refresh) only create
+    each entity once.
+    """
+    new_entities: list[Elios4YouSensor] = []
     for slot in sorted(
         {k.split("_", 1)[0] for k in coordinator.api.data if k.startswith("devha") and "_" in k}
     ):
         number = int(slot.removeprefix("devha")) + 1
         for template in DEVHA_SENSOR_TEMPLATE:
             key = f"{slot}{template['suffix']}"
-            if coordinator.api.data.get(key) is None:
+            if key in created_keys or coordinator.api.data.get(key) is None:
                 continue
-            sensors.append(
+            created_keys.add(key)
+            new_entities.append(
                 Elios4YouSensor(
                     coordinator,
                     key,
@@ -93,8 +117,7 @@ async def async_setup_entry(
                     translation_placeholders={"slot": str(number)},
                 )
             )
-
-    async_add_entities(sensors)
+    return new_entities
 
 
 class Elios4YouSensor(CoordinatorEntity[Elios4YouCoordinator], SensorEntity):
@@ -139,8 +162,8 @@ class Elios4YouSensor(CoordinatorEntity[Elios4YouCoordinator], SensorEntity):
             self._attr_translation_placeholders = translation_placeholders
         # No ``_attr_entity_category`` here on purpose: the ``entity_category``
         # property below already classifies as DIAGNOSTIC every sensor without a
-        # state_class, which covers Online, Relay, Name and Device ID. Setting
-        # the attribute would be dead code — an explicit property always wins.
+        # state_class, which covers Name and Device ID. Setting the attribute
+        # would be dead code — an explicit property always wins.
         # Entity registry enabled default (False = disabled by default in UI)
         self._attr_entity_registry_enabled_default = enabled_default
 

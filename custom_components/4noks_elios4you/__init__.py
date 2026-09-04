@@ -30,7 +30,7 @@ from .helpers import log_debug, log_error, log_info
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.SWITCH]
 
 # The type alias needs to be suffixed with 'ConfigEntry'
 type Elios4YouConfigEntry = ConfigEntry[RuntimeData]

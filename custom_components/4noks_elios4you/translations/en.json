@@ -47,6 +47,14 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "devha_online": {
+        "name": "Accessory {slot} Online"
+      },
+      "devha_relay": {
+        "name": "Accessory {slot} Relay"
+      }
+    },
     "sensor": {
       "produced_power": {
         "name": "Power Produced"
@@ -225,14 +233,8 @@
       "devha_energy": {
         "name": "Accessory {slot} Energy"
       },
-      "devha_online": {
-        "name": "Accessory {slot} Online"
-      },
       "devha_rssi": {
         "name": "Accessory {slot} Signal"
-      },
-      "devha_relay": {
-        "name": "Accessory {slot} Relay"
       },
       "devha_name": {
         "name": "Accessory {slot} Name"

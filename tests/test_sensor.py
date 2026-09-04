@@ -99,10 +99,12 @@ class TestSensorSetup:
     async def test_setup_creates_one_sensor_set_per_accessory_slot(
         self, hass: HomeAssistant, mock_coordinator
     ) -> None:
-        """A joined accessory gets the full set of seven sensors.
+        """A joined accessory gets the full set of five sensors.
 
-        Slots are discovered from the parsed data rather than hardcoded, so this
-        also guards the case that motivated the change: a third accessory must be
+        Online and Relay live on the binary_sensor platform, so the sensor
+        platform contributes Power, Energy, Signal, Name and Device ID. Slots
+        are discovered from the parsed data rather than hardcoded, so this also
+        guards the case that motivated the change: a third accessory must be
         exposed without touching the code.
         """
         mock_coordinator.api.data.update(
@@ -121,12 +123,18 @@ class TestSensorSetup:
         entities = await self._setup(hass, mock_coordinator)
         accessory = [e for e in entities if e._key.startswith("devha0_")]
 
-        assert len(accessory) == 7
-        assert len(entities) == len(SENSOR_ENTITIES) + 7
+        assert {e._key for e in accessory} == {
+            "devha0_power",
+            "devha0_energy",
+            "devha0_rssi",
+            "devha0_name",
+            "devha0_devid",
+        }
+        assert len(entities) == len(SENSOR_ENTITIES) + 5
 
         # One translation key per sensor *type*, with the slot injected as a
-        # placeholder: that is what keeps the translations at seven strings per
-        # language instead of six per accessory.
+        # placeholder: that is what keeps the translations at one string per
+        # sensor type per language instead of one per accessory.
         power = next(e for e in accessory if e._key == "devha0_power")
         assert power._attr_translation_key == "devha_power"
         assert power._attr_translation_placeholders == {"slot": "1"}
@@ -141,6 +149,8 @@ class TestSensorSetup:
         on a cold start those keys have never existed and the entities are not
         created until the accessory reports. Deliberate: an entity showing 0 W for
         an accessory nobody has ever heard from would be a fabricated measurement.
+        (Online and Relay are binary sensors, not sensors, so only Name and
+        Device ID remain here.)
         """
         mock_coordinator.api.data.update(
             {
@@ -156,10 +166,58 @@ class TestSensorSetup:
         accessory = {e._key for e in entities if e._key.startswith("devha0_")}
 
         assert accessory == {
-            "devha0_online",
-            "devha0_relay",
             "devha0_devid",
             "devha0_name",
+        }
+
+    @pytest.mark.asyncio
+    async def test_accessory_sensors_are_added_dynamically_at_runtime(
+        self, hass: HomeAssistant, mock_coordinator
+    ) -> None:
+        """Accessory sensors appear on a coordinator refresh, without a reload.
+
+        Covers both dynamic cases: an accessory paired after HA starts, and an
+        accessory that was offline at the first poll coming online (its
+        measurement keys appear only then). Also asserts idempotency: a refresh
+        with no new keys must not create duplicate entities.
+        """
+        entities = await self._setup(hass, mock_coordinator)
+        assert not [e for e in entities if e._key.startswith("devha")]
+
+        # The platform registered exactly one listener on the coordinator.
+        listener = mock_coordinator.async_add_listener.call_args[0][0]
+
+        # Accessory paired later, offline at its first appearance.
+        mock_coordinator.api.data.update(
+            {
+                "devha0": 1,
+                "devha0_online": 0,
+                "devha0_relay": 0,
+                "devha0_devid": 81,
+                "devha0_name": "PRESA_1",
+            }
+        )
+        listener()
+        assert {e._key for e in entities if e._key.startswith("devha")} == {
+            "devha0_devid",
+            "devha0_name",
+        }
+
+        # Refresh without new keys: no duplicates.
+        listener()
+        assert len([e for e in entities if e._key.startswith("devha")]) == 2
+
+        # The accessory comes online: measurement sensors appear on that poll.
+        mock_coordinator.api.data.update(
+            {"devha0_online": 1, "devha0_power": 23.0, "devha0_energy": 1.0, "devha0_rssi": -59}
+        )
+        listener()
+        assert {e._key for e in entities if e._key.startswith("devha")} == {
+            "devha0_devid",
+            "devha0_name",
+            "devha0_power",
+            "devha0_energy",
+            "devha0_rssi",
         }
 
     @pytest.mark.asyncio

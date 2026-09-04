@@ -47,6 +47,14 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "devha_online": {
+        "name": "Tilbehør {slot} Online"
+      },
+      "devha_relay": {
+        "name": "Tilbehør {slot} Relé"
+      }
+    },
     "sensor": {
       "produced_power": {
         "name": "Produsert Effekt"
@@ -189,14 +197,8 @@
       "devha_energy": {
         "name": "Tilbehør {slot} Energi"
       },
-      "devha_online": {
-        "name": "Tilbehør {slot} Online"
-      },
       "devha_rssi": {
         "name": "Tilbehør {slot} Signal"
-      },
-      "devha_relay": {
-        "name": "Tilbehør {slot} Relé"
       },
       "devha_name": {
         "name": "Tilbehør {slot} Navn"

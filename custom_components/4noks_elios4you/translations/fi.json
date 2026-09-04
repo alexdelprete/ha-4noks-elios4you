@@ -47,6 +47,14 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "devha_online": {
+        "name": "Lisälaite {slot} Verkossa"
+      },
+      "devha_relay": {
+        "name": "Lisälaite {slot} Rele"
+      }
+    },
     "sensor": {
       "produced_power": {
         "name": "Tuotettu Teho"
@@ -189,14 +197,8 @@
       "devha_energy": {
         "name": "Lisälaite {slot} Energia"
       },
-      "devha_online": {
-        "name": "Lisälaite {slot} Verkossa"
-      },
       "devha_rssi": {
         "name": "Lisälaite {slot} Signaali"
-      },
-      "devha_relay": {
-        "name": "Lisälaite {slot} Rele"
       },
       "devha_name": {
         "name": "Lisälaite {slot} Nimi"

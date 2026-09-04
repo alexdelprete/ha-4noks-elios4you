@@ -12,8 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Smart RC wireless accessories are now exposed as sensors.** The `DEVHA<n>` rows returned by
   `@dat` carry ten fields per accessory paired to the Red Cap radio module (online, relay, power,
   energy, RSSI, ZigBee device ID, name), but the parser treated every row as a plain
-  `name;value` pair and kept only the first field. Each accessory now gets seven sensors: Power,
-  Energy, Online, Signal, Relay, Name, and Device ID.
+  `name;value` pair and kept only the first field. Each accessory now gets five sensors (Power,
+  Energy, Signal, Name, Device ID) plus two binary sensors (Online, Relay).
+- **New `binary_sensor` platform.** Accessory Online (device class `connectivity`) and Relay are
+  genuinely binary states — the relay is a real physical contact in the accessory — so they are
+  binary sensors rather than 0/1 numeric sensors. Relay stays read-only until the `@rel <n>`
+  accessory-addressing hypothesis is confirmed on real hardware; if it holds, it becomes a switch.
+- **Accessory entities are created dynamically at runtime.** A coordinator listener adds entities
+  the moment their data first appears: an accessory paired after Home Assistant starts, or an
+  accessory that was offline at the first poll coming online, gets its entities on the next poll —
+  no integration reload needed.
 - **Sensors are generated per discovered slot**, not from hardcoded `devha0`/`devha1` blocks, so
   a third or fourth paired accessory is exposed without a code change. The slot number is
   injected into the entity name via `translation_placeholders`, keeping translations at seven

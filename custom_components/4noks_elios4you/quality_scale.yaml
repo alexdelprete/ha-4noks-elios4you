@@ -151,7 +151,10 @@ rules:
   # Rule: Devices added after integration setup
   dynamic-devices:
     status: exempt
-    comment: Single device integration, no dynamic device addition.
+    comment: >
+      Single device integration. Smart RC accessories are entities on that
+      device, not HA devices, and their entities ARE added dynamically at
+      runtime (coordinator listener in sensor.py / binary_sensor.py).
 
   # Rule: Entities are assigned an appropriate EntityCategory
   entity-category: done # Uses EntityCategory.DIAGNOSTIC where appropriate

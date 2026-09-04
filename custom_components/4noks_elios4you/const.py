@@ -5,6 +5,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from typing import Any
 
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT, UnitOfEnergy, UnitOfPower
@@ -613,9 +614,11 @@ SENSOR_ENTITIES = [
 # can report the value for accessories other than the Smart Plug -- 81/0x0051 is
 # the only one confirmed so far.
 #
+# Online and Relay are binary states and live on the binary_sensor platform
+# (``DEVHA_BINARY_SENSOR_TEMPLATE`` below), not here.
+#
 # No entity_category here: Elios4YouSensor already classifies as DIAGNOSTIC
-# every sensor without a state_class, which covers Online, Relay, Name and
-# Device ID.
+# every sensor without a state_class, which covers Name and Device ID.
 DEVHA_SENSOR_TEMPLATE: tuple[dict[str, Any], ...] = (
     {
         "suffix": "_power",
@@ -636,15 +639,6 @@ DEVHA_SENSOR_TEMPLATE: tuple[dict[str, Any], ...] = (
         "enabled_default": True,
     },
     {
-        "suffix": "_online",
-        "translation_key": "devha_online",
-        "icon": "mdi:access-point-network",
-        "device_class": None,
-        "state_class": None,
-        "unit": None,
-        "enabled_default": True,
-    },
-    {
         "suffix": "_rssi",
         "translation_key": "devha_rssi",
         # ZigBee link, not WiFi: mdi:wifi-strength-2 would be the wrong radio.
@@ -652,15 +646,6 @@ DEVHA_SENSOR_TEMPLATE: tuple[dict[str, Any], ...] = (
         "device_class": SensorDeviceClass.SIGNAL_STRENGTH,
         "state_class": SensorStateClass.MEASUREMENT,
         "unit": SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-        "enabled_default": False,
-    },
-    {
-        "suffix": "_relay",
-        "translation_key": "devha_relay",
-        "icon": "mdi:electric-switch",
-        "device_class": None,
-        "state_class": None,
-        "unit": None,
         "enabled_default": False,
     },
     {
@@ -679,6 +664,29 @@ DEVHA_SENSOR_TEMPLATE: tuple[dict[str, Any], ...] = (
         "device_class": None,
         "state_class": None,
         "unit": None,
+        "enabled_default": False,
+    },
+)
+
+# Binary sensors created for every Smart RC wireless accessory: Online and
+# Relay are genuinely binary (joined/not joined, contact closed/open — the
+# relay is a real physical contact in the accessory), so they belong on the
+# binary_sensor platform rather than being exposed as 0/1 numeric sensors.
+# Relay stays read-only until the ``@rel <n>`` accessory-addressing hypothesis
+# is confirmed on real hardware; if it holds, it graduates to a switch.
+DEVHA_BINARY_SENSOR_TEMPLATE: tuple[dict[str, Any], ...] = (
+    {
+        "suffix": "_online",
+        "translation_key": "devha_online",
+        "icon": "mdi:access-point-network",
+        "device_class": BinarySensorDeviceClass.CONNECTIVITY,
+        "enabled_default": True,
+    },
+    {
+        "suffix": "_relay",
+        "translation_key": "devha_relay",
+        "icon": "mdi:electric-switch",
+        "device_class": None,
         "enabled_default": False,
     },
 )
