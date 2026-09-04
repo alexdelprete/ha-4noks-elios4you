@@ -302,6 +302,7 @@ class TestDeviceRegistry:
         self,
         hass: HomeAssistant,
         mock_api_data: dict,
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """Test that async_update_device_registry creates a device in the registry."""
         # Create a mock coordinator with mock API data
@@ -342,6 +343,13 @@ class TestDeviceRegistry:
         assert device.sw_version == mock_api_data["swver"]
         assert device.hw_version == mock_api_data["hwver"]
         assert device.serial_number == mock_api_data["sn"]
+
+        # The device id comes straight from async_get_or_create's return value,
+        # so it must match the registry entry without any second lookup ...
+        assert mock_coordinator.device_id == device.id
+        # ... and that second lookup was the deprecated async_get_device, whose
+        # per-run deprecation warning (HA >= 2026.9) must therefore not appear.
+        assert "async_get_device" not in caplog.text
 
     async def test_async_update_device_registry_with_all_data(
         self,

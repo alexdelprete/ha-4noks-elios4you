@@ -84,7 +84,10 @@ def async_update_device_registry(hass: HomeAssistant, config_entry: Elios4YouCon
     """Manual device registration."""
     coordinator = config_entry.runtime_data.coordinator
     device_registry = dr.async_get(hass)
-    device_registry.async_get_or_create(
+    # async_get_or_create returns the DeviceEntry, so no second registry lookup
+    # is needed to learn the device id (the old re-read used the deprecated
+    # async_get_device, removed in HA 2027.8).
+    device = device_registry.async_get_or_create(
         config_entry_id=config_entry.entry_id,
         hw_version=str(coordinator.api.data.get("hwver", "")),
         identifiers={(DOMAIN, str(coordinator.api.data.get("sn", "")))},
@@ -98,16 +101,13 @@ def async_update_device_registry(hass: HomeAssistant, config_entry: Elios4YouCon
     )
 
     # Store device_id in coordinator for device triggers
-    serial_number = str(coordinator.api.data.get("sn", ""))
-    device = device_registry.async_get_device(identifiers={(DOMAIN, serial_number)})
-    if device:
-        coordinator.device_id = device.id
-        log_debug(
-            _LOGGER,
-            "async_update_device_registry",
-            "Device ID stored in coordinator",
-            device_id=device.id,
-        )
+    coordinator.device_id = device.id
+    log_debug(
+        _LOGGER,
+        "async_update_device_registry",
+        "Device ID stored in coordinator",
+        device_id=device.id,
+    )
 
 
 async def async_remove_config_entry_device(
