@@ -3,7 +3,7 @@
 https://github.com/alexdelprete/ha-4noks-elios4you
 """
 
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 import logging
 import time
 from typing import Any
@@ -73,7 +73,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
             update_interval=update_interval,
         )
 
-        self.last_update_time = datetime.now(tz=UTC)
+        self.last_update_time = dt_util.utcnow()
         self.last_update_success = True
         self._consecutive_failures = 0
         self._repair_issue_created = False
@@ -125,10 +125,10 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
 
     async def async_update_data(self) -> bool:
         """Update data method."""
-        log_debug(_LOGGER, "async_update_data", "Update started", time=datetime.now(tz=UTC))
+        log_debug(_LOGGER, "async_update_data", "Update started", time=dt_util.utcnow())
         try:
             self.last_update_status = await self.api.async_get_data()
-            self.last_update_time = datetime.now(tz=UTC)
+            self.last_update_time = dt_util.utcnow()
             log_debug(
                 _LOGGER,
                 "async_update_data",
