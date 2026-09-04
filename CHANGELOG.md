@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.0-beta.1] - 2026-09-04
+
+First pre-release since v1.3.1. Everything below is new relative to that release.
+Full credit to @RickyReds for the protocol reverse engineering, the initial implementation,
+and the production testing behind the accessory support (reported in #181, implemented in #182).
 
 ### ✨ Features
 
@@ -43,11 +47,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Signal sensor uses `mdi:zigbee`** instead of `mdi:wifi-strength-2`: the accessory link is
   ZigBee, not WiFi.
 
+### 🔧 Changed
+
+- **Minimum Home Assistant version raised to 2026.8.0** (was 2026.3.0). HACS will not offer this
+  update on older HA installations.
+- **Replaced the deprecated `device_registry.async_get_device` API** (warning since HA 2026.9,
+  removal in HA 2027.8): the post-create device lookup now uses `async_get_or_create`'s return
+  value directly.
+- **New `CONTRIBUTING.md`** documenting the devcontainer as the supported development path;
+  `requirements-dev.txt` was dropped — `pyproject.toml` is the single source of truth for
+  development dependencies. Tests now run against HA 2026.9.0 in CI
+  (`pytest-homeassistant-custom-component` 0.13.363).
+
 ### ⚠️ Breaking Changes
 
-**None for existing installations.** Entity `unique_id`s are unchanged (`{domain}_{sn}_{key}`,
-with keys still `devha<n>_<field>`), so entities are not recreated; only their display names
-change from "Smart Plug N …" to "Accessory N …".
+**None for installations upgrading from v1.3.1** — every accessory entity is new in this
+release, and all pre-existing entity `unique_id`s are unchanged. (If you were running the
+`main` branch between releases: accessory Online and Relay moved from the sensor platform to
+the new binary_sensor platform and their display names changed from "Smart Plug N …" to
+"Accessory N …" — remove the orphaned sensor entities from the entity registry.)
 
 ⚠️ **One behaviour worth knowing:** if an accessory is *already offline* when the integration
 first polls, its power, energy and signal entities are not created until it comes back online —
