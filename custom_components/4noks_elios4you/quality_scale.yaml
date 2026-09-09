@@ -120,12 +120,16 @@ rules:
   # Rule: Devices can be discovered
   discovery:
     status: exempt
-    comment: Telnet devices cannot be auto-discovered.
+    comment: >
+      No HA-recognised discovery protocol (zeroconf/dhcp/ssdp) is available.
+      The device does answer an undocumented UDP-5002 probe, which the config
+      flow uses to pre-fill the host field (discovery.py) — best-effort
+      convenience, not a native discovery flow.
 
   # Rule: Integration uses discovery info to update network information
   discovery-update-info:
     status: exempt
-    comment: No discovery mechanism available for Telnet.
+    comment: No HA-recognised discovery mechanism (see discovery).
 
   # Rule: The documentation describes how data is updated
   docs-data-update: done # README explains polling via Telnet

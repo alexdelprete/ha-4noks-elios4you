@@ -50,6 +50,7 @@ from .const import (
     MIN_PORT,
     MIN_SCAN_INTERVAL,
 )
+from .discovery import async_discover_devices
 from .helpers import host_valid, log_debug, log_error
 
 _LOGGER = logging.getLogger(__name__)
@@ -143,6 +144,25 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
 
                 errors[CONF_HOST] = "cannot_connect"
 
+        # Best-effort UDP discovery (port 5002, non-exclusive so it cannot
+        # disturb a running integration): pre-fill the host with the first
+        # device that answers. Only on the initial form display — re-shows
+        # after a validation error keep whatever the user typed.
+        suggested_host: str | None = None
+        if user_input is None:
+            discovered = await async_discover_devices()
+            if discovered:
+                suggested_host = next(iter(discovered))
+                log_debug(
+                    _LOGGER,
+                    "async_step_user",
+                    "Discovered device(s) via UDP broadcast",
+                    found=len(discovered),
+                    suggested=suggested_host,
+                )
+        else:
+            suggested_host = user_input.get(CONF_HOST)
+
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
@@ -153,6 +173,7 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
                     ): cv.string,
                     vol.Required(
                         CONF_HOST,
+                        description={"suggested_value": suggested_host},
                     ): cv.string,
                     vol.Required(
                         CONF_PORT,

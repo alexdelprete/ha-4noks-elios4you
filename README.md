@@ -82,6 +82,10 @@ gentle behaviour through an explicit state machine
 - **Serialised access** — a single `asyncio.Lock` means polls and switch commands never race
 - **Structured logging** — every state transition and connection event is logged with the
   `(ConnMgr.*)` prefix (see Troubleshooting below)
+- **Host auto-discovery** — the add-integration form pre-fills the device address by probing
+  the network (undocumented UDP-5002 discovery protocol; best-effort, manual entry always works)
+- **ZigBee radio diagnostics** — Red Cap channel and PAN ID as disabled-by-default sensors,
+  for diagnosing accessory interference issues
 - **Diagnostic sensors** — 12 metrics (state, consecutive failures, silent timeouts, forced
   aborts, reuse hits, etc.) are exposed as opt-in sensors under the device's Diagnostic
   section so you can watch what the manager is doing without enabling debug logs
@@ -413,6 +417,18 @@ automation:
 All of the following come from real-hardware testing — none of them are integration bugs, but
 they look like integration bugs when you hit them:
 
+- ⚠️ **Saving settings in the 4-noks app opens the accessory relay — and leaves it open.**
+  Verified on real hardware: pressing *Save* on an accessory's settings screen (even with
+  nothing changed) opens the relay, and it does **not** close again by itself — the load stays
+  dead until someone turns it back on. Do not touch accessory settings while a critical load
+  (NAS, PC, freezer) is powered through the socket. An automation on the accessory's Relay
+  binary sensor can alert you if this happens.
+- ⚠️ **The per-socket operating mode (Manual/Automatic/Timer) can silently revert to
+  Automatic** — observed after a network reconfiguration — and the device does not report the
+  mode over the local protocol at all, so no integration can detect or alert on this. If a
+  socket must never switch on its own (Automatic mode switches the relay under load, which is
+  suspected in a relay-failure case), periodically verify the mode in the app, socket by
+  socket.
 - **"Relay reports open but the load is still powered."** Observed in the field on a ZR-PLUG
   that had been switching under load in Automatic mode for months: the firmware got stuck
   believing the relay was open (power/energy/relay all reported zero) while the socket stayed

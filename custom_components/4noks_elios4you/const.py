@@ -597,6 +597,28 @@ SENSOR_ENTITIES = [
         # diagnosing a problem / filing a bug report.
         "enabled_default": True,
     },
+    # ZigBee radio diagnostics from the Red Cap module (@inf): channel and PAN
+    # id of the Smart RC network. Interference is the most common accessory
+    # complaint, and the channel tells the user whether to blame neighbouring
+    # WiFi. Absent on devices without a Red Cap — the setup guard skips them.
+    {
+        "name": "ZigBee Channel",
+        "key": "rcap_ch_",
+        "icon": "mdi:zigbee",
+        "device_class": None,
+        "state_class": None,
+        "unit": None,
+        "enabled_default": False,
+    },
+    {
+        "name": "ZigBee PAN ID",
+        "key": "rcap_pan",
+        "icon": "mdi:zigbee",
+        "device_class": None,
+        "state_class": None,
+        "unit": None,
+        "enabled_default": False,
+    },
 ]
 
 # Sensors created for every Smart RC wireless accessory paired to the Red Cap

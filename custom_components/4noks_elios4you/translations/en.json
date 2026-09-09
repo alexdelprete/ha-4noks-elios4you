@@ -227,6 +227,12 @@
       "cm_last_error": {
         "name": "Connection Last Error"
       },
+      "rcap_ch_": {
+        "name": "ZigBee Channel"
+      },
+      "rcap_pan": {
+        "name": "ZigBee PAN ID"
+      },
       "devha_power": {
         "name": "Accessory {slot} Power"
       },

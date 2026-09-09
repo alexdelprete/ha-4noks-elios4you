@@ -191,6 +191,12 @@
       "s2w_wlan_version": {
         "name": "Wifi Wlan-versio"
       },
+      "rcap_ch_": {
+        "name": "ZigBee-kanava"
+      },
+      "rcap_pan": {
+        "name": "ZigBee PAN-tunnus"
+      },
       "devha_power": {
         "name": "Lisälaite {slot} Teho"
       },

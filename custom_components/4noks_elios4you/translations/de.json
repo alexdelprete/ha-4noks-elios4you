@@ -191,6 +191,12 @@
       "s2w_wlan_version": {
         "name": "Wifi Wlan-Version"
       },
+      "rcap_ch_": {
+        "name": "ZigBee-Kanal"
+      },
+      "rcap_pan": {
+        "name": "ZigBee-PAN-ID"
+      },
       "devha_power": {
         "name": "Zubehör {slot} Leistung"
       },

@@ -47,6 +47,16 @@ def integration_setup_fixture() -> Generator[None]:
         yield
 
 
+@pytest.fixture(name="mock_discovery", autouse=True)
+def mock_discovery_fixture() -> Generator[AsyncMock]:
+    """Keep the real UDP discovery probe (and its timeout) out of flow tests."""
+    with patch(
+        "custom_components.fournoks_elios4you.config_flow.async_discover_devices",
+        new=AsyncMock(return_value={}),
+    ) as mock:
+        yield mock
+
+
 # =============================================================================
 # Integration Tests (Using real hass fixture)
 # =============================================================================
@@ -380,6 +390,44 @@ class TestAsyncStepUserDirect:
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "user"
         assert result["errors"] == {}
+
+    async def test_discovery_suggests_host_on_initial_form(
+        self, mock_hass: MagicMock, mock_discovery: AsyncMock
+    ) -> None:
+        """A device answering the UDP probe pre-fills the host field."""
+        mock_discovery.return_value = {"192.168.1.50": "5ED47C7F"}
+        flow = Elios4YouConfigFlow()
+        flow.hass = mock_hass
+        flow.context = {"source": config_entries.SOURCE_USER}
+
+        result = await flow.async_step_user(None)
+
+        mock_discovery.assert_awaited_once()
+        host_marker = next(k for k in result["data_schema"].schema if k.schema == CONF_HOST)
+        assert host_marker.description == {"suggested_value": "192.168.1.50"}
+
+    async def test_discovery_not_probed_again_after_validation_error(
+        self, mock_hass: MagicMock, mock_discovery: AsyncMock
+    ) -> None:
+        """Re-showing the form after an error keeps the typed host, no re-probe."""
+        mock_hass.config_entries.async_entries.return_value = []
+        flow = Elios4YouConfigFlow()
+        flow.hass = mock_hass
+        flow.context = {"source": config_entries.SOURCE_USER}
+
+        result = await flow.async_step_user(
+            {
+                CONF_NAME: TEST_NAME,
+                CONF_HOST: "not a host!",
+                CONF_PORT: TEST_PORT,
+                CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
+            }
+        )
+
+        assert result["errors"] == {CONF_HOST: "invalid_host"}
+        mock_discovery.assert_not_awaited()
+        host_marker = next(k for k in result["data_schema"].schema if k.schema == CONF_HOST)
+        assert host_marker.description == {"suggested_value": "not a host!"}
 
     async def test_async_step_user_already_configured(self, mock_hass: MagicMock) -> None:
         """Test error when host is already configured."""

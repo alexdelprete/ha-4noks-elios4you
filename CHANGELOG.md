@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0-beta.3] - 2026-09-08
+
+Incremental over v1.4.0-beta.2, driven by @RickyReds' four-day stability soak and his
+discovery of the device's UDP discovery protocol.
+
+### ✨ Features
+
+- **Host auto-discovery in the config flow.** The device answers an undocumented discovery
+  protocol on UDP port 5002 (`Elios4you` → `HELLO <serial>`), found by capturing the official
+  app's traffic. The add-integration form now probes the network and pre-fills the host field
+  with the first responding device. Best-effort: unlike telnet, the UDP endpoint is
+  non-exclusive, so probing never disturbs a running integration, and manual entry always
+  works.
+- **ZigBee radio diagnostics**: Red Cap channel and PAN ID exposed as disabled-by-default
+  diagnostic sensors — the data needed to diagnose accessory interference (the most common
+  Smart RC complaint) was read on every poll but never surfaced.
+
+### 📚 Documentation
+
+- ⚠️ Two warnings in Troubleshooting from real-hardware findings: **saving accessory settings
+  in the 4-noks app opens the relay and leaves it open indefinitely** (the load stays dead
+  until manually re-enabled), and **the per-socket operating mode can silently revert to
+  Automatic** with no way to detect it over the local protocol.
+
+---
+
 ## [1.4.0-beta.2] - 2026-09-04
 
 Incremental over v1.4.0-beta.1, driven by @RickyReds' beta report on real hardware.
