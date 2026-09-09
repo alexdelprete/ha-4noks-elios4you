@@ -5,6 +5,74 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-09-09
+
+Stable release consolidating the three 1.4.0 betas — everything below is new since v1.3.1.
+Full credit to @RickyReds: the protocol reverse engineering, the initial implementation
+(#182, reported in #181), the discovery-protocol find, and four rounds of real-hardware beta
+testing including a genuine blackout that validated the statistics behaviour.
+
+### ✨ Features
+
+- **Smart RC wireless accessory support.** The `DEVHA<n>` rows in `@dat` (one per accessory
+  paired to the Red Cap module) were parsed as plain `name;value` pairs and discarded. Each
+  accessory now gets five sensors — Power (W), Energy (Wh, `total_increasing`), Signal (dBm),
+  Name, ZigBee Device ID — plus two binary sensors: Online (`connectivity`) and Relay.
+- **New `binary_sensor` platform** for the two genuinely binary accessory states. Relay is
+  read-only: `@rel <n>` accessory addressing was tested on real hardware and is silently
+  ignored by the device.
+- **Dynamic accessory entities.** Entities are created the moment their data first appears
+  (accessory paired after HA starts, or an offline accessory coming online) and removed when
+  an accessory is un-paired — no integration reload in either direction. Verified on
+  hardware: creation and cleanup both within one poll.
+- **Per-slot generation, neutral naming.** Any number of accessories is supported without
+  code changes ("Accessory N" — the Red Cap pairs plugs, switches, relays, power reducers
+  and energy meters). The ZigBee Device ID diagnostic sensor exists so users can report
+  values for types other than the Smart Plug (`81`/`0x0051`, the only one confirmed).
+- **Host auto-discovery.** The device answers an undocumented discovery protocol on UDP 5002
+  (`Elios4you` → `HELLO <serial>`); the add-integration form broadcasts a probe and
+  pre-fills the host field. Non-exclusive (never disturbs a running integration),
+  best-effort, verified on two networks and two firmware generations. Requires the HA
+  process to have LAN broadcast access (host networking).
+- **ZigBee radio diagnostics**: Red Cap channel and PAN ID as disabled-by-default sensors,
+  for diagnosing accessory interference.
+
+### 🐛 Bug Fixes
+
+- **Offline accessories no longer report zeros** for power, energy and RSSI: a zero energy
+  reading is read by the statistics engine as a meter reset, inflating the Energy dashboard
+  on every offline/online cycle. Last-known values persist while offline; only Online and
+  Relay reflect the offline row. Survived a provoked counter reset and a real 35-minute
+  blackout with statistics tracking exactly.
+- Signal sensor icon is `mdi:zigbee` (ZigBee link, not WiFi).
+
+### 🔧 Changed
+
+- **Minimum Home Assistant version raised to 2026.8.0** (was 2026.3.0). HACS will not offer
+  this update on older installations.
+- Replaced the deprecated `device_registry.async_get_device` API (removal in HA 2027.8) with
+  `async_get_or_create`'s return value.
+- New `CONTRIBUTING.md` centered on the devcontainer; `requirements-dev.txt` dropped —
+  `pyproject.toml` is the single dependency source. CI tests against HA 2026.9.
+
+### 📚 Documentation
+
+- Known Limitations and a Smart RC Troubleshooting section built from real-hardware
+  findings: accessory counters resume from a periodic internal save after power loss
+  (statistics adjust downward, undetectable); re-pairing zeroes the counter; Relay is not a
+  reachability indicator (watch Online); accessory relays cannot be switched locally;
+  entities are slot-keyed, so a replacement accessory inherits entities, history and stored
+  preferences; the 4-noks app's Save-settings leaves the accessory relay open indefinitely;
+  the per-socket operating mode can silently revert to Automatic; a stuck relay state is
+  fixable by factory reset; the app's Smart RC screen does not auto-refresh.
+
+### ⚠️ Breaking Changes
+
+**None for installations upgrading from v1.3.1** — every accessory entity is new, and all
+pre-existing entity `unique_id`s are unchanged. Note the raised HA minimum (2026.8.0).
+
+---
+
 ## [1.4.0-beta.3] - 2026-09-08
 
 Incremental over v1.4.0-beta.2, driven by @RickyReds' four-day stability soak and his

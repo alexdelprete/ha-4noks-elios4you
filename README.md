@@ -97,12 +97,15 @@ gentle behaviour through an explicit state machine
 
 - **Single device per integration instance**: Each Elios4you device requires a separate
   integration instance. To monitor multiple devices, add the integration multiple times.
-- **Smart RC accessories may lose part of their energy counter on power loss** (device
-  limitation): a ZR-PLUG that loses mains power can come back reporting a *lower* Wh total
-  than before. The integration cannot detect this — the low value arrives from an accessory
-  that is online, indistinguishable from a legitimate reading — so the Energy dashboard may
-  show a small downward adjustment after an accessory power cycle. Understated, never
-  inflated.
+- **Smart RC accessories lose recent energy counts on power loss** (device limitation): the
+  accessory persists its Wh counter only periodically (observed: an internal save roughly
+  every couple of hours). After mains power is lost — a blackout, or unplugging the socket —
+  it resumes from the last save, so the counter comes back *lower* by whatever accumulated
+  since. The integration cannot detect this (the low value arrives from an online accessory,
+  indistinguishable from a legitimate reading); Home Assistant statistics follow the counter
+  down, verified in a real 35-minute blackout where the sum tracked the decrease exactly with
+  no phantom jumps. Understated, never inflated. Re-pairing is the more drastic variant: it
+  zeroes the counter entirely (documented below).
 - **The accessory Relay state is not a reachability indicator**: it reports the last state
   the accessory declared and keeps it when the accessory is physically unplugged. Automations
   that care whether an accessory is actually reachable must watch its **Online** binary
