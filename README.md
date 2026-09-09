@@ -83,7 +83,10 @@ gentle behaviour through an explicit state machine
 - **Structured logging** — every state transition and connection event is logged with the
   `(ConnMgr.*)` prefix (see Troubleshooting below)
 - **Host auto-discovery** — the add-integration form pre-fills the device address by probing
-  the network (undocumented UDP-5002 discovery protocol; best-effort, manual entry always works)
+  the network (undocumented UDP-5002 discovery protocol; best-effort, manual entry always
+  works). Requires the Home Assistant process to have LAN broadcast access: HA OS, Supervised
+  and host-networked containers are fine; HA in Docker *bridge* networking cannot reach the
+  LAN with a broadcast, so the field simply stays empty there
 - **ZigBee radio diagnostics** — Red Cap channel and PAN ID as disabled-by-default sensors,
   for diagnosing accessory interference issues
 - **Diagnostic sensors** — 12 metrics (state, consecutive failures, silent timeouts, forced
