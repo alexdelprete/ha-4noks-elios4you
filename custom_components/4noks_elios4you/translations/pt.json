@@ -191,7 +191,7 @@
       "s2w_wlan_version": {
         "name": "Versao Wlan Wifi"
       },
-      "rcap_ch_": {
+      "rcap_channel": {
         "name": "Canal ZigBee"
       },
       "rcap_pan": {

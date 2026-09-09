@@ -191,7 +191,7 @@
       "s2w_wlan_version": {
         "name": "Wifi Wlan-versjon"
       },
-      "rcap_ch_": {
+      "rcap_channel": {
         "name": "ZigBee-kanal"
       },
       "rcap_pan": {

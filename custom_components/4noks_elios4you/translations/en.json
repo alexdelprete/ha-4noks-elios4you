@@ -227,7 +227,7 @@
       "cm_last_error": {
         "name": "Connection Last Error"
       },
-      "rcap_ch_": {
+      "rcap_channel": {
         "name": "ZigBee Channel"
       },
       "rcap_pan": {

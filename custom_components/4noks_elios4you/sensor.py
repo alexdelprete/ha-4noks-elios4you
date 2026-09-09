@@ -59,6 +59,9 @@ async def async_setup_entry(
                     sensor_def["state_class"],
                     sensor_def["unit"],
                     sensor_def["enabled_default"],
+                    # Explicit override for keys that are not valid translation
+                    # keys (e.g. rcap_ch_, which ends with an underscore).
+                    translation_key=sensor_def.get("translation_key"),
                 )
             )
 

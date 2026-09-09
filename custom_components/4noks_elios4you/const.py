@@ -604,6 +604,9 @@ SENSOR_ENTITIES = [
     {
         "name": "ZigBee Channel",
         "key": "rcap_ch_",
+        # The data key ends with "_" (device field name parsed verbatim), which
+        # hassfest forbids in translation keys — hence the explicit override.
+        "translation_key": "rcap_channel",
         "icon": "mdi:zigbee",
         "device_class": None,
         "state_class": None,
