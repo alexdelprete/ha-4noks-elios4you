@@ -13,6 +13,8 @@ vars:
   domain: 4noks_elios4you
   default_branch: main
   dev_alias: 4noks                      # devbox: <alias>.code / <alias>.hass hostnames
+  dev_host_port: ""
+  dev_autostart_hass: false
 
   # -- 4noks workaround --
   needs_symlink: true
