@@ -240,7 +240,7 @@ In addition to the shared Do's and Don'ts:
 - Modify production code to make tests pass - always update tests to match intended code behavior
 
 <!-- BEGIN SHARED:repo-sync -->
-<!-- Synced by repo-sync on 2026-09-20 -->
+<!-- Synced by repo-sync on 2026-09-26 -->
 
 <!--
 ==============================================================================
@@ -492,8 +492,8 @@ Linting tools and settings are defined in `.pre-commit-config.yaml`:
 | ty          | `uvx ty@X check --python "$(which python)"` | Type checking (needs the venv's HA) |
 
 All hooks use `language: system` with `verbose: true` for visibility, and every tool
-runs through `uvx` at the exact release CI uses (`TOOL_VERSIONS` in the template repo's
-`repo-sync.py`: ruff 0.16.8, ty 0.0.82,
+runs through `uvx` at the exact release CI uses (`[tool.repo-sync.tool-versions]` in the template
+repo's `pyproject.toml`: ruff 0.16.8, ty 0.0.82,
 yamllint 1.38.0, pymarkdownlnt 0.9.39).
 ty and ruff are pre-1.0 / fast-moving and add rules between releases; unpinned they
 turn CI red on code that passes locally. The venv copies of ruff and ty only serve
