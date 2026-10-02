@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.1-beta.1] - Unreleased
+## [1.4.1-beta.1] - 2026-10-02
 
 Maintenance pre-release: alignment with the Home Assistant core deprecation tables, audited
 against the `dev` branch (2026.11.0.dev0) on 2026-10-02. No new entities, no breaking changes.
