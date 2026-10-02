@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1-beta.1] - Unreleased
+
+Maintenance pre-release: alignment with the Home Assistant core deprecation tables, audited
+against the `dev` branch (2026.11.0.dev0) on 2026-10-02. No new entities, no breaking changes.
+
+### 🐛 Bug Fixes
+
+- **Removed the deprecated `via_device` argument from device registration.** Since HA 2026.9,
+  `device_registry.async_get_or_create` reports *any* use of `via_device` — including the explicit
+  `via_device=None` the integration passed — so every setup and reload logged a
+  "deprecated `via_device` parameter" warning, and the keyword is removed outright in HA 2027.8,
+  where it would have made setup fail with a `TypeError`. The argument is no longer passed:
+  leaving it out already means "no via device" on every supported HA version.
+
+### 🔧 Changed
+
+- The coordinator passes `config_entry=` explicitly to `DataUpdateCoordinator` instead of relying
+  on HA's context variable — the documented pattern (HA tolerates the omission for custom
+  integrations but reports it for core ones).
+- Platform `async_setup_entry` signatures use `AddConfigEntryEntitiesCallback`, the precise type
+  for config-entry platforms, instead of the generic `AddEntitiesCallback`.
+- `switch.py` imports `DeviceInfo` from `helpers.device_registry` (its canonical home, already used
+  by the sensor and binary_sensor platforms) rather than `helpers.entity`.
+- Dev tooling (template sync): ruff, ty, yamllint and pymarkdownlnt pinned to the exact releases
+  CI uses; `pytest-homeassistant-custom-component` bumped to 0.13.366.
+
 ## [1.4.0] - 2026-09-09
 
 Stable release consolidating the three 1.4.0 betas — everything below is new since v1.3.1.

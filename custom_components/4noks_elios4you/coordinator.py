@@ -68,6 +68,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=config_entry,
             name=f"{DOMAIN} ({config_entry.unique_id})",
             update_method=self.async_update_data,
             update_interval=update_interval,

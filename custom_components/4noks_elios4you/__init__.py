@@ -86,7 +86,9 @@ def async_update_device_registry(hass: HomeAssistant, config_entry: Elios4YouCon
     device_registry = dr.async_get(hass)
     # async_get_or_create returns the DeviceEntry, so no second registry lookup
     # is needed to learn the device id (the old re-read used the deprecated
-    # async_get_device, removed in HA 2027.8).
+    # async_get_device, removed in HA 2027.8). `via_device` is deliberately not
+    # passed: the parameter is deprecated (removed in HA 2027.8) and leaving it
+    # out already means "no via device".
     device = device_registry.async_get_or_create(
         config_entry_id=config_entry.entry_id,
         hw_version=str(coordinator.api.data.get("hwver", "")),
@@ -97,7 +99,6 @@ def async_update_device_registry(hass: HomeAssistant, config_entry: Elios4YouCon
         serial_number=str(coordinator.api.data.get("sn", "")),
         sw_version=str(coordinator.api.data.get("swver", "")),
         configuration_url=None,
-        via_device=None,
     )
 
     # Store device_id in coordinator for device triggers
