@@ -18,6 +18,7 @@ TO_REDACT = {
     "sn",
     "serial_number",
     "ip",
+    "mac",
 }
 
 

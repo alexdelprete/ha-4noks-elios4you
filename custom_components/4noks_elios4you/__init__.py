@@ -10,12 +10,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.device_registry import DeviceEntry
+from homeassistant.helpers import config_validation as cv, device_registry as dr
+from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceEntry
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CONF_ENABLE_REPAIR_NOTIFICATION,
     CONF_FAILURES_THRESHOLD,
+    CONF_MAC,
     CONF_NAME,
     CONF_RECOVERY_SCRIPT,
     CONF_SCAN_INTERVAL,
@@ -26,11 +28,14 @@ from .const import (
     STARTUP_MESSAGE,
 )
 from .coordinator import Elios4YouCoordinator
+from .discovery import async_start_discovery
 from .helpers import log_debug, log_error, log_info
 
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.SWITCH]
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 # The type alias needs to be suffixed with 'ConfigEntry'
 type Elios4YouConfigEntry = ConfigEntry[RuntimeData]
@@ -41,6 +46,17 @@ class RuntimeData:
     """Class to hold your data."""
 
     coordinator: Elios4YouCoordinator
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Start periodic UDP discovery of further devices.
+
+    Runs once when the integration loads, i.e. only once at least one device
+    is configured; the first device is found through the manifest's DHCP
+    matcher or the config flow's pre-fill.
+    """
+    async_start_discovery(hass)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: Elios4YouConfigEntry) -> bool:
@@ -89,8 +105,14 @@ def async_update_device_registry(hass: HomeAssistant, config_entry: Elios4YouCon
     # async_get_device, removed in HA 2027.8). `via_device` is deliberately not
     # passed: the parameter is deprecated (removed in HA 2027.8) and leaving it
     # out already means "no via device".
+    # The MAC is only known once discovery has learned it (the device never
+    # reports it). Registering it lets the DHCP `registered_devices` matcher
+    # follow the device by MAC. Connections are scoped per config entry, so
+    # this never merges with another integration's device for the same MAC.
+    mac = config_entry.data.get(CONF_MAC)
     device = device_registry.async_get_or_create(
         config_entry_id=config_entry.entry_id,
+        connections={(CONNECTION_NETWORK_MAC, mac)} if mac else set(),
         hw_version=str(coordinator.api.data.get("hwver", "")),
         identifiers={(DOMAIN, str(coordinator.api.data.get("sn", "")))},
         manufacturer=str(coordinator.api.data.get("manufact", "")),

@@ -16,6 +16,7 @@ from custom_components.fournoks_elios4you.api import TelnetCommandError, TelnetC
 from custom_components.fournoks_elios4you.const import (
     CONF_ENABLE_REPAIR_NOTIFICATION,
     CONF_FAILURES_THRESHOLD,
+    CONF_MAC,
     CONF_RECOVERY_SCRIPT,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
@@ -500,7 +501,7 @@ class TestCoordinatorDeviceEvents:
 
         with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
-            mock_api.data = {"sn": TEST_SERIAL_NUMBER, "mac": "00:11:22:33:44:55"}
+            mock_api.data = {"sn": TEST_SERIAL_NUMBER}
 
             coordinator = Elios4YouCoordinator(mock_hass, entry)
             coordinator.device_id = None  # Not set
@@ -521,7 +522,7 @@ class TestCoordinatorDeviceEvents:
 
         with patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class:
             mock_api = mock_api_class.return_value
-            mock_api.data = {"sn": TEST_SERIAL_NUMBER, "mac": "00:11:22:33:44:55"}
+            mock_api.data = {"sn": TEST_SERIAL_NUMBER}
 
             coordinator = Elios4YouCoordinator(mock_hass, entry)
             coordinator.device_id = "device_123"
@@ -565,7 +566,7 @@ class TestCoordinatorRecoveryScript:
             mock_api.async_get_data = AsyncMock(
                 side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
             )
-            mock_api.data = {"sn": TEST_SERIAL_NUMBER, "mac": "00:11:22:33:44:55"}
+            mock_api.data = {"sn": TEST_SERIAL_NUMBER}
 
             coordinator = Elios4YouCoordinator(mock_hass, entry)
 
@@ -675,7 +676,7 @@ class TestCoordinatorRecoveryFlow:
             ) as mock_recovery_notification,
         ):
             mock_api = mock_api_class.return_value
-            mock_api.data = {"sn": TEST_SERIAL_NUMBER, "mac": "00:11:22:33:44:55"}
+            mock_api.data = {"sn": TEST_SERIAL_NUMBER}
 
             # First fails, then succeeds
             mock_api.async_get_data = AsyncMock(
@@ -722,7 +723,7 @@ class TestCoordinatorRecoveryFlow:
             patch.object(_elios4you_coordinator, "create_recovery_notification"),
         ):
             mock_api = mock_api_class.return_value
-            mock_api.data = {"sn": TEST_SERIAL_NUMBER, "mac": "00:11:22:33:44:55"}
+            mock_api.data = {"sn": TEST_SERIAL_NUMBER}
             mock_api.async_get_data = AsyncMock(
                 side_effect=[TelnetConnectionError(TEST_HOST, TEST_PORT, 5), True]
             )
@@ -1002,3 +1003,56 @@ class TestCoordinatorUdpLivenessProbe:
             assert coordinator._udp_reachable is None
             # The last probe stays available for diagnostics
             assert coordinator.last_udp_probe is not None
+
+
+class TestCoordinatorMacAddress:
+    """The MAC comes from the config entry (DHCP discovery), not the device."""
+
+    @pytest.mark.asyncio
+    async def test_mac_from_entry_reaches_script_and_event(self, mock_hass) -> None:
+        """A MAC learned by discovery is passed to the script and the event."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={
+                CONF_NAME: TEST_NAME,
+                CONF_HOST: TEST_HOST,
+                CONF_PORT: TEST_PORT,
+                CONF_MAC: "20:f8:5e:a2:75:46",
+            },
+            options={
+                CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
+                CONF_FAILURES_THRESHOLD: 1,
+                CONF_RECOVERY_SCRIPT: "script.kick",
+            },
+        )
+        mock_hass.services.async_call = AsyncMock()
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue"),
+        ):
+            mock_api = mock_api_class.return_value
+            mock_api.async_get_data = AsyncMock(
+                side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
+            )
+            mock_api.data = {"sn": TEST_SERIAL_NUMBER}
+
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
+            coordinator.device_id = "test_device_id"
+            with pytest.raises(UpdateFailed):
+                await coordinator.async_update_data()
+
+        service_data = mock_hass.services.async_call.call_args.kwargs["service_data"]
+        assert service_data["mac_address"] == "20:f8:5e:a2:75:46"
+        assert mock_hass.bus.async_fire.call_args[0][1]["mac_address"] == "20:f8:5e:a2:75:46"
+
+    def test_mac_empty_until_learned(self, mock_hass) -> None:
+        """Without a DHCP sighting the MAC is an empty string, never a guess."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_NAME: TEST_NAME, CONF_HOST: TEST_HOST, CONF_PORT: TEST_PORT},
+            options={CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL},
+        )
+        with patch.object(_elios4you_coordinator, "Elios4YouAPI"):
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
+
+        assert coordinator.conf_mac == ""

@@ -119,17 +119,22 @@ rules:
 
   # Rule: Devices can be discovered
   discovery:
-    status: exempt
+    status: done
     comment: >
-      No HA-recognised discovery protocol (zeroconf/dhcp/ssdp) is available.
-      The device does answer an undocumented UDP-5002 probe, which the config
-      flow uses to pre-fill the host field (discovery.py) — best-effort
-      convenience, not a native discovery flow.
+      DHCP matchers on the device hostname (E4U-<serial>) and the WiFi module's
+      MAC prefix (manifest.json), confirmed by a UDP-5002 probe because the
+      prefix is shared with other products; plus a
+      periodic UDP broadcast (integration discovery) once the integration is
+      loaded, which also covers static-IP devices.
 
   # Rule: Integration uses discovery info to update network information
   discovery-update-info:
-    status: exempt
-    comment: No HA-recognised discovery mechanism (see discovery).
+    status: done
+    comment: >
+      Discovery of a configured serial at a new IP updates the entry's host
+      (only when it was configured by IP; hostnames are left alone) and saves
+      the MAC; the MAC is registered as a device connection so the DHCP
+      registered_devices matcher follows the device.
 
   # Rule: The documentation describes how data is updated
   docs-data-update: done # README explains polling via Telnet

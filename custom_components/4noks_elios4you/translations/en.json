@@ -1,5 +1,6 @@
 {
   "config": {
+    "flow_title": "{name}",
     "step": {
       "user": {
         "title": "Elios4You Connection Configuration",
@@ -9,6 +10,13 @@
           "host": "IP or hostname",
           "port": "TCP port (1-65535)",
           "scan_interval": "Polling Period in seconds (30-600)"
+        }
+      },
+      "discovery_confirm": {
+        "title": "Elios4you discovered",
+        "description": "An Elios4you device was found on your network at {host} (serial {serial}).\n\nChoose a name and confirm to add it. The connection is tested before the device is added.",
+        "data": {
+          "name": "Custom Name of the device (used for sensors' prefix)"
         }
       },
       "reconfigure": {
@@ -29,14 +37,15 @@
     "abort": {
       "already_configured": "Device is already configured",
       "reconfigure_successful": "Reconfiguration successful",
-      "unique_id_mismatch": "The device serial number does not match the original configuration"
+      "unique_id_mismatch": "The device serial number does not match the original configuration",
+      "not_elios4you_device": "This device did not identify itself as an Elios4you"
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Elios4You Options",
-        "description": "Configure runtime options.\n\n**Recovery Script Variables:**\nWhen configured, the recovery script receives these variables:\n- `device_name`: Device name\n- `host`: IP address/hostname\n- `port`: TCP port\n- `serial_number`: Device serial number\n- `mac_address`: Device MAC address\n- `failures_count`: Number of consecutive failures",
+        "description": "Configure runtime options.\n\n**Recovery Script Variables:**\nWhen configured, the recovery script receives these variables:\n- `device_name`: Device name\n- `host`: IP address/hostname\n- `port`: TCP port\n- `serial_number`: Device serial number\n- `mac_address`: Device MAC address (learned by discovery, empty until then)\n- `failures_count`: Number of consecutive failures",
         "data": {
           "scan_interval": "Polling Period in seconds (30-600)",
           "enable_repair_notification": "Enable repair notifications",

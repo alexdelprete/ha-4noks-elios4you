@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2-beta.2] - 2026-10-19
+
+Beta pre-release: native discovery. New devices appear as a *Discovered* card. Incremental
+since v1.4.2-beta.1.
+
+### ✨ Added
+
+- **DHCP discovery.** The manifest matches the device's DHCP hostname `E4U-<serial>` or the WiFi
+  module's MAC prefix `20:F8:5E`, and each candidate is confirmed with a UDP-5002 probe because
+  the prefix is shared with other products. Works before any device is configured.
+- **Periodic UDP broadcast** (integration discovery) at startup and every 15 minutes once the
+  integration is loaded. Finds further devices, including static-IP ones.
+- Discovery confirm step: name only, with the connection verified over telnet before the entry
+  is created.
+- A configured device discovered at a new IP has its host updated, but only when it was
+  configured by IP address, never by hostname.
+
+### 🐛 Bug Fixes
+
+- The add-integration form no longer pre-fills a device that is already configured. Devices are
+  matched by host or serial.
+- `mac_address` (recovery script variable and device event field) was always empty, because the
+  device never reports its MAC. It's now learned by discovery and saved in the config entry: from
+  the HA host's ARP table after the periodic UDP broadcast, or from the device's DHCP request.
+  It stays empty, and is never guessed, until one of the two has seen the device. Once known,
+  it's registered as the device's network connection, which also enables the DHCP
+  `registered_devices` matcher. Connections are per config entry, so the device never merges
+  with a router's device for the same MAC.
+
 ## [1.4.2-beta.1] - 2026-10-19
 
 Beta pre-release: a UDP liveness check that separates "device alive but telnet wedged" from

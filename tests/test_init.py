@@ -14,6 +14,7 @@ from custom_components.fournoks_elios4you import (
     RuntimeData,
     async_migrate_entry,
     async_remove_config_entry_device,
+    async_setup,
     async_setup_entry,
     async_unload_entry,
     async_update_device_registry,
@@ -22,6 +23,7 @@ from custom_components.fournoks_elios4you import (
 from custom_components.fournoks_elios4you.const import (
     CONF_ENABLE_REPAIR_NOTIFICATION,
     CONF_FAILURES_THRESHOLD,
+    CONF_MAC,
     CONF_RECOVERY_SCRIPT,
     CONF_SCAN_INTERVAL,
     DEFAULT_ENABLE_REPAIR_NOTIFICATION,
@@ -350,6 +352,72 @@ class TestDeviceRegistry:
         # ... and that second lookup was the deprecated async_get_device, whose
         # per-run deprecation warning (HA >= 2026.9) must therefore not appear.
         assert "async_get_device" not in caplog.text
+
+    async def test_device_registry_mac_connection(
+        self, hass: HomeAssistant, mock_api_data: dict
+    ) -> None:
+        """A learned MAC is registered as a connection; without one, none is."""
+        mock_coordinator = MagicMock()
+        mock_coordinator.api.data = mock_api_data
+        device_registry = dr.async_get(hass)
+
+        for mac, expected in (
+            ("20:f8:5e:a2:75:46", {(dr.CONNECTION_NETWORK_MAC, "20:f8:5e:a2:75:46")}),
+            (None, set()),
+        ):
+            data = {CONF_NAME: TEST_NAME, CONF_HOST: TEST_HOST, CONF_PORT: TEST_PORT}
+            if mac:
+                data[CONF_MAC] = mac
+            entry = MockConfigEntry(domain=DOMAIN, data=data)
+            entry.add_to_hass(hass)
+            entry.runtime_data = RuntimeData(coordinator=mock_coordinator)
+
+            async_update_device_registry(hass, entry)
+
+            device = device_registry.async_get_device_by_identifier(
+                (DOMAIN, mock_api_data["sn"]), entry.entry_id
+            )
+            assert device is not None
+            assert device.connections == expected
+
+    async def test_mac_connection_does_not_merge_with_other_integration(
+        self, hass: HomeAssistant, mock_api_data: dict
+    ) -> None:
+        """Another integration's device with the same MAC stays a separate device."""
+        router_entry = MockConfigEntry(domain="openwrt")
+        router_entry.add_to_hass(hass)
+        device_registry = dr.async_get(hass)
+        router_device = device_registry.async_get_or_create(
+            config_entry_id=router_entry.entry_id,
+            connections={(dr.CONNECTION_NETWORK_MAC, "20:f8:5e:a2:75:46")},
+            name="Router tracker",
+        )
+
+        mock_coordinator = MagicMock()
+        mock_coordinator.api.data = mock_api_data
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={
+                CONF_NAME: TEST_NAME,
+                CONF_HOST: TEST_HOST,
+                CONF_PORT: TEST_PORT,
+                CONF_MAC: "20:f8:5e:a2:75:46",
+            },
+        )
+        entry.add_to_hass(hass)
+        entry.runtime_data = RuntimeData(coordinator=mock_coordinator)
+
+        async_update_device_registry(hass, entry)
+
+        device = device_registry.async_get_device_by_identifier(
+            (DOMAIN, mock_api_data["sn"]), entry.entry_id
+        )
+        assert device is not None
+        assert device.id != router_device.id
+        refreshed_router = device_registry.async_get(router_device.id)
+        assert refreshed_router is not None
+        assert refreshed_router.config_entries == {router_entry.entry_id}
+        assert refreshed_router.name == "Router tracker"
 
     async def test_async_update_device_registry_with_all_data(
         self,
@@ -699,3 +767,15 @@ class TestMigration:
 
         # Should return True for current version
         assert result is True
+
+
+class TestAsyncSetup:
+    """Component-level setup starts periodic UDP discovery."""
+
+    @pytest.mark.asyncio
+    async def test_async_setup_starts_discovery(self, hass: HomeAssistant) -> None:
+        """async_setup kicks off discovery and succeeds."""
+        with patch("custom_components.fournoks_elios4you.async_start_discovery") as start_discovery:
+            assert await async_setup(hass, {}) is True
+
+        start_discovery.assert_called_once_with(hass)

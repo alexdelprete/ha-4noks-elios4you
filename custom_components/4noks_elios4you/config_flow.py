@@ -5,6 +5,7 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 from __future__ import annotations
 
+import ipaddress
 import logging
 from typing import Any
 
@@ -19,6 +20,7 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.device_registry import format_mac
 from homeassistant.helpers.selector import (
     EntitySelector,
     EntitySelectorConfig,
@@ -26,12 +28,14 @@ from homeassistant.helpers.selector import (
     NumberSelectorConfig,
     NumberSelectorMode,
 )
+from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 
 from .api import Elios4YouAPI, TelnetCommandError, TelnetConnectionError
 from .const import (
     CONF_ENABLE_REPAIR_NOTIFICATION,
     CONF_FAILURES_THRESHOLD,
     CONF_HOST,
+    CONF_MAC,
     CONF_NAME,
     CONF_PORT,
     CONF_RECOVERY_SCRIPT,
@@ -50,10 +54,19 @@ from .const import (
     MIN_PORT,
     MIN_SCAN_INTERVAL,
 )
-from .discovery import async_discover_devices
+from .discovery import DISCOVERY_SERIAL, async_discover_devices, async_probe_device
 from .helpers import host_valid, log_debug, log_error
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _is_ip_address(host: str) -> bool:
+    """Return True if ``host`` is an IP literal rather than a hostname."""
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return True
 
 
 @callback
@@ -70,6 +83,12 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 3
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
+
+    def __init__(self) -> None:
+        """Initialize the config flow."""
+        self._discovered_host: str = ""
+        self._discovered_serial: str = ""
+        self._discovered_mac: str | None = None
 
     @staticmethod
     @callback
@@ -150,7 +169,7 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
         # after a validation error keep whatever the user typed.
         suggested_host: str | None = None
         if user_input is None:
-            discovered = await async_discover_devices()
+            discovered = self._unconfigured(await async_discover_devices())
             if discovered:
                 suggested_host = next(iter(discovered))
                 log_debug(
@@ -191,6 +210,117 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
             description_placeholders={
                 "docs_url": "https://github.com/alexdelprete/ha-4noks-elios4you",
+            },
+        )
+
+    @callback
+    def _unconfigured(self, devices: dict[str, str]) -> dict[str, str]:
+        """Drop devices whose host or serial already has a config entry."""
+        hosts = get_host_from_config(self.hass)
+        serials = {entry.unique_id for entry in self._async_current_entries(include_ignore=False)}
+        return {
+            host: serial
+            for host, serial in devices.items()
+            if host not in hosts and (not serial or serial not in serials)
+        }
+
+    async def async_step_dhcp(self, discovery_info: DhcpServiceInfo) -> ConfigFlowResult:
+        """Handle a device seen by HA's DHCP watcher.
+
+        The manifest matches the hostname the device sends (``E4U-<serial>``)
+        or its WiFi module's MAC prefix, which other products share, so the
+        device must prove it is an Elios4you by answering the UDP 5002 probe
+        with its serial.
+        """
+        serial = await async_probe_device(discovery_info.ip)
+        if not serial:
+            return self.async_abort(reason="not_elios4you_device")
+        return await self._async_handle_discovery(
+            discovery_info.ip, serial, format_mac(discovery_info.macaddress)
+        )
+
+    async def async_step_integration_discovery(
+        self, discovery_info: dict[str, Any]
+    ) -> ConfigFlowResult:
+        """Handle a device found by the integration's periodic UDP broadcast.
+
+        The MAC, when present, comes from the HA host's ARP table.
+        """
+        serial = str(discovery_info.get(DISCOVERY_SERIAL, ""))
+        if not serial:
+            return self.async_abort(reason="not_elios4you_device")
+        return await self._async_handle_discovery(
+            str(discovery_info[CONF_HOST]), serial, discovery_info.get(CONF_MAC)
+        )
+
+    async def _async_handle_discovery(
+        self, host: str, serial: str, mac: str | None = None
+    ) -> ConfigFlowResult:
+        """Deduplicate by serial, refresh a known device's IP/MAC, else ask to confirm."""
+        await self.async_set_unique_id(serial)
+        entry = self.hass.config_entries.async_entry_for_domain_unique_id(DOMAIN, serial)
+        updates: dict[str, str] = {}
+        if entry is not None and _is_ip_address(str(entry.data.get(CONF_HOST, ""))):
+            # Configured by IP and the device moved: follow it. A configured
+            # hostname is left alone -- the user chose name resolution.
+            updates[CONF_HOST] = host
+        if mac:
+            # The only source of the MAC: the device never reports it itself.
+            updates[CONF_MAC] = mac
+        self._abort_if_unique_id_configured(updates=updates or None)
+        if self._host_in_configuration_exists(host):
+            return self.async_abort(reason="already_configured")
+
+        self._discovered_host = host
+        self._discovered_serial = serial
+        self._discovered_mac = mac
+        self.context["title_placeholders"] = {"name": f"{DEFAULT_NAME} ({serial})"}
+        log_debug(
+            _LOGGER, "_async_handle_discovery", "Discovered new device", host=host, serial=serial
+        )
+        return await self.async_step_discovery_confirm()
+
+    async def async_step_discovery_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Confirm a discovered device and verify it over telnet."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            name = user_input[CONF_NAME]
+            uid = await self._test_connection(
+                name, self._discovered_host, DEFAULT_PORT, DEFAULT_SCAN_INTERVAL
+            )
+            if uid is not None:
+                if uid != self._discovered_serial:
+                    # Telnet is authoritative for the entry's unique_id.
+                    await self.async_set_unique_id(uid)
+                    self._abort_if_unique_id_configured()
+                data = {
+                    CONF_NAME: name,
+                    CONF_HOST: self._discovered_host,
+                    CONF_PORT: DEFAULT_PORT,
+                }
+                if self._discovered_mac:
+                    data[CONF_MAC] = self._discovered_mac
+                return self.async_create_entry(
+                    title=name,
+                    data=data,
+                    options={
+                        CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
+                    },
+                )
+            errors["base"] = "cannot_connect"
+
+        return self.async_show_form(
+            step_id="discovery_confirm",
+            data_schema=vol.Schema(
+                {vol.Required(CONF_NAME, default=DEFAULT_NAME): cv.string},
+            ),
+            errors=errors,
+            description_placeholders={
+                "host": self._discovered_host,
+                "serial": self._discovered_serial,
             },
         )
 

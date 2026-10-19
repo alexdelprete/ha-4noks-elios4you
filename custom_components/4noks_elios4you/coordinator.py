@@ -19,6 +19,7 @@ from .const import (
     CONF_ENABLE_REPAIR_NOTIFICATION,
     CONF_FAILURES_THRESHOLD,
     CONF_HOST,
+    CONF_MAC,
     CONF_NAME,
     CONF_PORT,
     CONF_RECOVERY_SCRIPT,
@@ -48,6 +49,8 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
         self.conf_name: str = str(config_entry.data.get(CONF_NAME, ""))
         self.conf_host: str = str(config_entry.data.get(CONF_HOST, ""))
         self.conf_port: int = int(config_entry.data.get(CONF_PORT, 5001))
+        # Learned from DHCP discovery (the device never reports it); "" until then
+        self.conf_mac: str = str(config_entry.data.get(CONF_MAC, ""))
         # Read from options first (v2), fall back to data for migration compatibility (v1)
         self.scan_interval = config_entry.options.get(
             CONF_SCAN_INTERVAL,
@@ -337,7 +340,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
                     "host": self.conf_host,
                     "port": self.conf_port,
                     "serial_number": self.api.data.get("sn", ""),
-                    "mac_address": self.api.data.get("mac", ""),
+                    "mac_address": self.conf_mac,
                     "failures_count": self._consecutive_failures,
                     "failure_type": self._last_error_type,
                     "udp_reachable": self._udp_reachable,
@@ -392,7 +395,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
             "host": self.conf_host,
             "port": self.conf_port,
             "serial_number": self.api.data.get("sn", ""),
-            "mac_address": self.api.data.get("mac", ""),
+            "mac_address": self.conf_mac,
         }
         if extra_data:
             event_data.update(extra_data)

@@ -1,5 +1,6 @@
 {
   "config": {
+    "flow_title": "{name}",
     "step": {
       "user": {
         "title": "Configuracion de Conexion Elios4You",
@@ -9,6 +10,13 @@
           "host": "IP o nombre de host",
           "port": "Puerto TCP (1-65535)",
           "scan_interval": "Intervalo de sondeo en segundos (30-600)"
+        }
+      },
+      "discovery_confirm": {
+        "title": "Elios4you detectado",
+        "description": "Se ha encontrado un dispositivo Elios4you en tu red en {host} (número de serie {serial}).\n\nElige un nombre y confirma para añadirlo. La conexión se comprueba antes de añadir el dispositivo.",
+        "data": {
+          "name": "Nombre del dispositivo (usado como prefijo de sensores)"
         }
       },
       "reconfigure": {
@@ -29,7 +37,8 @@
     "abort": {
       "already_configured": "El dispositivo ya esta configurado",
       "reconfigure_successful": "Reconfiguracion exitosa",
-      "unique_id_mismatch": "El numero de serie del dispositivo no coincide con la configuracion original"
+      "unique_id_mismatch": "El numero de serie del dispositivo no coincide con la configuracion original",
+      "not_elios4you_device": "Este dispositivo no se ha identificado como Elios4you"
     }
   },
   "options": {

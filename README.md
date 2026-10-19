@@ -82,11 +82,9 @@ gentle behaviour through an explicit state machine
 - **Serialised access** — a single `asyncio.Lock` means polls and switch commands never race
 - **Structured logging** — every state transition and connection event is logged with the
   `(ConnMgr.*)` prefix (see Troubleshooting below)
-- **Host auto-discovery** — the add-integration form pre-fills the device address by probing
-  the network (undocumented UDP-5002 discovery protocol; best-effort, manual entry always
-  works). Requires the Home Assistant process to have LAN broadcast access: HA OS, Supervised
-  and host-networked containers are fine; HA in Docker *bridge* networking cannot reach the
-  LAN with a broadcast, so the field simply stays empty there
+- **Automatic discovery**: a new Elios4you appears as a *Discovered* card in
+  **Settings > Devices & services**, and the add-integration form pre-fills the address of a
+  device that isn't configured yet. See [Discovery](#discovery) below
 - **ZigBee radio diagnostics** — Red Cap channel and PAN ID as disabled-by-default sensors,
   for diagnosing accessory interference issues
 - **Diagnostic sensors** — 12 metrics (state, consecutive failures, silent timeouts, forced
@@ -174,6 +172,51 @@ Restart Home Assistant, and then the integration can be added and configured thr
 integration setup UI. If you don't see it in the native integrations list, press ctrl-F5 to
 refresh the browser while you're on that page and retry.
 
+## Discovery
+
+Home Assistant finds Elios4you devices in two complementary ways. Both use the device's
+undocumented UDP-5002 discovery protocol: the device answers `HELLO <serial>`, and the serial is
+what identifies it.
+
+- **DHCP**: Home Assistant's built-in DHCP watcher notices the device when it joins the
+  network. It matches on the hostname the device sends (`E4U-<serial>`, e.g. `E4U-5EA27546`) or
+  on the MAC prefix of its WiFi module (`20:F8:5E`). Other products use the same module, so the
+  integration also sends the device a UDP probe, and anything that doesn't answer as an
+  Elios4you is silently ignored. This works before the integration is set up at all.
+- **Periodic broadcast**: once at least one device is configured, the integration broadcasts
+  at startup and every 15 minutes. This finds further devices, including ones with a static IP
+  that never use DHCP.
+
+A device found this way shows up as a **Discovered** card. Confirming it asks only for a name.
+The connection is tested over telnet before the device is added, using port 5001 and the
+default polling period (change the period afterwards with **Configure**). Devices that are
+already configured are recognised by serial and never offered again. If a configured device
+gets a new IP address, the integration follows it automatically. This only applies when the
+device was configured by IP address. A configured hostname is left alone.
+
+Discovery is also the only source of the device's **MAC address**, because the device never
+reports it over telnet. The MAC is saved in the config entry in either of two ways, whichever
+comes first:
+
+- **Periodic broadcast**: after the UDP exchange, the integration reads the device's MAC from
+  the Home Assistant host's ARP table (`/proc/net/arp`). This works within 15 minutes of startup
+  whenever HA and the device are on the same LAN segment.
+- **DHCP**: when Home Assistant sees the device's DHCP request, for example after a reboot or a
+  recovery-script kick.
+
+If HA and the device are on different subnets, or HA runs in bridge-mode Docker, the ARP table
+has no entry for the device and the MAC comes from DHCP only. Until the MAC is known, the
+`mac_address` script variable and event field are empty. The integration never guesses it.
+
+Once known, the MAC is registered as the device's network connection. It shows on the device
+page, and Home Assistant's DHCP watcher then follows the device by MAC as well. A router
+integration that tracks the same MAC keeps its own separate device.
+
+Discovery is best-effort, and manual setup always works. The broadcast and the add-integration
+pre-fill need Home Assistant to have LAN broadcast access: HA OS, Supervised and
+host-networked containers are fine. HA in Docker *bridge* networking cannot broadcast to the
+LAN, so there the DHCP path is the only way a device gets discovered.
+
 ## Configuration
 
 Configuration is done via config flow right after adding the integration. The integration
@@ -212,7 +255,7 @@ The script receives these variables that you can use in your automation:
 | `host` | IP address or hostname | "192.168.1.100" |
 | `port` | TCP port number | 5001 |
 | `serial_number` | Device serial number | "E4U123456789" |
-| `mac_address` | Device MAC address | "AA:BB:CC:DD:EE:FF" |
+| `mac_address` | Device MAC address, learned by discovery (see below); empty until then | "20:f8:5e:a2:75:46" |
 | `failures_count` | Number of consecutive failures | 3 |
 | `failure_type` | `device_not_responding` or `device_unreachable` (see below) | "device_unreachable" |
 | `udp_reachable` | `true` if the device answered the UDP liveness probe | true |

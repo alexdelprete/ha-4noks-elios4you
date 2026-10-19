@@ -3,6 +3,11 @@
   "name": "4-noks Elios4you",
   "codeowners": ["@alexdelprete"],
   "config_flow": true,
+  "dhcp": [
+    { "hostname": "e4u-*" },
+    { "macaddress": "20F85E*" },
+    { "registered_devices": true }
+  ],
   "documentation": "https://github.com/alexdelprete/ha-4noks-elios4you",
   "integration_type": "hub",
   "iot_class": "local_polling",

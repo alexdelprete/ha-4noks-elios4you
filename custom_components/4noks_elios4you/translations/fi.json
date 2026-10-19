@@ -1,5 +1,6 @@
 {
   "config": {
+    "flow_title": "{name}",
     "step": {
       "user": {
         "title": "Elios4You-yhteyden maaritys",
@@ -9,6 +10,13 @@
           "host": "IP tai isantanimi",
           "port": "TCP-portti (1-65535)",
           "scan_interval": "Kyselyvali sekunteina (30-600)"
+        }
+      },
+      "discovery_confirm": {
+        "title": "Elios4you löydetty",
+        "description": "Verkostasi löytyi Elios4you-laite osoitteesta {host} (sarjanumero {serial}).\n\nValitse nimi ja vahvista lisätäksesi sen. Yhteys testataan ennen laitteen lisäämistä.",
+        "data": {
+          "name": "Laitteen nimi (kaytetaan anturien etuliitteena)"
         }
       },
       "reconfigure": {
@@ -29,7 +37,8 @@
     "abort": {
       "already_configured": "Laite on jo maaritetty",
       "reconfigure_successful": "Uudelleenmaaritys onnistui",
-      "unique_id_mismatch": "Laitteen sarjanumero ei vastaa alkuperaista kokoonpanoa"
+      "unique_id_mismatch": "Laitteen sarjanumero ei vastaa alkuperaista kokoonpanoa",
+      "not_elios4you_device": "Tämä laite ei tunnistautunut Elios4you-laitteeksi"
     }
   },
   "options": {

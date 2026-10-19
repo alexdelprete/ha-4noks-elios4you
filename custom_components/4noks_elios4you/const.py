@@ -21,6 +21,9 @@ ISSUE_URL = "https://github.com/alexdelprete/ha-4noks-elios4you/issues"
 CONF_NAME = "name"
 CONF_HOST = "host"
 CONF_PORT = "port"
+# Device MAC address, learned from DHCP discovery: the device does not report
+# it over telnet. Absent until HA's DHCP watcher has seen the device.
+CONF_MAC = "mac"
 CONF_SCAN_INTERVAL = "scan_interval"
 DEFAULT_NAME = "Elios4you"
 DEFAULT_PORT = 5001

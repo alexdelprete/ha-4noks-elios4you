@@ -22,16 +22,19 @@ from custom_components.fournoks_elios4you.config_flow import (
 from custom_components.fournoks_elios4you.const import (
     CONF_ENABLE_REPAIR_NOTIFICATION,
     CONF_FAILURES_THRESHOLD,
+    CONF_MAC,
     CONF_RECOVERY_SCRIPT,
     CONF_SCAN_INTERVAL,
     DEFAULT_ENABLE_REPAIR_NOTIFICATION,
     DEFAULT_FAILURES_THRESHOLD,
     DOMAIN,
 )
+from custom_components.fournoks_elios4you.discovery import DISCOVERY_SERIAL
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.data_entry_flow import AbortFlow, FlowResultType
+from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 
 from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL, TEST_SERIAL_NUMBER
 
@@ -937,3 +940,260 @@ class TestEdgeCases:
             # Should be converted to string
             assert result == "123456789"
             assert isinstance(result, str)
+
+
+# =============================================================================
+# Discovery (DHCP / integration discovery / skip already-configured)
+# =============================================================================
+
+NEW_HOST = "192.168.1.60"
+NEW_SERIAL = "5EA27546"
+
+
+def _flow(hass: HomeAssistant, source: str) -> Elios4YouConfigFlow:
+    """Build a flow bound to a real hass, as the flow manager would."""
+    flow = Elios4YouConfigFlow()
+    flow.hass = hass
+    flow.handler = DOMAIN
+    flow.context = {"source": source}
+    return flow
+
+
+def _entry(hass: HomeAssistant, host: str = TEST_HOST) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=TEST_SERIAL_NUMBER,
+        data={CONF_NAME: TEST_NAME, CONF_HOST: host, CONF_PORT: TEST_PORT},
+        options={CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL},
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+@pytest.fixture(name="mock_probe")
+def mock_probe_fixture() -> Generator[AsyncMock]:
+    """Mock the unicast UDP probe used to confirm DHCP candidates."""
+    with patch.object(
+        _elios4you_config_flow, "async_probe_device", AsyncMock(return_value=NEW_SERIAL)
+    ) as mock:
+        yield mock
+
+
+def _dhcp(ip: str = NEW_HOST) -> DhcpServiceInfo:
+    return DhcpServiceInfo(ip=ip, hostname="e4u-5ea27546", macaddress="20f85ea27546")
+
+
+class TestUserStepSkipsConfigured:
+    """The user-step pre-fill ignores devices that already have an entry."""
+
+    async def test_skips_configured_host(self, hass: HomeAssistant, mock_discovery) -> None:
+        """A configured host is never suggested; the next device is."""
+        _entry(hass)
+        mock_discovery.return_value = {TEST_HOST: "OTHER", NEW_HOST: NEW_SERIAL}
+
+        result = await _flow(hass, config_entries.SOURCE_USER).async_step_user(None)
+
+        host_marker = next(k for k in result["data_schema"].schema if k.schema == CONF_HOST)
+        assert host_marker.description == {"suggested_value": NEW_HOST}
+
+    async def test_skips_configured_serial_at_new_ip(
+        self, hass: HomeAssistant, mock_discovery
+    ) -> None:
+        """A configured device that moved IP is still recognised by serial."""
+        _entry(hass)
+        mock_discovery.return_value = {NEW_HOST: TEST_SERIAL_NUMBER}
+
+        result = await _flow(hass, config_entries.SOURCE_USER).async_step_user(None)
+
+        host_marker = next(k for k in result["data_schema"].schema if k.schema == CONF_HOST)
+        assert host_marker.description == {"suggested_value": None}
+
+
+class TestDhcpDiscovery:
+    """DHCP candidates (MAC prefix match) must prove themselves over UDP."""
+
+    async def test_non_elios_device_aborts(self, hass: HomeAssistant, mock_probe) -> None:
+        """Another product with the same WiFi module stays silent: abort."""
+        mock_probe.return_value = None
+
+        result = await _flow(hass, config_entries.SOURCE_DHCP).async_step_dhcp(_dhcp())
+
+        assert result["type"] == FlowResultType.ABORT
+        assert result["reason"] == "not_elios4you_device"
+        mock_probe.assert_awaited_once_with(NEW_HOST)
+
+    async def test_new_device_shows_confirm(self, hass: HomeAssistant, mock_probe) -> None:
+        """A new Elios4you gets a Discovered card titled with its serial."""
+        flow = _flow(hass, config_entries.SOURCE_DHCP)
+
+        result = await flow.async_step_dhcp(_dhcp())
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "discovery_confirm"
+        assert result["description_placeholders"] == {"host": NEW_HOST, "serial": NEW_SERIAL}
+        assert flow.unique_id == NEW_SERIAL
+        assert flow.context["title_placeholders"] == {"name": f"Elios4you ({NEW_SERIAL})"}
+
+    async def test_known_device_new_ip_updates_host(self, hass: HomeAssistant, mock_probe) -> None:
+        """A configured device that got a new DHCP lease is followed, and its MAC learned."""
+        entry = _entry(hass)
+        mock_probe.return_value = TEST_SERIAL_NUMBER
+
+        with pytest.raises(AbortFlow, match="already_configured"):
+            await _flow(hass, config_entries.SOURCE_DHCP).async_step_dhcp(_dhcp())
+
+        assert entry.data[CONF_HOST] == NEW_HOST
+        assert entry.data[CONF_MAC] == "20:f8:5e:a2:75:46"
+
+    async def test_known_device_by_hostname_untouched(
+        self, hass: HomeAssistant, mock_probe
+    ) -> None:
+        """A device configured by hostname keeps it: name resolution was chosen."""
+        entry = _entry(hass, host="elios4u.local")
+        mock_probe.return_value = TEST_SERIAL_NUMBER
+
+        with pytest.raises(AbortFlow, match="already_configured"):
+            await _flow(hass, config_entries.SOURCE_DHCP).async_step_dhcp(_dhcp())
+
+        assert entry.data[CONF_HOST] == "elios4u.local"
+        # The MAC is still learned: it does not depend on how the host is set
+        assert entry.data[CONF_MAC] == "20:f8:5e:a2:75:46"
+
+    async def test_host_taken_by_other_entry_aborts(self, hass: HomeAssistant, mock_probe) -> None:
+        """An entry already using that host blocks a second one."""
+        _entry(hass, host=NEW_HOST)
+        mock_probe.return_value = "DIFFERENT"
+
+        result = await _flow(hass, config_entries.SOURCE_DHCP).async_step_dhcp(_dhcp())
+
+        assert result["type"] == FlowResultType.ABORT
+        assert result["reason"] == "already_configured"
+
+
+class TestIntegrationDiscovery:
+    """Devices found by the periodic broadcast of a loaded integration."""
+
+    async def test_new_device_shows_confirm(self, hass: HomeAssistant) -> None:
+        """Broadcast results go straight to confirmation, no extra probe."""
+        result = await _flow(
+            hass, config_entries.SOURCE_INTEGRATION_DISCOVERY
+        ).async_step_integration_discovery({CONF_HOST: NEW_HOST, DISCOVERY_SERIAL: NEW_SERIAL})
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "discovery_confirm"
+
+    async def test_missing_serial_aborts(self, hass: HomeAssistant) -> None:
+        """Without a serial the device cannot be deduplicated: abort."""
+        result = await _flow(
+            hass, config_entries.SOURCE_INTEGRATION_DISCOVERY
+        ).async_step_integration_discovery({CONF_HOST: NEW_HOST, DISCOVERY_SERIAL: ""})
+
+        assert result["type"] == FlowResultType.ABORT
+        assert result["reason"] == "not_elios4you_device"
+
+
+class TestDiscoveryConfirm:
+    """Confirming a discovered device verifies it over telnet first."""
+
+    async def _confirm_flow(self, hass: HomeAssistant) -> Elios4YouConfigFlow:
+        flow = _flow(hass, config_entries.SOURCE_INTEGRATION_DISCOVERY)
+        await flow.async_step_integration_discovery(
+            {CONF_HOST: NEW_HOST, DISCOVERY_SERIAL: NEW_SERIAL}
+        )
+        return flow
+
+    async def test_creates_entry(self, hass: HomeAssistant) -> None:
+        """Telnet answers: entry created with defaults and the chosen name."""
+        flow = await self._confirm_flow(hass)
+        with patch.object(flow, "_test_connection", AsyncMock(return_value=NEW_SERIAL)):
+            result = await flow.async_step_discovery_confirm({CONF_NAME: "Garage"})
+
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        assert result["title"] == "Garage"
+        assert result["data"] == {CONF_NAME: "Garage", CONF_HOST: NEW_HOST, CONF_PORT: 5001}
+        assert result["options"] == {CONF_SCAN_INTERVAL: 60}
+
+    async def test_cannot_connect(self, hass: HomeAssistant) -> None:
+        """Telnet fails: the form comes back with an error."""
+        flow = await self._confirm_flow(hass)
+        with patch.object(flow, "_test_connection", AsyncMock(return_value=None)):
+            result = await flow.async_step_discovery_confirm({CONF_NAME: "Garage"})
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {"base": "cannot_connect"}
+
+    async def test_telnet_serial_wins(self, hass: HomeAssistant) -> None:
+        """If telnet reports a different serial, it becomes the unique_id."""
+        flow = await self._confirm_flow(hass)
+        with patch.object(flow, "_test_connection", AsyncMock(return_value="TELNETSN")):
+            result = await flow.async_step_discovery_confirm({CONF_NAME: "Garage"})
+
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        assert flow.unique_id == "TELNETSN"
+
+    async def test_telnet_serial_already_configured(self, hass: HomeAssistant) -> None:
+        """The telnet serial belongs to an existing entry: abort."""
+        _entry(hass, host="elios4u.local")
+        flow = await self._confirm_flow(hass)
+        with (
+            patch.object(flow, "_test_connection", AsyncMock(return_value=TEST_SERIAL_NUMBER)),
+            pytest.raises(AbortFlow, match="already_configured"),
+        ):
+            await flow.async_step_discovery_confirm({CONF_NAME: "Garage"})
+
+
+class TestDhcpConfirmStoresMac:
+    """A device added from a DHCP card is created with its MAC."""
+
+    async def test_dhcp_entry_has_mac(self, hass: HomeAssistant, mock_probe) -> None:
+        """The MAC from the DHCP sighting is saved in the new entry."""
+        flow = _flow(hass, config_entries.SOURCE_DHCP)
+        await flow.async_step_dhcp(_dhcp())
+        with patch.object(flow, "_test_connection", AsyncMock(return_value=NEW_SERIAL)):
+            result = await flow.async_step_discovery_confirm({CONF_NAME: "Garage"})
+
+        assert result["data"][CONF_MAC] == "20:f8:5e:a2:75:46"
+
+    async def test_broadcast_entry_has_no_mac(self, hass: HomeAssistant) -> None:
+        """No ARP entry for the device: no MAC is stored (no guessing)."""
+        flow = _flow(hass, config_entries.SOURCE_INTEGRATION_DISCOVERY)
+        await flow.async_step_integration_discovery(
+            {CONF_HOST: NEW_HOST, DISCOVERY_SERIAL: NEW_SERIAL}
+        )
+        with patch.object(flow, "_test_connection", AsyncMock(return_value=NEW_SERIAL)):
+            result = await flow.async_step_discovery_confirm({CONF_NAME: "Garage"})
+
+        assert CONF_MAC not in result["data"]
+
+
+class TestIntegrationDiscoveryMac:
+    """The broadcast path carries the MAC found in the ARP table."""
+
+    async def test_configured_device_learns_mac(self, hass: HomeAssistant) -> None:
+        """A configured device's entry gets the ARP MAC; its hostname is kept."""
+        entry = _entry(hass, host="elios4u.local")
+
+        with pytest.raises(AbortFlow, match="already_configured"):
+            await _flow(
+                hass, config_entries.SOURCE_INTEGRATION_DISCOVERY
+            ).async_step_integration_discovery(
+                {
+                    CONF_HOST: NEW_HOST,
+                    DISCOVERY_SERIAL: TEST_SERIAL_NUMBER,
+                    CONF_MAC: "20:f8:5e:a2:75:46",
+                }
+            )
+
+        assert entry.data[CONF_MAC] == "20:f8:5e:a2:75:46"
+        assert entry.data[CONF_HOST] == "elios4u.local"
+
+    async def test_new_device_entry_has_arp_mac(self, hass: HomeAssistant) -> None:
+        """A device added from a broadcast card keeps the ARP MAC."""
+        flow = _flow(hass, config_entries.SOURCE_INTEGRATION_DISCOVERY)
+        await flow.async_step_integration_discovery(
+            {CONF_HOST: NEW_HOST, DISCOVERY_SERIAL: NEW_SERIAL, CONF_MAC: "20:f8:5e:a2:75:46"}
+        )
+        with patch.object(flow, "_test_connection", AsyncMock(return_value=NEW_SERIAL)):
+            result = await flow.async_step_discovery_confirm({CONF_NAME: "Garage"})
+
+        assert result["data"][CONF_MAC] == "20:f8:5e:a2:75:46"

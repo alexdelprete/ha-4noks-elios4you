@@ -1,5 +1,6 @@
 {
   "config": {
+    "flow_title": "{name}",
     "step": {
       "user": {
         "title": "Elios4You uhenduse seadistamine",
@@ -9,6 +10,13 @@
           "host": "IP voi hostinimi",
           "port": "TCP port (1-65535)",
           "scan_interval": "Kusimusintervall sekundites (30-600)"
+        }
+      },
+      "discovery_confirm": {
+        "title": "Elios4you avastatud",
+        "description": "Teie võrgust leiti Elios4you seade aadressil {host} (seerianumber {serial}).\n\nValige nimi ja kinnitage selle lisamiseks. Ühendust testitakse enne seadme lisamist.",
+        "data": {
+          "name": "Seadme nimi (kasutatakse andurite eesliitena)"
         }
       },
       "reconfigure": {
@@ -29,7 +37,8 @@
     "abort": {
       "already_configured": "Seade on juba seadistatud",
       "reconfigure_successful": "Umberseadistamine onnestus",
-      "unique_id_mismatch": "Seadme seerianumber ei vasta algsele konfiguratsioonile"
+      "unique_id_mismatch": "Seadme seerianumber ei vasta algsele konfiguratsioonile",
+      "not_elios4you_device": "See seade ei tuvastanud end Elios4you seadmena"
     }
   },
   "options": {

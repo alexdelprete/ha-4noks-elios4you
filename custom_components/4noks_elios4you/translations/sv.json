@@ -1,5 +1,6 @@
 {
   "config": {
+    "flow_title": "{name}",
     "step": {
       "user": {
         "title": "Elios4You-anslutningskonfiguration",
@@ -9,6 +10,13 @@
           "host": "IP eller vardnamn",
           "port": "TCP-port (1-65535)",
           "scan_interval": "Avfragningsintervall i sekunder (30-600)"
+        }
+      },
+      "discovery_confirm": {
+        "title": "Elios4you upptäckt",
+        "description": "En Elios4you-enhet hittades i ditt nätverk på {host} (serienummer {serial}).\n\nVälj ett namn och bekräfta för att lägga till den. Anslutningen testas innan enheten läggs till.",
+        "data": {
+          "name": "Enhetsnamn (anvands som sensorprefix)"
         }
       },
       "reconfigure": {
@@ -29,7 +37,8 @@
     "abort": {
       "already_configured": "Enheten ar redan konfigurerad",
       "reconfigure_successful": "Omkonfigurering lyckades",
-      "unique_id_mismatch": "Enhetens serienummer matchar inte den ursprungliga konfigurationen"
+      "unique_id_mismatch": "Enhetens serienummer matchar inte den ursprungliga konfigurationen",
+      "not_elios4you_device": "Den här enheten identifierade sig inte som en Elios4you"
     }
   },
   "options": {
