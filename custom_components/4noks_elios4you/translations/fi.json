@@ -224,6 +224,10 @@
       "title": "Yhteyden muodostaminen laitteeseen {device_name} ei onnistu",
       "description": "Integraatio ei voi muodostaa yhteytta Elios4You-laitteeseesi osoitteessa {host}:{port}.\n\n**Mahdolliset syyt:**\n- Laite on pois paalta tai ei ole yhdistetty verkkoon\n- IP-osoite on muuttunut\n- Palomuuri estaa yhteyden\n- Telnet-portti ei ole kaytettavissa\n\n**Ratkaisemiseksi:**\n1. Tarkista, etta laite on paalla ja yhdistetty verkkoon\n2. Tarkista IP-osoite reitittimesi DHCP-taulukosta\n3. Jos IP on muuttunut, maarita integraatio uudelleen uudella osoitteella"
     },
+    "telnet_unresponsive": {
+      "title": "{device_name} on verkossa, mutta sen Telnet-palvelu ei vastaa",
+      "description": "Elios4You-laitteesi osoitteessa {host} vastaa edelleen verkossa (UDP-etsintäportti 5002), mutta sen Telnet-palvelu portissa {port} ei vastaa. Tämä on tunnettu \"kuuro laite\" -tila: laite on päällä ja yhdistetty, mutta se ei pysty tarjoamaan tietoja.\n\n**Ratkaisu:**\n1. Käynnistä laitteen WiFi-yhteys uudelleen (esimerkiksi tukiasema, johon se on yhdistetty) tai katkaise laitteen virta hetkeksi\n2. Jos olet määrittänyt palautusskriptin, se on jo suoritettu tämän vian vuoksi\n\nLaitetta ei tarvitse määrittää uudelleen: sen IP-osoite on edelleen voimassa."
+    },
     "recovery_success": {
       "title": "{device_name} on palautunut",
       "description": "Elios4You-laitteesi vastaa jalkeen.\n\n**Vika alkoi:** {started_at}\n**Skripti suoritettu:** {script_executed_at}\n**Palautumisaika:** {ended_at}\n**Kokonaiskatkosaika:** {downtime}\n\nPalautusskripti **{script_name}** suoritettiin."

@@ -19,6 +19,9 @@ _LOGGER = logging.getLogger(__name__)
 
 # Issue IDs
 ISSUE_CONNECTION_FAILED = "connection_failed"
+# Translation key used when the device answers on UDP 5002 but not on telnet.
+# Same issue ID as ISSUE_CONNECTION_FAILED, so recovery deletes either variant.
+ISSUE_TELNET_UNRESPONSIVE = "telnet_unresponsive"
 
 
 def create_connection_issue(
@@ -27,6 +30,8 @@ def create_connection_issue(
     device_name: str,
     host: str,
     port: int,
+    *,
+    udp_reachable: bool = False,
 ) -> None:
     """Create a repair issue for connection failure.
 
@@ -36,6 +41,7 @@ def create_connection_issue(
         device_name: Name of the device
         host: Device host/IP
         port: Device port
+        udp_reachable: Device answered the UDP 5002 probe (alive, telnet wedged)
 
     """
     ir.async_create_issue(
@@ -45,7 +51,7 @@ def create_connection_issue(
         is_fixable=False,
         is_persistent=True,
         severity=ir.IssueSeverity.ERROR,
-        translation_key=ISSUE_CONNECTION_FAILED,
+        translation_key=ISSUE_TELNET_UNRESPONSIVE if udp_reachable else ISSUE_CONNECTION_FAILED,
         translation_placeholders={
             "device_name": device_name,
             "host": host,

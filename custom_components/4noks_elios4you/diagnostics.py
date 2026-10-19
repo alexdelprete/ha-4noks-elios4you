@@ -54,6 +54,7 @@ async def async_get_config_entry_diagnostics(
         "update_interval_seconds": coordinator.update_interval.total_seconds()
         if coordinator.update_interval
         else None,
+        "last_udp_probe": coordinator.last_udp_probe,
     }
 
     # Gather sensor data (redact sensitive values)

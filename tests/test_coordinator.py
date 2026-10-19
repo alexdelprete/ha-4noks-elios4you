@@ -31,6 +31,19 @@ from .conftest import TEST_HOST, TEST_NAME, TEST_PORT, TEST_SCAN_INTERVAL, TEST_
 from .test_config_flow import MockConfigEntry
 
 
+@pytest.fixture(autouse=True)
+def mock_udp_probe():
+    """Keep the threshold-time UDP liveness probe off the network.
+
+    Defaults to a silent device, which leaves the telnet-based failure
+    classification unchanged.
+    """
+    with patch.object(
+        _elios4you_coordinator, "async_probe_device", AsyncMock(return_value=None)
+    ) as probe:
+        yield probe
+
+
 class TestCoordinatorInit:
     """Tests for coordinator initialization."""
 
@@ -803,3 +816,189 @@ class TestCoordinatorErrorTypes:
                 await coordinator.async_update_data()
 
             assert coordinator._last_error_type == "device_unreachable"
+
+
+class TestCoordinatorUdpLivenessProbe:
+    """Tests for the UDP 5002 probe run when the failure threshold is hit."""
+
+    def _entry(self, **options):
+        return MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_NAME: TEST_NAME, CONF_HOST: TEST_HOST, CONF_PORT: TEST_PORT},
+            options={
+                CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL,
+                CONF_FAILURES_THRESHOLD: 1,
+                **options,
+            },
+        )
+
+    @pytest.mark.asyncio
+    async def test_probe_runs_once_per_outage(self, mock_hass, mock_udp_probe) -> None:
+        """The probe fires at the threshold, not on every failed poll."""
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue"),
+        ):
+            mock_api = mock_api_class.return_value
+            mock_api.async_get_data = AsyncMock(
+                side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
+            )
+            mock_api.data = {}
+
+            coordinator = Elios4YouCoordinator(mock_hass, self._entry())
+            for _ in range(3):
+                with pytest.raises(UpdateFailed):
+                    await coordinator.async_update_data()
+
+            mock_udp_probe.assert_awaited_once_with(TEST_HOST)
+
+    @pytest.mark.asyncio
+    async def test_script_runs_when_device_off_network(self, mock_hass) -> None:
+        """The script is never gated: it runs and decides via failure_type itself."""
+        mock_hass.services.async_call = AsyncMock()
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue"),
+        ):
+            mock_api = mock_api_class.return_value
+            mock_api.async_get_data = AsyncMock(
+                side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
+            )
+            mock_api.data = {}
+
+            coordinator = Elios4YouCoordinator(
+                mock_hass, self._entry(**{CONF_RECOVERY_SCRIPT: "script.restart_wifi"})
+            )
+            with pytest.raises(UpdateFailed):
+                await coordinator.async_update_data()
+
+            service_data = mock_hass.services.async_call.call_args.kwargs["service_data"]
+            assert service_data["failure_type"] == "device_unreachable"
+            assert service_data["udp_reachable"] is False
+
+    @pytest.mark.asyncio
+    async def test_udp_answer_upgrades_unreachable(self, mock_hass, mock_udp_probe) -> None:
+        """Telnet connect failure + UDP reply = alive but telnet wedged."""
+        mock_udp_probe.return_value = TEST_SERIAL_NUMBER
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue") as mock_create_issue,
+        ):
+            mock_api = mock_api_class.return_value
+            mock_api.async_get_data = AsyncMock(
+                side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
+            )
+            mock_api.data = {}
+
+            coordinator = Elios4YouCoordinator(mock_hass, self._entry())
+            coordinator.device_id = "test_device_id"
+
+            with pytest.raises(UpdateFailed):
+                await coordinator.async_update_data()
+
+            assert coordinator._last_error_type == "device_not_responding"
+            assert coordinator._udp_reachable is True
+            assert coordinator.last_udp_probe is not None
+            assert coordinator.last_udp_probe["reachable"] is True
+            assert mock_create_issue.call_args.kwargs["udp_reachable"] is True
+            event_data = mock_hass.bus.async_fire.call_args[0][1]
+            assert event_data["type"] == "device_not_responding"
+            assert event_data["udp_reachable"] is True
+
+    @pytest.mark.asyncio
+    async def test_udp_silence_keeps_unreachable(self, mock_hass) -> None:
+        """Telnet connect failure + UDP silence stays device_unreachable."""
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue") as mock_create_issue,
+        ):
+            mock_api = mock_api_class.return_value
+            mock_api.async_get_data = AsyncMock(
+                side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
+            )
+            mock_api.data = {}
+
+            coordinator = Elios4YouCoordinator(mock_hass, self._entry())
+
+            with pytest.raises(UpdateFailed):
+                await coordinator.async_update_data()
+
+            assert coordinator._last_error_type == "device_unreachable"
+            assert coordinator._udp_reachable is False
+            assert mock_create_issue.call_args.kwargs["udp_reachable"] is False
+
+    @pytest.mark.asyncio
+    async def test_udp_silence_never_downgrades(self, mock_hass) -> None:
+        """A telnet command error stays device_not_responding even if UDP is silent.
+
+        Silence is not proof of absence (a firewall may drop UDP), so the
+        probe never overrides what the telnet error already established.
+        """
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue"),
+        ):
+            mock_api = mock_api_class.return_value
+            mock_api.async_get_data = AsyncMock(side_effect=TelnetCommandError("@dat"))
+            mock_api.data = {}
+
+            coordinator = Elios4YouCoordinator(mock_hass, self._entry())
+
+            with pytest.raises(UpdateFailed):
+                await coordinator.async_update_data()
+
+            assert coordinator._last_error_type == "device_not_responding"
+            assert coordinator._udp_reachable is False
+
+    @pytest.mark.asyncio
+    async def test_recovery_script_receives_probe_result(self, mock_hass, mock_udp_probe) -> None:
+        """The recovery script gets failure_type and udp_reachable variables."""
+        mock_udp_probe.return_value = TEST_SERIAL_NUMBER
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue"),
+        ):
+            mock_api = mock_api_class.return_value
+            mock_api.async_get_data = AsyncMock(
+                side_effect=TelnetConnectionError(TEST_HOST, TEST_PORT, 5)
+            )
+            mock_api.data = {}
+            mock_hass.services.async_call = AsyncMock()
+
+            coordinator = Elios4YouCoordinator(
+                mock_hass, self._entry(**{CONF_RECOVERY_SCRIPT: "script.restart_wifi"})
+            )
+
+            with pytest.raises(UpdateFailed):
+                await coordinator.async_update_data()
+
+            service_data = mock_hass.services.async_call.call_args.kwargs["service_data"]
+            assert service_data["failure_type"] == "device_not_responding"
+            assert service_data["udp_reachable"] is True
+
+    @pytest.mark.asyncio
+    async def test_recovery_resets_probe_result(self, mock_hass, mock_udp_probe) -> None:
+        """A successful poll after an outage clears the per-outage probe result."""
+        mock_udp_probe.return_value = TEST_SERIAL_NUMBER
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "create_connection_issue"),
+            patch.object(_elios4you_coordinator, "delete_connection_issue"),
+            patch.object(_elios4you_coordinator, "create_recovery_notification"),
+        ):
+            mock_api = mock_api_class.return_value
+            mock_api.async_get_data = AsyncMock(
+                side_effect=[TelnetConnectionError(TEST_HOST, TEST_PORT, 5), True]
+            )
+            mock_api.data = {}
+
+            coordinator = Elios4YouCoordinator(mock_hass, self._entry())
+
+            with pytest.raises(UpdateFailed):
+                await coordinator.async_update_data()
+            assert coordinator._udp_reachable is True
+
+            await coordinator.async_update_data()
+            assert coordinator._udp_reachable is None
+            # The last probe stays available for diagnostics
+            assert coordinator.last_udp_probe is not None

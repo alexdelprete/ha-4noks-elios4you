@@ -30,6 +30,7 @@ from .const import (
     DOMAIN,
     MIN_SCAN_INTERVAL,
 )
+from .discovery import async_probe_device
 from .helpers import log_debug, log_info, log_warning
 from .repairs import create_connection_issue, create_recovery_notification, delete_connection_issue
 
@@ -86,6 +87,10 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
         self._failure_start_time: float | None = None
         self._last_error_type: str | None = None
         self._script_executed_time: float | None = None
+        # Result of the UDP 5002 liveness probe run when the threshold is hit:
+        # True = device answered (alive, telnet wedged), False = silent.
+        self._udp_reachable: bool | None = None
+        self.last_udp_probe: dict[str, Any] | None = None
 
         # Repair notification options from config
         self._enable_repair_notification = config_entry.options.get(
@@ -203,6 +208,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
                 self._last_error_type = None
                 self._recovery_script_executed = False
                 self._script_executed_time = None
+                self._udp_reachable = None
 
             # Reset failure counter on success
             self._consecutive_failures = 0
@@ -236,12 +242,15 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
                 # Record failure start time for downtime tracking
                 self._failure_start_time = time.time()
 
+                await self._probe_udp_liveness()
+
                 # Fire device trigger event
                 self._fire_device_event(
                     self._last_error_type,
                     {
                         "error": str(ex),
                         "failures_threshold": self._failures_threshold,
+                        "udp_reachable": self._udp_reachable,
                     },
                 )
 
@@ -253,6 +262,7 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
                         self.conf_name,
                         self.conf_host,
                         self.conf_port,
+                        udp_reachable=bool(self._udp_reachable),
                     )
                     log_info(
                         _LOGGER,
@@ -271,6 +281,34 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
             raise UpdateFailed from ex
 
         return self.last_update_status
+
+    async def _probe_udp_liveness(self) -> None:
+        """Refine the failure classification with a UDP 5002 probe.
+
+        The device keeps answering the discovery protocol while its telnet
+        service is wedged (the "deaf device" state), so a reply proves it is
+        on the network. The probe only ever upgrades ``device_unreachable`` to
+        ``device_not_responding``: silence is not proof of absence (a firewall
+        may drop UDP), so it never overrides a classification the telnet error
+        already made.
+        """
+        serial = await async_probe_device(self.conf_host)
+        self._udp_reachable = serial is not None
+        self.last_udp_probe = {
+            "time": dt_util.utcnow().isoformat(),
+            "reachable": self._udp_reachable,
+        }
+        if self._udp_reachable:
+            self._last_error_type = "device_not_responding"
+        log_info(
+            _LOGGER,
+            "_probe_udp_liveness",
+            "Device answers on UDP 5002 but not on telnet"
+            if self._udp_reachable
+            else "Device does not answer on UDP 5002",
+            host=self.conf_host,
+            error_type=self._last_error_type,
+        )
 
     async def _execute_recovery_script(self) -> None:
         """Execute the configured recovery script."""
@@ -301,6 +339,8 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
                     "serial_number": self.api.data.get("sn", ""),
                     "mac_address": self.api.data.get("mac", ""),
                     "failures_count": self._consecutive_failures,
+                    "failure_type": self._last_error_type,
+                    "udp_reachable": self._udp_reachable,
                 },
                 blocking=False,  # Don't wait for script completion
             )

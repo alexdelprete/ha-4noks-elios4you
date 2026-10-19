@@ -13,6 +13,7 @@ import pytest
 from custom_components.fournoks_elios4you.const import DOMAIN, NOTIFICATION_RECOVERY
 from custom_components.fournoks_elios4you.repairs import (
     ISSUE_CONNECTION_FAILED,
+    ISSUE_TELNET_UNRESPONSIVE,
     create_connection_issue,
     create_recovery_notification,
     delete_connection_issue,
@@ -56,6 +57,20 @@ class TestCreateConnectionIssue:
             assert kwargs["is_persistent"] is True
             assert kwargs["severity"] == ir.IssueSeverity.ERROR
             assert kwargs["translation_key"] == ISSUE_CONNECTION_FAILED
+
+    def test_create_connection_issue_udp_reachable(self, hass: HomeAssistant) -> None:
+        """A device alive on UDP gets the telnet-unresponsive text under the same ID."""
+        entry_id = "test_entry_123"
+
+        with patch.object(ir, "async_create_issue") as mock_create:
+            create_connection_issue(
+                hass, entry_id, TEST_NAME, TEST_HOST, TEST_PORT, udp_reachable=True
+            )
+
+            call_args = mock_create.call_args
+            # Same issue ID, so recovery deletes either variant
+            assert call_args[0][2] == f"{ISSUE_CONNECTION_FAILED}_{entry_id}"
+            assert call_args[1]["translation_key"] == ISSUE_TELNET_UNRESPONSIVE
 
     def test_create_connection_issue_placeholders(self, hass: HomeAssistant) -> None:
         """Test connection issue has correct placeholders."""

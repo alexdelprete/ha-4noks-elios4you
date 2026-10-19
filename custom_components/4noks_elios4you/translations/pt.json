@@ -224,6 +224,10 @@
       "title": "Nao foi possivel ligar a {device_name}",
       "description": "A integracao nao consegue ligar ao dispositivo Elios4You em {host}:{port}.\n\n**Possiveis causas:**\n- O dispositivo esta desligado ou nao ligado a rede\n- O endereco IP mudou\n- Uma firewall esta a bloquear a ligacao\n- A porta Telnet nao esta acessivel\n\n**Para resolver:**\n1. Verifique se o dispositivo esta ligado e conectado a sua rede\n2. Verifique o endereco IP na tabela DHCP do seu router\n3. Se o IP mudou, reconfigure a integracao com o novo endereco"
     },
+    "telnet_unresponsive": {
+      "title": "{device_name} está online mas o serviço Telnet não responde",
+      "description": "O seu dispositivo Elios4You em {host} continua a responder na rede (porta de descoberta UDP 5002), mas o serviço Telnet na porta {port} não responde. Este é o conhecido estado de \"dispositivo surdo\": o dispositivo está ligado e conectado, mas não consegue fornecer dados.\n\n**Para resolver:**\n1. Reinicie a ligação WiFi do dispositivo (por exemplo, o ponto de acesso ao qual está ligado) ou desligue e volte a ligar o dispositivo\n2. Se configurou um script de recuperação, este já foi executado para esta falha\n\nNão é necessário reconfigurar o dispositivo: o seu endereço IP continua válido."
+    },
     "recovery_success": {
       "title": "{device_name} recuperou",
       "description": "O seu dispositivo Elios4You esta a responder novamente.\n\n**Inicio da falha:** {started_at}\n**Script executado:** {script_executed_at}\n**Hora de recuperacao:** {ended_at}\n**Tempo de inatividade total:** {downtime}\n\nO script de recuperacao **{script_name}** foi executado."

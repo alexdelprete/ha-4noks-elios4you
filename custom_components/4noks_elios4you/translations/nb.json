@@ -224,6 +224,10 @@
       "title": "Kan ikke koble til {device_name}",
       "description": "Integrasjonen kan ikke koble til Elios4You-enheten din pa {host}:{port}.\n\n**Mulige arsaker:**\n- Enheten er slatt av eller ikke koblet til nettverket\n- IP-adressen har endret seg\n- En brannmur blokkerer tilkoblingen\n- Telnet-porten er ikke tilgjengelig\n\n**For a lose:**\n1. Sjekk at enheten er slatt pa og koblet til nettverket\n2. Verifiser IP-adressen i ruterens DHCP-tabell\n3. Hvis IP har endret seg, rekonfigurer integrasjonen med den nye adressen"
     },
+    "telnet_unresponsive": {
+      "title": "{device_name} er tilkoblet, men Telnet-tjenesten svarer ikke",
+      "description": "Elios4You-enheten din på {host} svarer fortsatt på nettverket (UDP-oppdagelsesport 5002), men Telnet-tjenesten på port {port} svarer ikke. Dette er den kjente \"døv enhet\"-tilstanden: enheten er slått på og tilkoblet, men kan ikke levere data.\n\n**Slik løser du det:**\n1. Start enhetens WiFi-tilkobling på nytt (for eksempel tilgangspunktet den er koblet til), eller koble enheten fra strøm og til igjen\n2. Hvis du har konfigurert et gjenopprettingsskript, er det allerede kjørt for denne feilen\n\nEnheten trenger ikke å konfigureres på nytt: IP-adressen er fortsatt gyldig."
+    },
     "recovery_success": {
       "title": "{device_name} har gjenopprettet",
       "description": "Elios4You-enheten din svarer igjen.\n\n**Feil startet:** {started_at}\n**Skript utfort:** {script_executed_at}\n**Gjenopprettingstid:** {ended_at}\n**Total nedetid:** {downtime}\n\nGjenopprettingsskriptet **{script_name}** ble utfort."

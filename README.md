@@ -214,6 +214,8 @@ The script receives these variables that you can use in your automation:
 | `serial_number` | Device serial number | "E4U123456789" |
 | `mac_address` | Device MAC address | "AA:BB:CC:DD:EE:FF" |
 | `failures_count` | Number of consecutive failures | 3 |
+| `failure_type` | `device_not_responding` or `device_unreachable` (see below) | "device_unreachable" |
+| `udp_reachable` | `true` if the device answered the UDP liveness probe | true |
 
 **Example Script:**
 
@@ -235,6 +237,32 @@ script:
           title: "Elios4you Recovery"
           message: "Restarted WiFi AP for {{ device_name }} after {{ failures_count }} failures"
 ```
+
+Use `failure_type` to pick the right action. For example, restart the WiFi access point only
+when the device is still on the network but its telnet service is wedged
+(`failure_type == 'device_not_responding'`). Or power-cycle the device when it has dropped off
+the network entirely.
+
+#### UDP Liveness Check
+
+When the failures threshold is reached, the integration sends one extra probe to the device on
+UDP port 5002 (the same protocol used by discovery) before it fires triggers, opens the repair
+issue or runs the recovery script. It tries up to 3 times, waiting 1.5 s for each answer. The
+device keeps answering on this port even when its telnet service on TCP 5001 is wedged, so the
+probe separates two very different failures:
+
+| Probe result | Classification | Meaning |
+|--------------|----------------|---------|
+| Device answers | `device_not_responding` | Online, telnet wedged ("deaf device"): reconnect WiFi or power cycle |
+| No answer | From the telnet error | Usually `device_unreachable`: device powered off or off the network |
+
+A UDP answer can only upgrade *unreachable* to *not responding*, never the reverse. If a firewall
+drops UDP 5002, classification falls back to the telnet error alone, as in earlier versions.
+The probe runs once per outage, and its last result is included in the diagnostics download.
+
+> The probe uses UDP rather than ping on purpose. Field captures (PR #182) showed the device's
+> ICMP replies timing out while UDP 5002 answered normally. They also showed replies arriving
+> only on the second attempt, which is why the probe retries.
 
 ### Reconfigure Flow (3-dot menu > Reconfigure)
 
@@ -261,8 +289,8 @@ issues or recovers from them.
 
 | Trigger | Description |
 |---------|-------------|
-| **Device unreachable** | Fires when the device cannot be reached on the network (TCP connection failed) |
-| **Device not responding** | Fires when the device is reachable but not responding to telnet commands |
+| **Device unreachable** | Device cannot be reached: telnet failed and the UDP liveness probe got no answer |
+| **Device not responding** | Device is on the network (or answers the UDP liveness probe) but telnet does not respond |
 | **Device recovered** | Fires when the device starts responding again after a failure |
 
 ### How to Use Device Triggers
@@ -620,7 +648,9 @@ the device becomes unreachable, you'll see a repair notification in
 1. Verify the device is powered on and connected to the network
 2. Check that the IP address is correct in the integration configuration
 3. Ensure no firewall is blocking port 5001
-4. Try pinging the device: `ping <device_ip>`
+4. Try pinging the device: `ping <device_ip>`. A failed ping is not conclusive, because the device
+   sometimes drops ICMP while it is otherwise fine. The repair issue tells you whether the device
+   answered the UDP liveness probe
 5. Verify the device's WiFi connection is stable
 
 #### Device Becomes "Deaf" Periodically

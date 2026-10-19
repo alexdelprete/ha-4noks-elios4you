@@ -224,6 +224,10 @@
       "title": "Impossible de se connecter a {device_name}",
       "description": "L'integration ne peut pas se connecter a votre appareil Elios4You sur {host}:{port}.\n\n**Causes possibles:**\n- L'appareil est eteint ou non connecte au reseau\n- L'adresse IP a change\n- Un pare-feu bloque la connexion\n- Le port Telnet n'est pas accessible\n\n**Pour resoudre:**\n1. Verifiez que l'appareil est allume et connecte a votre reseau\n2. Verifiez l'adresse IP dans la table DHCP de votre routeur\n3. Si l'IP a change, reconfigurez l'integration avec la nouvelle adresse"
     },
+    "telnet_unresponsive": {
+      "title": "{device_name} est en ligne mais son service Telnet ne répond pas",
+      "description": "Votre appareil Elios4You à l'adresse {host} répond toujours sur le réseau (port de découverte UDP 5002), mais son service Telnet sur le port {port} ne répond pas. C'est l'état connu d'\"appareil sourd\" : l'appareil est alimenté et connecté, mais ne peut pas fournir de données.\n\n**Pour résoudre :**\n1. Redémarrez la connexion WiFi de l'appareil (par exemple le point d'accès auquel il est connecté) ou débranchez puis rebranchez l'appareil\n2. Si vous avez configuré un script de récupération, il a déjà été exécuté pour cette panne\n\nIl n'est pas nécessaire de reconfigurer l'appareil : son adresse IP est toujours valide."
+    },
     "recovery_success": {
       "title": "{device_name} a recupere",
       "description": "Votre appareil Elios4You repond a nouveau.\n\n**Debut de la panne:** {started_at}\n**Script execute:** {script_executed_at}\n**Heure de recuperation:** {ended_at}\n**Temps d'arret total:** {downtime}\n\nLe script de recuperation **{script_name}** a ete execute."

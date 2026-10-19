@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2-beta.1] - 2026-10-19
+
+Beta pre-release: a UDP liveness check that separates "device alive but telnet wedged" from
+"device off the network". Based on field evidence from @RickyReds (Refs #182).
+
+### ✨ Added
+
+- **UDP liveness probe at the failures threshold.** The integration sends a unicast probe to UDP
+  5002, trying up to 3 times with 1.5 s each, before it fires triggers, opens the repair issue or
+  runs the recovery script. If the device answers, the failure is classified as
+  `device_not_responding` (deaf device), even when the telnet connect timed out. A UDP answer
+  never downgrades a classification, so a firewall dropping UDP gives the same behaviour as
+  before.
+- New `telnet_unresponsive` repair issue text, in all 10 languages, for the deaf-device state.
+- Recovery script variables `failure_type` and `udp_reachable`; `udp_reachable` in device
+  trigger event data; the last probe result in diagnostics.
+
 ## [1.4.1] - 2026-10-02
 
 Stable release of the v1.4.1-beta.1 maintenance pre-release, published the same day from the

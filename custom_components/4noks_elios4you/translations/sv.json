@@ -224,6 +224,10 @@
       "title": "Kan inte ansluta till {device_name}",
       "description": "Integrationen kan inte ansluta till din Elios4You-enhet pa {host}:{port}.\n\n**Mojliga orsaker:**\n- Enheten ar avstangd eller inte ansluten till natverket\n- IP-adressen har andrats\n- En brandvagg blockerar anslutningen\n- Telnet-porten ar inte atkomlig\n\n**For att losa:**\n1. Kontrollera att enheten ar paslagan och ansluten till ditt natverk\n2. Verifiera IP-adressen i din routers DHCP-tabell\n3. Om IP har andrats, konfigurera om integrationen med den nya adressen"
     },
+    "telnet_unresponsive": {
+      "title": "{device_name} är ansluten men Telnet-tjänsten svarar inte",
+      "description": "Din Elios4You-enhet på {host} svarar fortfarande på nätverket (UDP-upptäcktsport 5002), men Telnet-tjänsten på port {port} svarar inte. Detta är det kända tillståndet \"döv enhet\": enheten är påslagen och ansluten men kan inte leverera data.\n\n**Så här löser du det:**\n1. Starta om enhetens WiFi-anslutning (till exempel åtkomstpunkten den är ansluten till) eller bryt strömmen till enheten och slå på den igen\n2. Om du har konfigurerat ett återställningsskript har det redan körts för detta fel\n\nEnheten behöver inte konfigureras om: dess IP-adress är fortfarande giltig."
+    },
     "recovery_success": {
       "title": "{device_name} har aterstallts",
       "description": "Din Elios4You-enhet svarar igen.\n\n**Fel startade:** {started_at}\n**Skript kordes:** {script_executed_at}\n**Aterstallningstid:** {ended_at}\n**Total stillestandstid:** {downtime}\n\nAterstallningsskriptet **{script_name}** kordes."

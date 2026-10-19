@@ -260,6 +260,10 @@
       "title": "{device_name} is not responding",
       "description": "The integration cannot communicate with your Elios4You device at {host}:{port}.\n\n**Possible causes:**\n- The device is powered off or not connected to the network\n- The device is connected but not responding to commands (device may need a restart)\n- The IP address has changed\n- A firewall is blocking the connection\n- The Telnet port is not accessible\n\n**To resolve:**\n1. Check that the device is powered on and connected to your network\n2. Try restarting the device (power cycle)\n3. Verify the IP address in your router's DHCP table\n4. If the IP has changed, reconfigure the integration with the new address"
     },
+    "telnet_unresponsive": {
+      "title": "{device_name} is online but its Telnet service is not responding",
+      "description": "Your Elios4You device at {host} still answers on the network (UDP discovery port 5002), but its Telnet service on port {port} does not respond. This is the known \"deaf device\" state: the device is powered and connected, but cannot serve data.\n\n**To resolve:**\n1. Restart the device's WiFi connection (for example, toggle the WiFi access point it is connected to), or power cycle the device\n2. If you configured a recovery script, it has already been executed for this failure\n\nThe device does not need to be reconfigured: its IP address is still valid."
+    },
     "recovery_success": {
       "title": "{device_name} has recovered",
       "description": "Your Elios4You device is now responding again.\n\n**Failure started:** {started_at}\n**Script executed:** {script_executed_at}\n**Recovery time:** {ended_at}\n**Total downtime:** {downtime}\n\nThe recovery script **{script_name}** was executed."
