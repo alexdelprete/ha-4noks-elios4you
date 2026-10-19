@@ -254,8 +254,8 @@ The script receives these variables that you can use in your automation:
 | `device_name` | The configured device name | "Elios4you Pro" |
 | `host` | IP address or hostname | "192.168.1.100" |
 | `port` | TCP port number | 5001 |
-| `serial_number` | Device serial number | "E4U123456789" |
-| `mac_address` | Device MAC address, learned by discovery (see below); empty until then | "20:f8:5e:a2:75:46" |
+| `serial_number` | Device serial number | "5EA27546" |
+| `mac_address` | Device MAC address, learned by [discovery](#discovery); empty until then | "20:f8:5e:a2:75:46" |
 | `failures_count` | Number of consecutive failures | 3 |
 | `failure_type` | `device_not_responding` or `device_unreachable` (see below) | "device_unreachable" |
 | `udp_reachable` | `true` if the device answered the UDP liveness probe | true |
@@ -312,8 +312,10 @@ The probe runs once per outage, and its last result is included in the diagnosti
 Change connection settings - the integration will automatically reload:
 
 - **Custom name**: custom name for the device, used as prefix for sensors created by the component
-- **IP/hostname**: IP/hostname of the device - this is used as unique_id, if you change it
-  you will lose historical data (tip: use hostname so you can change IP without losing data)
+- **IP/hostname**: IP/hostname of the device. The device is identified by its serial number,
+  not its address, so changing it keeps all entities and history. Reconfigure refuses an
+  address that answers with a different serial. A device configured by IP address is also
+  followed automatically when discovery sees it at a new address (see [Discovery](#discovery))
 - **TCP port**: TCP port of the device. tcp/5001 is the only known working port, but left configurable
 
 ![Config](https://github.com/alexdelprete/ha-4noks-elios4you/assets/7027842/cbe045c6-8753-4c52-9d50-97de983d18b0)
