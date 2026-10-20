@@ -28,8 +28,9 @@ entry reloads once when the device's MAC is first learned. Full notes:
 
 - `mac_address` was always empty. It's now learned from the HA host's ARP table or from the DHCP
   request, and never guessed.
-- **Forced aborts now send a TCP reset.** Two bugs had made every version send a FIN instead. In
-  production this cut timeouts during periodic device stalls by about 3×.
+- **Forced aborts now send a TCP reset.** Two bugs had made every version send a FIN instead.
+  *Correction:* this entry originally added that the resets cut timeouts during periodic device
+  stalls by about 3×. A later stall showed the old pattern, so that effect isn't established.
 - The add-integration form no longer pre-fills a device that's already configured.
 - The README's Reconfigure section wrongly said changing the host loses history.
 
