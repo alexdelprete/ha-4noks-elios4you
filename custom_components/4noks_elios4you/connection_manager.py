@@ -577,7 +577,7 @@ class ConnectionManager:
         try:
             if hasattr(self._writer, "is_closing") and self._writer.is_closing():
                 return False
-            transport = self._writer.get_extra_info("transport")
+            transport = self._transport_of(self._writer)
             if transport is not None and transport.is_closing():
                 return False
         except AttributeError, OSError:
@@ -594,6 +594,18 @@ class ConnectionManager:
             )
             return False
         return True
+
+    @staticmethod
+    def _transport_of(writer: object) -> asyncio.Transport | None:
+        """Return the socket transport underneath a telnetlib3 writer.
+
+        It is the writer's ``transport`` attribute, as on asyncio's
+        ``StreamWriter``. ``get_extra_info("transport")`` is NOT a way to reach
+        it: "transport" is not an extra-info key, so telnetlib3 returns None --
+        which silently turned every forced abort into a graceful FIN.
+        """
+        transport = getattr(writer, "transport", None)
+        return transport if isinstance(transport, asyncio.Transport) else None
 
     async def _close_safely(self, *, force_abort: bool) -> None:
         """Close the connection. RST on error paths, FIN on graceful unload.
@@ -614,9 +626,7 @@ class ConnectionManager:
         try:
             if force_abort:
                 self._metrics.forced_aborts += 1
-                transport = None
-                with suppress(AttributeError, OSError):
-                    transport = writer.get_extra_info("transport")
+                transport = self._transport_of(writer)
                 if transport is not None:
                     with suppress(Exception):
                         transport.abort()

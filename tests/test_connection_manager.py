@@ -15,6 +15,7 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from telnetlib3.stream_writer import TelnetWriterUnicode
 
 from custom_components.fournoks_elios4you.connection_manager import (
     RESPONSE_SEPARATOR,
@@ -31,13 +32,20 @@ TEST_PORT = 5001
 
 
 def _make_writer() -> MagicMock:
-    """Return a MagicMock that quacks like a telnetlib3 writer."""
+    """Return a MagicMock that quacks like a telnetlib3 writer.
+
+    Like the real TelnetWriter, the socket transport is the ``transport``
+    attribute and ``get_extra_info("transport")`` returns None. (An earlier
+    fake returned the transport from get_extra_info, which hid the bug where
+    forced aborts never sent a RST.)
+    """
     writer = MagicMock()
     writer.is_closing = MagicMock(return_value=False)
-    transport = MagicMock()
+    transport = MagicMock(spec=asyncio.Transport)
     transport.is_closing = MagicMock(return_value=False)
     transport.abort = MagicMock()
-    writer.get_extra_info = MagicMock(return_value=transport)
+    writer.transport = transport
+    writer.get_extra_info = MagicMock(return_value=None)
     writer.close = MagicMock()
     writer.wait_closed = AsyncMock()
     writer.write = MagicMock()
@@ -163,7 +171,7 @@ async def test_silent_timeout_triggers_retry_then_succeeds() -> None:
     assert mgr.metrics.forced_aborts == 1
     assert mgr.metrics.commands_retried == 1
     # First writer's transport got aborted (RST) — that's the device-friendly fix
-    writer1.get_extra_info.return_value.abort.assert_called_once()
+    writer1.transport.abort.assert_called_once()
     assert mgr.state is ConnectionState.READY
 
 
@@ -468,7 +476,7 @@ def test_can_reuse_false_when_transport_is_closing() -> None:
     """A writer that's open but whose transport is closing is not reusable."""
     mgr = ConnectionManager(TEST_HOST, TEST_PORT)
     writer = _make_writer()
-    writer.get_extra_info.return_value.is_closing = MagicMock(return_value=True)
+    writer.transport.is_closing = MagicMock(return_value=True)
     mgr._writer = writer
     mgr._last_activity = __import__("time").time()
     assert mgr._can_reuse() is False
@@ -511,7 +519,7 @@ async def test_ensure_connected_closes_stale_writer_first() -> None:
         await mgr.execute("@dat")
 
     # Stale writer's transport was aborted (RST), then a new connection opened.
-    stale.get_extra_info.return_value.abort.assert_called_once()
+    stale.transport.abort.assert_called_once()
     assert mgr._writer is new_writer
 
 
@@ -525,7 +533,7 @@ async def test_close_safely_force_abort_without_transport_falls_back_to_close() 
     """If there's no underlying transport, abort falls back to writer.close()."""
     mgr = ConnectionManager(TEST_HOST, TEST_PORT)
     writer = _make_writer()
-    writer.get_extra_info = MagicMock(return_value=None)  # no transport
+    writer.transport = None  # no transport
     mgr._writer = writer
     mgr._reader = _make_reader([])
 
@@ -567,3 +575,30 @@ async def test_read_until_handles_timeout_error_from_wait_for() -> None:
 
     result = await mgr._read_until(RESPONSE_SEPARATOR, timeout=0.05)
     assert RESPONSE_SEPARATOR not in result
+
+
+@pytest.mark.asyncio
+async def test_forced_abort_sends_rst_on_real_telnetlib3_writer() -> None:
+    """Regression: a real telnetlib3 writer's transport is found and aborted (RST).
+
+    ``get_extra_info("transport")`` returns None on telnetlib3 writers, so the
+    old lookup silently fell back to a graceful FIN on every forced abort --
+    confirmed on the wire: 18 forced aborts, zero RSTs.
+    """
+    transport = MagicMock(spec=asyncio.Transport)
+    transport.get_extra_info = MagicMock(return_value=None)
+    transport.is_closing = MagicMock(return_value=False)
+    protocol = MagicMock()
+    protocol.get_extra_info = MagicMock(side_effect=lambda _name, default=None: default)
+    writer = TelnetWriterUnicode(transport, protocol, lambda **_: "utf-8", client=True)
+
+    assert writer.get_extra_info("transport") is None  # the trap the old code fell into
+    assert ConnectionManager._transport_of(writer) is transport
+
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT)
+    mgr._writer = writer
+    mgr._reader = _make_reader([])
+    await mgr._close_safely(force_abort=True)
+
+    transport.abort.assert_called_once()
+    assert mgr.metrics.forced_aborts == 1

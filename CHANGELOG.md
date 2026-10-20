@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2-beta.3] - Unreleased
+
+Beta pre-release. Incremental since v1.4.2-beta.2.
+
+### 🐛 Bug Fixes
+
+- **Forced aborts now really send a TCP reset.** The transport was looked up with
+  `writer.get_extra_info("transport")`, which returns `None` on telnetlib3 writers, so every
+  forced abort fell back to a normal FIN close. A packet capture confirmed it: 18 aborts, zero
+  RSTs. The lookup now uses the writer's `transport` attribute, which also re-enables the
+  "transport is closing" check before reusing a connection. Tests now mirror real telnetlib3
+  writers.
+
 ## [1.4.2-beta.2] - 2026-10-19
 
 Beta pre-release: native discovery. New devices appear as a *Discovered* card. Incremental
