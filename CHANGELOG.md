@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-10-20
+
+Stable release. Everything since v1.4.1, tested as v1.4.2-beta.1 to beta.4 on two devices with
+different firmware and WiFi modules. No breaking changes, no entity changes, no migration; the
+entry reloads once when the device's MAC is first learned. Full notes:
+[docs/releases/v1.5.0.md](docs/releases/v1.5.0.md).
+
+### ✨ Added
+
+- **Native discovery (Discovered card)**: DHCP matchers on the device's hostname `E4U-<serial>`,
+  the WiFi module MAC prefix `20:F8:5E` and registered MACs, each confirmed by the UDP-5002
+  probe. Plus a periodic UDP broadcast every 15 minutes (also covers static-IP devices), a
+  name-only confirm step, and IP following for devices configured by IP.
+- **UDP liveness check** at the failures threshold. A device that answers on UDP 5002 while
+  telnet fails is classified `device_not_responding` (deaf), with a dedicated repair issue in 10
+  languages and `failure_type`/`udp_reachable` passed to recovery scripts and device events.
+- **The MAC is registered as the device's network connection** (never merged with a router's
+  device for the same MAC).
+
+### 🐛 Bug Fixes
+
+- `mac_address` was always empty. It's now learned from the HA host's ARP table or from the DHCP
+  request, and never guessed.
+- **Forced aborts now send a TCP reset.** Two bugs had made every version send a FIN instead. In
+  production this cut timeouts during periodic device stalls by about 3×.
+- The add-integration form no longer pre-fills a device that's already configured.
+- The README's Reconfigure section wrongly said changing the host loses history.
+
 ## [1.4.2-beta.4] - 2026-10-20
 
 Beta pre-release. Incremental since v1.4.2-beta.3.

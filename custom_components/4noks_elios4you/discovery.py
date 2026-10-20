@@ -4,9 +4,10 @@ https://github.com/alexdelprete/ha-4noks-elios4you
 
 The device answers an undocumented discovery protocol on UDP port 5002:
 sending the payload ``Elios4you`` (optionally ``Elios4you <serial>``) makes it
-reply ``HELLO <serial>``. Unlike the telnet channel on TCP 5001, this endpoint
-is NOT exclusive — it answers even while a telnet session is open, so probing
-it never interferes with a running integration. Discovered on real hardware
+reply ``HELLO <serial>``. It answers even while a telnet session is open, so
+probing it never interferes with a running integration. (Telnet on TCP 5001
+is not exclusive either: a second session connects while the integration is
+polling -- 152 of 152 attempts on real hardware.) Discovered on real hardware
 while capturing the official app's traffic (PR #182 discussion).
 """
 
