@@ -12,7 +12,9 @@ Covers:
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+import socket
+import struct
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 from telnetlib3.stream_writer import TelnetWriterUnicode
@@ -388,6 +390,9 @@ async def test_close_transitions_to_terminal_state() -> None:
     writer.wait_closed.assert_awaited()
     assert mgr.metrics.graceful_closes == 1
     assert mgr.metrics.forced_aborts == 0
+    # A graceful close never touches SO_LINGER and never aborts
+    writer.transport.get_extra_info.assert_not_called()
+    writer.transport.abort.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -586,8 +591,14 @@ async def test_forced_abort_sends_rst_on_real_telnetlib3_writer() -> None:
     confirmed on the wire: 18 forced aborts, zero RSTs.
     """
     transport = MagicMock(spec=asyncio.Transport)
-    transport.get_extra_info = MagicMock(return_value=None)
+    sock = MagicMock()
+    transport.get_extra_info = MagicMock(
+        side_effect=lambda name, default=None: sock if name == "socket" else default
+    )
     transport.is_closing = MagicMock(return_value=False)
+    calls = MagicMock()
+    calls.attach_mock(sock.setsockopt, "setsockopt")
+    calls.attach_mock(transport.abort, "abort")
     protocol = MagicMock()
     protocol.get_extra_info = MagicMock(side_effect=lambda _name, default=None: default)
     writer = TelnetWriterUnicode(transport, protocol, lambda **_: "utf-8", client=True)
@@ -600,5 +611,41 @@ async def test_forced_abort_sends_rst_on_real_telnetlib3_writer() -> None:
     mgr._reader = _make_reader([])
     await mgr._close_safely(force_abort=True)
 
-    transport.abort.assert_called_once()
+    # SO_LINGER on/0 is set BEFORE abort(): that is what makes the kernel send
+    # an RST. abort() alone closes with a FIN (verified on the wire).
+    assert calls.mock_calls == [
+        call.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0)),
+        call.abort(),
+    ]
     assert mgr.metrics.forced_aborts == 1
+
+
+@pytest.mark.asyncio
+async def test_forced_abort_without_socket_still_aborts() -> None:
+    """No socket to configure: the abort still happens (as a FIN)."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT)
+    writer = _make_writer()
+    writer.transport.get_extra_info = MagicMock(return_value=None)
+    mgr._writer = writer
+    mgr._reader = _make_reader([])
+
+    await mgr._close_safely(force_abort=True)
+
+    writer.transport.abort.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_forced_abort_when_linger_refused_still_aborts() -> None:
+    """A socket that refuses SO_LINGER does not prevent the abort."""
+    mgr = ConnectionManager(TEST_HOST, TEST_PORT)
+    writer = _make_writer()
+    sock = MagicMock()
+    sock.setsockopt = MagicMock(side_effect=OSError("not supported"))
+    writer.transport.get_extra_info = MagicMock(return_value=sock)
+    mgr._writer = writer
+    mgr._reader = _make_reader([])
+
+    await mgr._close_safely(force_abort=True)
+
+    sock.setsockopt.assert_called_once()
+    writer.transport.abort.assert_called_once()

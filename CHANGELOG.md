@@ -5,18 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2-beta.4] - 2026-10-20
+
+Beta pre-release. Incremental since v1.4.2-beta.3.
+
+### 🐛 Bug Fixes
+
+- **Forced aborts now send a TCP reset (RST).** `transport.abort()` alone only closes the socket
+  without flushing, and the kernel still sends a FIN: a production capture after beta.3 showed 6
+  aborts, zero RSTs, and no version had ever sent one. The socket now gets `SO_LINGER` set to
+  on/0 right before `abort()`, so the kernel sends the RST the connection manager was designed
+  around. That frees the device's socket slot even when its telnet task is wedged and would
+  never close its side after a FIN. If the socket refuses the option, the close still happens as
+  a FIN. Normal closes (unload or reload) are unchanged.
+
 ## [1.4.2-beta.3] - 2026-10-20
 
 Beta pre-release. Incremental since v1.4.2-beta.2.
 
 ### 🐛 Bug Fixes
 
-- **Forced aborts now really send a TCP reset.** The transport was looked up with
+- **Forced aborts now reach the socket transport.** The transport was looked up with
   `writer.get_extra_info("transport")`, which returns `None` on telnetlib3 writers, so every
-  forced abort fell back to a normal FIN close. A packet capture confirmed it: 18 aborts, zero
-  RSTs. The lookup now uses the writer's `transport` attribute, which also re-enables the
-  "transport is closing" check before reusing a connection. Tests now mirror real telnetlib3
-  writers.
+  forced abort fell back to `writer.close()`. A packet capture showed 18 aborts, zero RSTs. The
+  lookup now uses the writer's `transport` attribute, which also re-enables the "transport is
+  closing" check before reusing a connection. Tests now mirror real telnetlib3 writers.
+  *Correction:* this entry originally claimed forced aborts "now really send a TCP reset".
+  They don't: `abort()` alone still closes with a FIN. The RST arrives in 1.4.2-beta.4.
 
 ## [1.4.2-beta.2] - 2026-10-19
 

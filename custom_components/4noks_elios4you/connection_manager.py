@@ -55,6 +55,8 @@ from contextlib import suppress
 from dataclasses import asdict, dataclass, field
 from enum import StrEnum
 import logging
+import socket
+import struct
 import time
 from typing import cast
 
@@ -607,13 +609,30 @@ class ConnectionManager:
         transport = getattr(writer, "transport", None)
         return transport if isinstance(transport, asyncio.Transport) else None
 
+    @staticmethod
+    def _set_linger_zero(transport: asyncio.Transport) -> None:
+        """Make the next close of ``transport`` send a TCP RST instead of a FIN.
+
+        Best effort: if the socket is unavailable or refuses the option, the
+        close still happens, just as a FIN.
+        """
+        sock = transport.get_extra_info("socket")
+        if sock is None:
+            return
+        with suppress(OSError, AttributeError, ValueError):
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
+
     async def _close_safely(self, *, force_abort: bool) -> None:
         """Close the connection. RST on error paths, FIN on graceful unload.
 
-        ``force_abort=True`` calls ``transport.abort()`` which sends a TCP
-        RST immediately — critical on the Elios4You because graceful FIN
-        leaves the device's socket slot in CLOSE_WAIT for its (long) idle
-        timeout, eventually exhausting the socket table.
+        ``force_abort=True`` sets ``SO_LINGER`` to on/0 and then calls
+        ``transport.abort()``, so the kernel sends a TCP RST. ``abort()`` alone
+        is not enough: it only closes the socket without flushing, and the
+        kernel still sends a FIN (verified on the wire). The RST matters on
+        the Elios4You because after a FIN the device's socket slot stays in
+        CLOSE_WAIT until its telnet task closes it -- which a wedged ("deaf")
+        device never does -- eventually exhausting its few socket slots. An
+        RST is handled by the device's TCP stack alone.
 
         ``wait_closed()`` is always bounded by ``self._close_timeout`` so a
         misbehaving device can never hang the integration.
@@ -628,6 +647,7 @@ class ConnectionManager:
                 self._metrics.forced_aborts += 1
                 transport = self._transport_of(writer)
                 if transport is not None:
+                    self._set_linger_zero(transport)
                     with suppress(Exception):
                         transport.abort()
                     log_debug(

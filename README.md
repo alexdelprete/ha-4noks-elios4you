@@ -74,8 +74,9 @@ gentle behaviour through an explicit state machine
 - **Connection reuse** — the same TCP session is kept open for up to 90 s, so the default 60 s
   poll cadence usually shares one socket instead of opening a new one each time
 - **Single retry** on transient command failures (silent timeout, mid-command transport error);
-  the manager closes the failed socket with **TCP RST** (`transport.abort()`) so the device frees
-  its slot immediately instead of waiting out CLOSE_WAIT
+  the manager closes the failed socket with a **TCP RST** (`SO_LINGER` 0, then `transport.abort()`)
+  so the device frees its slot immediately, even when its telnet task is wedged and would never
+  close its side after a normal FIN
 - **Bounded close** — `wait_closed()` is capped so a misbehaving device cannot hang the integration
 - **Exponential backoff** after 3 consecutive failures (5 s → 60 s). While in backoff, the
   manager refuses to even attempt a new connection, giving the device a chance to recover
