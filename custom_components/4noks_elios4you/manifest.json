@@ -1,6 +1,7 @@
 {
   "domain": "4noks_elios4you",
   "name": "4-noks Elios4you",
+  "categories": ["energy.meters_monitoring"],
   "codeowners": ["@alexdelprete"],
   "config_flow": true,
   "dhcp": [
