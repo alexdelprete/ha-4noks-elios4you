@@ -36,7 +36,6 @@
     },
     "abort": {
       "already_configured": "Seade on juba seadistatud",
-      "reconfigure_successful": "Umberseadistamine onnestus",
       "unique_id_mismatch": "Seadme seerianumber ei vasta algsele konfiguratsioonile",
       "not_elios4you_device": "See seade ei tuvastanud end Elios4you seadmena"
     }

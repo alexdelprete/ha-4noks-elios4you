@@ -36,7 +36,6 @@
     },
     "abort": {
       "already_configured": "Gerat ist bereits konfiguriert",
-      "reconfigure_successful": "Neukonfiguration erfolgreich",
       "unique_id_mismatch": "Die Seriennummer des Gerats stimmt nicht mit der ursprunglichen Konfiguration uberein",
       "not_elios4you_device": "Dieses Gerät hat sich nicht als Elios4you identifiziert"
     }
