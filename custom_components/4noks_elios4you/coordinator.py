@@ -144,6 +144,12 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
                 "Update completed",
                 time=self.last_update_time,
             )
+            # A healthy poll clears the connection issue. This runs on every success,
+            # not only after this coordinator raised it: the issue is persistent, so
+            # one raised before a Home Assistant restart would otherwise never clear
+            # (_repair_issue_created starts False). Deleting a missing issue is a no-op.
+            delete_connection_issue(self.hass, self._entry_id)
+
             # Handle recovery after repair issue was created
             if self._repair_issue_created:
                 # Calculate downtime and format times using locale-aware format
@@ -176,7 +182,6 @@ class Elios4YouCoordinator(DataUpdateCoordinator[bool]):
                     },
                 )
 
-                delete_connection_issue(self.hass, self._entry_id)
                 log_info(
                     _LOGGER,
                     "async_update_data",

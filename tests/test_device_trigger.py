@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import probatio
 import pytest
-import voluptuous as vol
 
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 from custom_components.fournoks_elios4you.const import DOMAIN
@@ -53,7 +53,7 @@ class TestTriggerConstants:
             CONF_DEVICE_ID: "test_device_id",
             CONF_TYPE: "invalid_type",
         }
-        with pytest.raises(vol.Invalid):
+        with pytest.raises(probatio.Invalid):
             TRIGGER_SCHEMA(invalid_config)
 
 

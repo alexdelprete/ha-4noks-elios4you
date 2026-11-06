@@ -36,7 +36,6 @@
     },
     "abort": {
       "already_configured": "Enheten er allerede konfigurert",
-      "reconfigure_successful": "Rekonfigurering vellykket",
       "unique_id_mismatch": "Enhetens serienummer samsvarer ikke med den opprinnelige konfigurasjonen",
       "not_elios4you_device": "Denne enheten identifiserte seg ikke som en Elios4you"
     }

@@ -36,7 +36,6 @@
     },
     "abort": {
       "already_configured": "El dispositivo ya esta configurado",
-      "reconfigure_successful": "Reconfiguracion exitosa",
       "unique_id_mismatch": "El numero de serie del dispositivo no coincide con la configuracion original",
       "not_elios4you_device": "Este dispositivo no se ha identificado como Elios4you"
     }

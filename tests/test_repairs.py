@@ -57,6 +57,8 @@ class TestCreateConnectionIssue:
             assert kwargs["is_persistent"] is True
             assert kwargs["severity"] == ir.IssueSeverity.ERROR
             assert kwargs["translation_key"] == ISSUE_CONNECTION_FAILED
+            # Linked to the config entry (HA 2026.11): shown on its page, removed with it
+            assert kwargs["config_entry_id"] == entry_id
 
     def test_create_connection_issue_udp_reachable(self, hass: HomeAssistant) -> None:
         """A device alive on UDP gets the telnet-unresponsive text under the same ID."""

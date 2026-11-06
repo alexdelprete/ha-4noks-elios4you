@@ -9,7 +9,7 @@ from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 from custom_components.fournoks_elios4you import config_flow as _elios4you_config_flow
@@ -45,7 +45,7 @@ def integration_setup_fixture() -> Generator[None]:
     # Patch via symlink path (valid Python identifier)
     with patch(
         "custom_components.fournoks_elios4you.async_setup_entry",
-        return_value=True,
+        return_value=None,
     ):
         yield
 
