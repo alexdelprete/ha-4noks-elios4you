@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Minimum supported Home Assistant version raised to 2026.11.0** - the integration uses APIs
+  introduced in 2026.11; the Marketplace will not offer this update to older cores.
+- **Connection repair issue linked to the integration entry** - it appears on the integration's
+  page and is removed together with the entry.
+- **Marketplace category and quality tier** - the manifest declares the
+  `energy.meters_monitoring` category and the Platinum quality scale tier.
+- **Validation engine** - forms use probatio, Home Assistant's validation engine, instead of
+  voluptuous. No user-visible change.
+- **Development tooling** - tests run on `pytest-homeassistant` 2026.11.0, the test package
+  published by Home Assistant core.
+
+### Fixed
+
+- **Connection repair issue left over after a restart** - an issue raised before a Home
+  Assistant restart is now cleared by the first successful poll once the device answers again;
+  before, it stayed until the next outage.
+
+### Removed
+
+- Local translation of the "Reconfiguration successful" message: Home Assistant translates it
+  centrally since 2026.10.
+
 ## [1.5.0] - 2026-10-20
 
 Stable release. Everything since v1.4.1, tested as v1.4.2-beta.1 to beta.4 on two devices with
