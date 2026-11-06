@@ -416,7 +416,9 @@ class TestDeviceRegistry:
         assert device.id != router_device.id
         refreshed_router = device_registry.async_get(router_device.id)
         assert refreshed_router is not None
-        assert refreshed_router.config_entries == {router_entry.entry_id}
+        # A device belongs to a single config entry since HA 2026.8; reading
+        # DeviceEntry.config_entries raises in tests since 2026.9.
+        assert refreshed_router.config_entry_id == router_entry.entry_id
         assert refreshed_router.name == "Router tracker"
 
     async def test_async_update_device_registry_with_all_data(
