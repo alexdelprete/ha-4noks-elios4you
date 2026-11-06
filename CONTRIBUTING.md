@@ -73,7 +73,7 @@ explain why it is the supported path rather than a convenience:
 
 | Symptom | Cause |
 |---|---|
-| `No matching distribution found for homeassistant>=2026.8.0` | Python older than **3.14.2** — pip does not say so. |
+| `No matching distribution found for homeassistant>=2026.11.0` | Python older than **3.14.2** — pip does not say so. |
 | `No module named 'custom_components.fournoks_elios4you'` | Missing symlink; git on Windows does not recreate it. |
 | `ln: failed to create symbolic link: Not a directory` | An NTFS junction does not survive a Docker bind mount. |
 
