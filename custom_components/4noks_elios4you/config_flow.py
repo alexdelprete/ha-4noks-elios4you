@@ -9,7 +9,7 @@ import ipaddress
 import logging
 from typing import Any
 
-import voluptuous as vol
+import probatio
 
 from homeassistant import config_entries
 from homeassistant.config_entries import (
@@ -184,26 +184,28 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
+            data_schema=probatio.Schema(
                 {
-                    vol.Required(
+                    probatio.Required(
                         CONF_NAME,
                         default=DEFAULT_NAME,
                     ): cv.string,
-                    vol.Required(
+                    probatio.Required(
                         CONF_HOST,
                         description={"suggested_value": suggested_host},
                     ): cv.string,
-                    vol.Required(
+                    probatio.Required(
                         CONF_PORT,
                         default=DEFAULT_PORT,
-                    ): vol.All(vol.Coerce(int), vol.Clamp(min=MIN_PORT, max=MAX_PORT)),
-                    vol.Required(
+                    ): probatio.All(
+                        probatio.Coerce(int), probatio.Clamp(min=MIN_PORT, max=MAX_PORT)
+                    ),
+                    probatio.Required(
                         CONF_SCAN_INTERVAL,
                         default=DEFAULT_SCAN_INTERVAL,
-                    ): vol.All(
-                        vol.Coerce(int),
-                        vol.Clamp(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
+                    ): probatio.All(
+                        probatio.Coerce(int),
+                        probatio.Clamp(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
                     ),
                 },
             ),
@@ -314,8 +316,8 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="discovery_confirm",
-            data_schema=vol.Schema(
-                {vol.Required(CONF_NAME, default=DEFAULT_NAME): cv.string},
+            data_schema=probatio.Schema(
+                {probatio.Required(CONF_NAME, default=DEFAULT_NAME): cv.string},
             ),
             errors=errors,
             description_placeholders={
@@ -381,20 +383,22 @@ class Elios4YouConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=vol.Schema(
+            data_schema=probatio.Schema(
                 {
-                    vol.Required(
+                    probatio.Required(
                         CONF_NAME,
                         default=reconfigure_entry.data.get(CONF_NAME, DEFAULT_NAME),
                     ): cv.string,
-                    vol.Required(
+                    probatio.Required(
                         CONF_HOST,
                         default=reconfigure_entry.data.get(CONF_HOST),
                     ): cv.string,
-                    vol.Required(
+                    probatio.Required(
                         CONF_PORT,
                         default=reconfigure_entry.data.get(CONF_PORT, DEFAULT_PORT),
-                    ): vol.All(vol.Coerce(int), vol.Clamp(min=MIN_PORT, max=MAX_PORT)),
+                    ): probatio.All(
+                        probatio.Coerce(int), probatio.Clamp(min=MIN_PORT, max=MAX_PORT)
+                    ),
                 },
             ),
             errors=errors,
@@ -430,7 +434,7 @@ class Elios4YouOptionsFlow(OptionsFlowWithReload):
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
+            data_schema=probatio.Schema(
                 {
                     # 1. Recovery script (right after variables description).
                     # ``description={"suggested_value": ...}`` pre-fills the
@@ -438,19 +442,19 @@ class Elios4YouOptionsFlow(OptionsFlowWithReload):
                     # Using ``default=`` here would resurrect the old value on
                     # any submission where the field is empty — making the
                     # script impossible to remove via the UI.
-                    vol.Optional(
+                    probatio.Optional(
                         CONF_RECOVERY_SCRIPT,
                         description={"suggested_value": recovery_script},
                     ): EntitySelector(
                         EntitySelectorConfig(domain="script"),
                     ),
                     # 2. Enable repair notifications checkbox
-                    vol.Required(
+                    probatio.Required(
                         CONF_ENABLE_REPAIR_NOTIFICATION,
                         default=enable_repair,
                     ): cv.boolean,
                     # 3. Failures threshold as input box (not slider)
-                    vol.Required(
+                    probatio.Required(
                         CONF_FAILURES_THRESHOLD,
                         default=failures_threshold,
                     ): NumberSelector(
@@ -461,7 +465,7 @@ class Elios4YouOptionsFlow(OptionsFlowWithReload):
                         )
                     ),
                     # 4. Polling period at bottom
-                    vol.Required(
+                    probatio.Required(
                         CONF_SCAN_INTERVAL,
                         default=current_options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
                     ): NumberSelector(
