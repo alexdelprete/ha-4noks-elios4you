@@ -11,9 +11,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-# Register pytest-homeassistant-custom-component plugin
-pytest_plugins = ["pytest_homeassistant_custom_component"]
-
 # Direct imports using symlink (fournoks_elios4you -> 4noks_elios4you)
 import custom_components.fournoks_elios4you as _elios4you_init
 from custom_components.fournoks_elios4you import (
@@ -55,7 +52,7 @@ def mock_hass() -> MagicMock:
     """Create a mock Home Assistant instance for unit tests that don't need real HA.
 
     Note: For integration tests, use the built-in `hass` fixture from
-    pytest_homeassistant_custom_component instead.
+    pytest_homeassistant instead.
     """
     mock = MagicMock(spec=HomeAssistant)
     mock.config_entries = MagicMock()

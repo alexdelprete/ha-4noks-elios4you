@@ -16,8 +16,8 @@ with no further setup:
 - the exact **Python** version pinned in `.python-version`, in a virtualenv that is already on
   `PATH`;
 - all development dependencies, installed with `uv pip install -e '.[dev]'` from `pyproject.toml`.
-  That includes `pytest-homeassistant-custom-component`, which pins the exact Home Assistant
-  release the tests run against;
+  That includes `pytest-homeassistant`, the test package Home Assistant core publishes with every
+  release, which pins the exact Home Assistant release the tests run against;
 - the **`fournoks_elios4you` → `4noks_elios4you` symlink**, created by
   `postCreateCommand`. It exists because `4noks_elios4you` starts with a digit and is
   therefore not importable from Python: the tests import through the symlinked name;
@@ -90,7 +90,7 @@ ln -sfn 4noks_elios4you custom_components/fournoks_elios4you
 ```
 
 `pyproject.toml` is the single source of truth for development dependencies: there is no
-`requirements-dev.txt`. `pytest-homeassistant-custom-component` is pinned there to an exact version,
+`requirements-dev.txt`. `pytest-homeassistant` is pinned there to an exact version,
 and it in turn pins the exact `homeassistant` release, which is what makes the test environment
 reproducible.
 
