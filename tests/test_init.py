@@ -34,7 +34,7 @@ from custom_components.fournoks_elios4you.const import (
 from custom_components.fournoks_elios4you.coordinator import Elios4YouCoordinator
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
 
@@ -81,7 +81,7 @@ async def test_async_setup_entry_success(
     ):
         result = await async_setup_entry(hass, entry)
 
-    assert result is True
+    assert result is None
     assert entry.runtime_data is not None
 
 
@@ -168,7 +168,7 @@ async def test_async_unload_entry(
         await async_setup_entry(hass, entry)
         result = await async_unload_entry(hass, entry)
 
-    assert result is True
+    assert result is None
 
 
 async def test_migration_v1_to_v3(
@@ -597,7 +597,7 @@ class TestUnloadEntry:
             result = await async_unload_entry(hass, entry)
 
         # Verify unload was successful
-        assert result is True
+        assert result is None
         mock_unload.assert_called_once()
         # Verify API close was called
         mock_api.close.assert_called_once()
@@ -632,15 +632,17 @@ class TestUnloadEntry:
 
         # Mock async_unload_platforms to return False (failure)
         mock_unload = AsyncMock(return_value=False)
-        with patch.object(
-            hass.config_entries,
-            "async_unload_platforms",
-            mock_unload,
+        with (
+            patch.object(
+                hass.config_entries,
+                "async_unload_platforms",
+                mock_unload,
+            ),
+            pytest.raises(ConfigEntryError),
         ):
-            result = await async_unload_entry(hass, entry)
+            await async_unload_entry(hass, entry)
 
-        # Verify unload failed
-        assert result is False
+        # Verify unload failed (raised)
         mock_unload.assert_called_once()
         # Verify API close was NOT called (cleanup skipped)
         mock_api.close.assert_not_called()

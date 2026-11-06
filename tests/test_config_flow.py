@@ -45,7 +45,7 @@ def integration_setup_fixture() -> Generator[None]:
     # Patch via symlink path (valid Python identifier)
     with patch(
         "custom_components.fournoks_elios4you.async_setup_entry",
-        return_value=True,
+        return_value=None,
     ):
         yield
 
