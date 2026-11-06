@@ -656,6 +656,38 @@ class TestCoordinatorRecoveryFlow:
     """Tests for the full recovery flow."""
 
     @pytest.mark.asyncio
+    async def test_success_clears_issue_left_from_before_restart(self, mock_hass) -> None:
+        """A fresh coordinator clears a persisted connection issue on its first success.
+
+        The issue survives a Home Assistant restart (is_persistent) but the new
+        coordinator never raised it, so clearing must not depend on that flag.
+        """
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_NAME: TEST_NAME, CONF_HOST: TEST_HOST, CONF_PORT: TEST_PORT},
+            options={CONF_SCAN_INTERVAL: TEST_SCAN_INTERVAL},
+        )
+
+        with (
+            patch.object(_elios4you_coordinator, "Elios4YouAPI") as mock_api_class,
+            patch.object(_elios4you_coordinator, "delete_connection_issue") as mock_delete_issue,
+            patch.object(
+                _elios4you_coordinator, "create_recovery_notification"
+            ) as mock_recovery_notification,
+        ):
+            mock_api = mock_api_class.return_value
+            mock_api.data = {"sn": TEST_SERIAL_NUMBER}
+            mock_api.async_get_data = AsyncMock(return_value=True)
+
+            coordinator = Elios4YouCoordinator(mock_hass, entry)
+            assert coordinator._repair_issue_created is False
+
+            await coordinator.async_update_data()
+
+            mock_delete_issue.assert_called_once_with(mock_hass, entry.entry_id)
+            # No outage was observed by this coordinator, so no recovery notification
+            mock_recovery_notification.assert_not_called()
+
     async def test_recovery_deletes_issue_and_creates_notification(self, mock_hass) -> None:
         """Test recovery flow deletes issue and creates notification."""
         entry = MockConfigEntry(

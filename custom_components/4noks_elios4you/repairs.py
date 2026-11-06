@@ -48,6 +48,7 @@ def create_connection_issue(
         hass,
         DOMAIN,
         f"{ISSUE_CONNECTION_FAILED}_{entry_id}",
+        config_entry_id=entry_id,
         is_fixable=False,
         is_persistent=True,
         severity=ir.IssueSeverity.ERROR,
